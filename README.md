@@ -392,5 +392,5 @@ If followed strictly, it enables Flutter applications to scale without collapsin
 ---
 
 <div align="center">
-  <i>Supercharged and architected with <b>Antigravity</b> 🚀✨</i>
+  <i>Built and architected by <b>RMV</b> 🚀✨</i>
 </div>
