@@ -27,6 +27,9 @@ All contributions must comply with the rules defined in this document.
 
 Any deviation must be explicitly reviewed and approved through code review.
 
+> 📖 **Read the Handbook:** For the comprehensive list of rules, anti-patterns, and layer responsibilities, read the **[Engineering Handbook](docs/Framework-Guide/engineering-handbook.md)**.
+> 💡 **New to this project?** Read the **[Getting Started Guide](docs/Framework-Guide/getting_started.md)** to set up your environment.
+
 ---
 
 ## 🧠 Why This System Exists
@@ -250,48 +253,7 @@ test('login success updates state with user', () async {
 
 ---
 
-## 🚀 Getting Started Step-by-Step
 
-### Step 1: Windows Developer Mode (Windows Users Only)
-If developing on Windows, you **must** enable Developer Mode:
-1. Open Windows Settings (`start ms-settings:developers`).
-2. Toggle "Developer Mode" to **ON**.
-3. **Restart your IDE**.
-
-### Step 2: Set Up Environment Variables
-Create `.env.dev` in the root folder:
-```env
-ENV=dev
-API_BASE_URL=https://dev.api.example.com
-ENABLE_LOGGING=true
-APP_NAME=MyApp (Dev)
-```
-
-### Step 3: Run the App
-**Via Terminal:**
-```bash
-flutter run --dart-define-from-file=.env.dev -t lib/main_dev.dart
-```
-
-**Via VS Code (Recommended):**
-1. Create `.vscode/launch.json`:
-```json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Flutter: Run (Dev)",
-      "request": "launch",
-      "type": "dart",
-      "program": "lib/main_dev.dart",
-      "toolArgs": ["--dart-define-from-file=.env.dev"]
-    }
-  ]
-}
-```
-2. Press **F5**.
-
----
 
 ## 🏭 Production Build & Release
 
