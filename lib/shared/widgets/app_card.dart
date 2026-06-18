@@ -3,7 +3,8 @@ import 'package:flutter_template/core/theme/app_spacing.dart';
 
 class AppCard extends StatelessWidget {
   const AppCard({
-    required this.child, super.key,
+    required this.child,
+    super.key,
     this.padding = AppSpacing.edgeInsetsMd,
   });
 

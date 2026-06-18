@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 /// Thin wrapper over [TextFormField] with a consistent look.
 class AppInput extends StatelessWidget {
   const AppInput({
-    required this.label, super.key,
+    required this.label,
+    super.key,
     this.controller,
     this.validator,
     this.obscureText = false,
