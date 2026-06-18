@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-
-import '../../../../core/constants/app_strings.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../widgets/login_form.dart';
+import 'package:flutter_template/core/theme/app_spacing.dart';
+import 'package:flutter_template/core/utils/context_extensions.dart';
+import 'package:flutter_template/features/auth/presentation/widgets/login_form.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -21,13 +20,13 @@ class LoginPage extends StatelessWidget {
                 const Icon(Icons.flutter_dash, size: AppSpacing.xxxl),
                 AppSpacing.gapLg,
                 Text(
-                  AppStrings.welcomeBack,
+                  context.l10n.welcomeBack,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 AppSpacing.gapSm,
                 Text(
-                  AppStrings.signInToContinue,
+                  context.l10n.signInToContinue,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
@@ -35,7 +34,7 @@ class LoginPage extends StatelessWidget {
                 const LoginForm(),
                 AppSpacing.gapMd,
                 Text(
-                  AppStrings.loginHint,
+                  context.l10n.loginHint,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),

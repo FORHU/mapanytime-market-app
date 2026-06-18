@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_spacing.dart';
+import 'package:flutter_template/core/theme/app_spacing.dart';
 
 class AppCard extends StatelessWidget {
   const AppCard({
-    super.key,
-    required this.child,
+    required this.child, super.key,
     this.padding = AppSpacing.edgeInsetsMd,
   });
 
@@ -17,14 +16,9 @@ class AppCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.md),
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.outlineVariant,
-        ),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
       ),
-      child: Padding(
-        padding: padding,
-        child: child,
-      ),
+      child: Padding(padding: padding, child: child),
     );
   }
 }

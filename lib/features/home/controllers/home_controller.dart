@@ -9,5 +9,6 @@ class HomeController extends Notifier<int> {
   void reset() => state = 0;
 }
 
-final homeControllerProvider =
-    NotifierProvider<HomeController, int>(HomeController.new);
+final homeControllerProvider = NotifierProvider<HomeController, int>(
+  HomeController.new,
+);

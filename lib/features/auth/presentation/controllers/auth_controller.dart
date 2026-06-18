@@ -1,12 +1,12 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/services/api_service.dart';
-import '../../../../core/services/storage_service.dart';
-import '../../data/datasources/auth_remote_datasource.dart';
-import '../../data/repositories/auth_repository.dart';
-import '../../domain/entities/user_entity.dart';
-import '../../domain/usecases/login_usecase.dart';
+import 'package:flutter_template/core/services/api_service.dart';
+import 'package:flutter_template/core/services/storage_service.dart';
+import 'package:flutter_template/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:flutter_template/features/auth/data/repositories/auth_repository.dart';
+import 'package:flutter_template/features/auth/domain/entities/user_entity.dart';
+import 'package:flutter_template/features/auth/domain/usecases/login_usecase.dart';
 
 // --- Dependency wiring (Riverpod providers) ---
 
@@ -53,10 +53,10 @@ class AuthController extends Notifier<AuthState> {
   AuthState build() => const AuthState();
 
   Future<bool> login(String email, String password) async {
-    state = state.copyWith(isLoading: true, error: null);
-    
+    state = state.copyWith(isLoading: true);
+
     final result = await ref.read(loginUseCaseProvider)(email, password);
-    
+
     return result.fold(
       (failure) {
         state = AuthState(error: failure.message);
@@ -78,5 +78,6 @@ class AuthController extends Notifier<AuthState> {
   }
 }
 
-final authControllerProvider =
-    NotifierProvider<AuthController, AuthState>(AuthController.new);
+final authControllerProvider = NotifierProvider<AuthController, AuthState>(
+  AuthController.new,
+);

@@ -1,4 +1,4 @@
-import 'environment.dart';
+import 'package:flutter_template/core/config/environment.dart';
 
 /// Per-environment settings, fixed at startup.
 ///
@@ -13,6 +13,24 @@ class AppConfig {
     this.enableLogging = false,
   });
 
+  factory AppConfig.fromEnvironment() {
+    const envString = String.fromEnvironment(
+      'ENVIRONMENT',
+      defaultValue: 'dev',
+    );
+    return const AppConfig(
+      environment: envString == 'prod' ? Environment.prod : Environment.dev,
+      appName: String.fromEnvironment(
+        'APP_NAME',
+        defaultValue: 'flutter_tremplate',
+      ),
+      baseUrl: String.fromEnvironment(
+        'BASE_URL',
+        defaultValue: 'https://api.example.com',
+      ),
+    );
+  }
+
   final Environment environment;
   final String appName;
   final String baseUrl;
@@ -23,14 +41,4 @@ class AppConfig {
 
   /// Set once by `bootstrap()` before `runApp`. Reading it before then throws.
   static late AppConfig instance;
-
-  factory AppConfig.fromEnvironment() {
-    const envString = String.fromEnvironment('ENVIRONMENT', defaultValue: 'dev');
-    return AppConfig(
-      environment: envString == 'prod' ? Environment.prod : Environment.dev,
-      appName: const String.fromEnvironment('APP_NAME', defaultValue: 'Clean Flutter App'),
-      baseUrl: const String.fromEnvironment('BASE_URL', defaultValue: 'https://api.example.com'),
-      enableLogging: const bool.fromEnvironment('ENABLE_LOGGING', defaultValue: false),
-    );
-  }
 }

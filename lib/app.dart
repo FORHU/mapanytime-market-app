@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'core/config/app_config.dart';
-import 'core/theme/app_theme.dart';
-import 'core/theme/dark_theme.dart';
-import 'routes/app_routes.dart';
+import 'package:flutter_template/core/config/app_config.dart';
+import 'package:flutter_template/core/theme/app_theme.dart';
+import 'package:flutter_template/core/theme/dark_theme.dart';
+import 'package:flutter_template/l10n/generated/app_localizations.dart';
+import 'package:flutter_template/routes/app_routes.dart';
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
@@ -18,7 +18,8 @@ class MyApp extends ConsumerWidget {
       title: AppConfig.instance.appName,
       theme: AppTheme.light,
       darkTheme: DarkTheme.dark,
-      themeMode: ThemeMode.system,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
     );
   }

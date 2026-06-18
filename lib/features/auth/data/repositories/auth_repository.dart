@@ -1,10 +1,9 @@
+import 'package:flutter_template/core/errors/failure.dart';
+import 'package:flutter_template/core/services/api_service.dart';
+import 'package:flutter_template/core/services/storage_service.dart';
+import 'package:flutter_template/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:flutter_template/features/auth/domain/entities/user_entity.dart';
 import 'package:fpdart/fpdart.dart';
-
-import '../../../../core/errors/failure.dart';
-import '../../../../core/services/api_service.dart';
-import '../../../../core/services/storage_service.dart';
-import '../../domain/entities/user_entity.dart';
-import '../datasources/auth_remote_datasource.dart';
 
 /// Repository contract (the abstraction the domain layer depends on).
 abstract class AuthRepository {
@@ -20,14 +19,17 @@ class AuthRepositoryImpl implements AuthRepository {
   final StorageService _storage;
 
   @override
-  Future<Either<Failure, UserEntity>> login(String email, String password) async {
+  Future<Either<Failure, UserEntity>> login(
+    String email,
+    String password,
+  ) async {
     try {
       final user = await _remote.login(email, password);
       await _storage.saveToken(user.token);
       return Right(user);
     } on ApiException catch (e) {
       return Left(ServerFailure(e.message));
-    } catch (e) {
+    } on Object catch (e) {
       return Left(ServerFailure(e.toString()));
     }
   }
@@ -37,7 +39,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await _storage.clearToken();
       return const Right(null);
-    } catch (e) {
+    } on Object catch (e) {
       return Left(CacheFailure('Failed to clear local token: $e'));
     }
   }

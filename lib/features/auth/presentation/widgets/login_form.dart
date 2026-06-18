@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_template/core/theme/app_spacing.dart';
+import 'package:flutter_template/core/utils/context_extensions.dart';
+import 'package:flutter_template/core/utils/validators.dart';
+import 'package:flutter_template/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:flutter_template/routes/route_names.dart';
+import 'package:flutter_template/shared/widgets/app_button.dart';
+import 'package:flutter_template/shared/widgets/app_input.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../../../core/constants/app_strings.dart';
-import '../../../../core/utils/validators.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../routes/route_names.dart';
-import '../../../../shared/widgets/app_button.dart';
-import '../../../../shared/widgets/app_input.dart';
-import '../controllers/auth_controller.dart';
 
 class LoginForm extends ConsumerStatefulWidget {
   const LoginForm({super.key});
@@ -32,10 +31,9 @@ class _LoginFormState extends ConsumerState<LoginForm> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final success = await ref.read(authControllerProvider.notifier).login(
-          _emailController.text,
-          _passwordController.text,
-        );
+    final success = await ref
+        .read(authControllerProvider.notifier)
+        .login(_emailController.text, _passwordController.text);
 
     if (!mounted) return;
     if (success) context.go(RouteNames.home);
@@ -51,7 +49,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AppInput(
-            label: AppStrings.email,
+            label: context.l10n.email,
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             prefixIcon: Icons.email_outlined,
@@ -59,7 +57,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
           ),
           AppSpacing.gapMd,
           AppInput(
-            label: AppStrings.password,
+            label: context.l10n.password,
             controller: _passwordController,
             obscureText: true,
             prefixIcon: Icons.lock_outline,
@@ -74,7 +72,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
           ],
           AppSpacing.gapLg,
           AppButton(
-            label: AppStrings.login,
+            label: context.l10n.login,
             isLoading: state.isLoading,
             onPressed: _submit,
           ),

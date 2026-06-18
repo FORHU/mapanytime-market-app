@@ -1,12 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:fpdart/fpdart.dart';
-import 'package:mocktail/mocktail.dart';
-
 import 'package:flutter_template/core/errors/failure.dart';
 import 'package:flutter_template/features/auth/data/repositories/auth_repository.dart';
 import 'package:flutter_template/features/auth/domain/entities/user_entity.dart';
 import 'package:flutter_template/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:mocktail/mocktail.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
 
@@ -17,9 +16,7 @@ void main() {
   setUp(() {
     mockRepository = MockAuthRepository();
     container = ProviderContainer(
-      overrides: [
-        authRepositoryProvider.overrideWithValue(mockRepository),
-      ],
+      overrides: [authRepositoryProvider.overrideWithValue(mockRepository)],
     );
   });
 
@@ -39,8 +36,9 @@ void main() {
     });
 
     test('login success updates state with user and returns true', () async {
-      when(() => mockRepository.login(tEmail, tPassword))
-          .thenAnswer((_) async => const Right(tUser));
+      when(
+        () => mockRepository.login(tEmail, tPassword),
+      ).thenAnswer((_) async => const Right(tUser));
 
       final controller = container.read(authControllerProvider.notifier);
       final result = await controller.login(tEmail, tPassword);
@@ -55,8 +53,9 @@ void main() {
 
     test('login failure updates state with error and returns false', () async {
       const tFailure = ServerFailure('Invalid credentials');
-      when(() => mockRepository.login(tEmail, tPassword))
-          .thenAnswer((_) async => const Left(tFailure));
+      when(
+        () => mockRepository.login(tEmail, tPassword),
+      ).thenAnswer((_) async => const Left(tFailure));
 
       final controller = container.read(authControllerProvider.notifier);
       final result = await controller.login(tEmail, tPassword);

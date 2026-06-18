@@ -2,8 +2,9 @@
 class Validators {
   Validators._();
 
-  static final RegExp _emailRegex =
-      RegExp(r'^[\w.\-]+@([\w\-]+\.)+[\w\-]{2,}$');
+  static final RegExp _emailRegex = RegExp(
+    r'^[\w.\-]+@([\w\-]+\.)+[\w\-]{2,}$',
+  );
 
   static String? email(String? value) {
     final v = value?.trim() ?? '';

@@ -1,7 +1,8 @@
-import '../../../../core/services/api_service.dart';
-import '../models/user_model.dart';
+import 'package:flutter_template/core/services/api_service.dart';
+import 'package:flutter_template/features/auth/data/models/user_model.dart';
 
 /// Talks to the remote API. Knows nothing about storage or UI.
+// ignore: one_member_abstracts
 abstract class AuthRemoteDataSource {
   Future<UserModel> login(String email, String password);
 }

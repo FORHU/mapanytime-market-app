@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_template/app.dart';
+import 'package:flutter_template/core/config/app_config.dart';
+import 'package:flutter_template/core/services/storage_service.dart';
+import 'package:flutter_template/core/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'app.dart';
-import 'core/config/app_config.dart';
-import 'core/services/storage_service.dart';
-import 'core/utils/logger.dart';
 
 /// Shared startup used by every entry point. Pins the chosen [config], does
 /// async init (SharedPreferences), then runs the app. Keep environment-
@@ -25,9 +24,7 @@ Future<void> bootstrap(AppConfig config) async {
 
   runApp(
     ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-      ],
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       child: const MyApp(),
     ),
   );

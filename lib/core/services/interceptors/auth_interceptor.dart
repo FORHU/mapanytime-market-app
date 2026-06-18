@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-import '../storage_service.dart';
+import 'package:flutter_template/core/services/storage_service.dart';
 
 /// Intercepts outgoing requests to attach the Bearer token.
 class AuthInterceptor extends Interceptor {

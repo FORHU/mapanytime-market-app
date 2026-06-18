@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'app_colors.dart';
+import 'package:flutter_template/core/constants/app_colors.dart';
 
 /// Reusable text styles. Pair with `Theme.of(context).textTheme` for defaults.
 class AppTextStyles {

@@ -1,10 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
-
-import '../config/app_config.dart';
-import '../utils/logger.dart';
-import 'interceptors/auth_interceptor.dart';
-import 'storage_service.dart';
+import 'package:flutter_template/core/config/app_config.dart';
+import 'package:flutter_template/core/services/interceptors/auth_interceptor.dart';
+import 'package:flutter_template/core/services/storage_service.dart';
+import 'package:flutter_template/core/utils/logger.dart';
 
 /// Thin wrapper around [Dio].
 ///
@@ -16,16 +15,17 @@ import 'storage_service.dart';
 /// return res.data as Map<String, dynamic>;
 /// ```
 class ApiService {
-  ApiService({Dio? dio, required StorageService storage})
-      : client = dio ??
-            Dio(
-              BaseOptions(
-                // Base URL comes from the active environment (dev/prod).
-                baseUrl: AppConfig.instance.baseUrl,
-                connectTimeout: const Duration(seconds: 10),
-                receiveTimeout: const Duration(seconds: 10),
-              ),
-            ) {
+  ApiService({required StorageService storage, Dio? dio})
+    : client =
+          dio ??
+          Dio(
+            BaseOptions(
+              // Base URL comes from the active environment (dev/prod).
+              baseUrl: AppConfig.instance.baseUrl,
+              connectTimeout: const Duration(seconds: 10),
+              receiveTimeout: const Duration(seconds: 10),
+            ),
+          ) {
     // 1. Inject Auth Bearer tokens
     client.interceptors.add(AuthInterceptor(storage));
 
@@ -33,8 +33,7 @@ class ApiService {
     client.interceptors.add(
       RetryInterceptor(
         dio: client,
-        logPrint: (msg) => appLogger.w(msg), // Prints retry attempts using AppLogger
-        retries: 3,
+        logPrint: appLogger.w, // Prints retry attempts using AppLogger
         retryDelays: const [
           Duration(seconds: 1),
           Duration(seconds: 2),

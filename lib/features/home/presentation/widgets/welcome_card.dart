@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/utils/helpers.dart';
-import '../../../../shared/widgets/app_card.dart';
+import 'package:flutter_template/core/theme/app_spacing.dart';
+import 'package:flutter_template/core/utils/helpers.dart';
+import 'package:flutter_template/shared/widgets/app_card.dart';
 
 class WelcomeCard extends StatelessWidget {
-  const WelcomeCard({super.key, required this.name});
+  const WelcomeCard({required this.name, super.key});
 
   final String name;
 
@@ -26,10 +26,7 @@ class WelcomeCard extends StatelessWidget {
                     '${Helpers.greeting()},',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
-                  Text(
-                    name,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                  Text(name, style: Theme.of(context).textTheme.titleMedium),
                 ],
               ),
             ),

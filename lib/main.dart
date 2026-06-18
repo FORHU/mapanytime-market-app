@@ -1,5 +1,5 @@
-import 'bootstrap.dart';
-import 'core/config/app_config.dart';
+import 'package:flutter_template/bootstrap.dart';
+import 'package:flutter_template/core/config/app_config.dart';
 
 /// Default entry point for a bare `flutter run` (no `-t`). Uses the dev
 /// environment. For explicit targets, run `lib/main_dev.dart` or
