@@ -1,3 +1,4 @@
+import 'package:flutter_template/core/constants/api_endpoints.dart';
 import 'package:flutter_template/core/services/api_service.dart';
 import 'package:flutter_template/features/auth/data/models/user_model.dart';
 
@@ -14,10 +15,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<UserModel> login(String email, String password) async {
-    final json = await _api.post('/login', {
+    final data = await _api.post(ApiEndpoints.login, {
       'email': email,
       'password': password,
     });
-    return UserModel.fromJson(json);
+    return UserModel.fromJson((data as Map).cast<String, dynamic>());
   }
 }

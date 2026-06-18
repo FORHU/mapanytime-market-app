@@ -1,5 +1,5 @@
+import 'package:flutter_template/core/errors/exceptions.dart';
 import 'package:flutter_template/core/errors/failure.dart';
-import 'package:flutter_template/core/services/api_service.dart';
 import 'package:flutter_template/core/services/storage_service.dart';
 import 'package:flutter_template/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:flutter_template/features/auth/domain/entities/user_entity.dart';
@@ -11,7 +11,8 @@ abstract class AuthRepository {
   Future<Either<Failure, void>> logout();
 }
 
-/// Coordinates the remote data source and local token storage.
+/// Coordinates the remote data source and local token storage. Catches the
+/// data layer's typed exceptions and maps them to typed [Failure] values.
 class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(this._remote, this._storage);
 
@@ -26,8 +27,16 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final user = await _remote.login(email, password);
       await _storage.saveToken(user.token);
+      final refreshToken = user.refreshToken;
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        await _storage.saveRefreshToken(refreshToken);
+      }
       return Right(user);
-    } on ApiException catch (e) {
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(e.message));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on AppException catch (e) {
       return Left(ServerFailure(e.message));
     } on Object catch (e) {
       return Left(ServerFailure(e.toString()));
@@ -37,10 +46,10 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, void>> logout() async {
     try {
-      await _storage.clearToken();
+      await _storage.clearSession();
       return const Right(null);
     } on Object catch (e) {
-      return Left(CacheFailure('Failed to clear local token: $e'));
+      return Left(CacheFailure('Failed to clear local session: $e'));
     }
   }
 }

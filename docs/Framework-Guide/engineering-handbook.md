@@ -152,17 +152,32 @@ AppSpacing.edgeInsetsLg;
 ## 🌐 7. Networking Rules
 
 ### 7.1 API Layer
-All requests must go through: `ApiService` (Dio abstraction)
+All requests must go through: `ApiService` (Dio abstraction), which exposes
+`get` / `post` / `put` / `patch` / `delete`.
 
 ### 7.2 Responsibilities
-- Token injection
-- Retry handling
-- Error normalization
-- Logging control
+- Token injection + transparent refresh-on-401 (`AuthInterceptor`)
+- Retry handling (`dio_smart_retry`)
+- Error normalization — Dio transport errors become typed `AppException`s
+  (`NetworkException`, `UnauthorizedException`, `ServerException`)
+- Logging control (dev only)
 
-### 7.3 Forbidden
+### 7.3 Error Translation Contract
+- **Data layer** (`ApiService`/data sources) throws `AppException` subtypes.
+- **Repositories** catch them and return typed `Failure`s
+  (`NetworkFailure`, `UnauthorizedFailure`, `ServerFailure`).
+- Exceptions never reach controllers or the UI.
+
+### 7.4 Mock Backend (runs with no server)
+- When `AppConfig.instance.useMock` is true (dev default), a `MockInterceptor`
+  serves canned responses. Set `USE_MOCK=false` to hit the real `BASE_URL`.
+- The mock sits inside the Dio pipeline, so the real `ApiService` path is always
+  exercised — removing it requires no other code changes.
+
+### 7.5 Forbidden
 - Direct Dio usage in features
 - HTTP calls in UI or controller layers
+- Inlining endpoint path strings — add them to `ApiEndpoints`
 
 ---
 

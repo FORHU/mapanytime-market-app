@@ -8,6 +8,7 @@ class UserModel extends UserEntity {
     required super.email,
     required super.name,
     required this.token,
+    this.refreshToken,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
@@ -15,17 +16,24 @@ class UserModel extends UserEntity {
     email: json['email'] as String,
     name: json['name'] as String,
     token: json['token'] as String,
+    refreshToken: json['refreshToken'] as String?,
   );
 
+  /// Short-lived access token (bearer).
   final String token;
+
+  /// Long-lived token used to obtain a new access token. Optional — some
+  /// backends issue only an access token.
+  final String? refreshToken;
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'email': email,
     'name': name,
     'token': token,
+    'refreshToken': refreshToken,
   };
 
   @override
-  List<Object?> get props => [...super.props, token];
+  List<Object?> get props => [...super.props, token, refreshToken];
 }

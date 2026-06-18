@@ -1,22 +1,106 @@
 import 'package:dio/dio.dart';
-
+import 'package:flutter_template/core/constants/api_endpoints.dart';
 import 'package:flutter_template/core/services/storage_service.dart';
 
-/// Intercepts outgoing requests to attach the Bearer token.
-class AuthInterceptor extends Interceptor {
-  AuthInterceptor(this._storage);
+/// Attaches the access token to outgoing requests and transparently refreshes
+/// it once when the server returns 401, then retries the original request.
+///
+/// If refresh fails (or there is no refresh token), the local session is
+/// cleared so the router falls back to the login flow. Extends
+/// [QueuedInterceptor] so concurrent 401s don't trigger parallel refreshes.
+///
+/// The refresh call uses a separate, bare [Dio] so it does not recurse through
+/// this interceptor.
+class AuthInterceptor extends QueuedInterceptor {
+  AuthInterceptor(this._storage, {required String baseUrl})
+    : _refreshClient = Dio(BaseOptions(baseUrl: baseUrl));
 
   final StorageService _storage;
+  final Dio _refreshClient;
+
+  /// Marks a request that has already been retried after a refresh, to avoid
+  /// infinite 401 loops.
+  static const String _retriedFlag = 'auth_retried';
+
+  /// Endpoints that must NOT carry a bearer token or trigger a refresh.
+  static const Set<String> _authPaths = {
+    ApiEndpoints.login,
+    ApiEndpoints.refresh,
+  };
 
   @override
   Future<void> onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final token = await _storage.readToken();
-    if (token != null && token.isNotEmpty) {
-      options.headers['Authorization'] = 'Bearer $token';
+    if (!_authPaths.contains(options.path)) {
+      final token = await _storage.readToken();
+      if (token != null && token.isNotEmpty) {
+        options.headers['Authorization'] = 'Bearer $token';
+      }
     }
-    return super.onRequest(options, handler);
+    handler.next(options);
+  }
+
+  @override
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
+    final options = err.requestOptions;
+    final isUnauthorized = err.response?.statusCode == 401;
+    final alreadyRetried = options.extra[_retriedFlag] == true;
+    final isAuthCall = _authPaths.contains(options.path);
+
+    if (!isUnauthorized || alreadyRetried || isAuthCall) {
+      handler.next(err);
+      return;
+    }
+
+    final newToken = await _refreshToken();
+    if (newToken == null) {
+      await _storage.clearSession();
+      handler.next(err);
+      return;
+    }
+
+    // Replay the original request with the fresh token.
+    options
+      ..extra[_retriedFlag] = true
+      ..headers['Authorization'] = 'Bearer $newToken';
+    try {
+      final response = await _refreshClient.fetch<dynamic>(options);
+      handler.resolve(response);
+    } on DioException catch (e) {
+      handler.next(e);
+    }
+  }
+
+  /// Exchanges the stored refresh token for a new access token. Returns the new
+  /// access token, or null if refresh isn't possible.
+  Future<String?> _refreshToken() async {
+    final refreshToken = await _storage.readRefreshToken();
+    if (refreshToken == null || refreshToken.isEmpty) return null;
+
+    try {
+      final res = await _refreshClient.post<dynamic>(
+        ApiEndpoints.refresh,
+        data: {'refreshToken': refreshToken},
+      );
+      final data = res.data;
+      if (data is! Map) return null;
+
+      final token = data['token'] as String?;
+      final newRefresh = data['refreshToken'] as String?;
+      if (token == null || token.isEmpty) return null;
+
+      await _storage.saveToken(token);
+      if (newRefresh != null && newRefresh.isNotEmpty) {
+        await _storage.saveRefreshToken(newRefresh);
+      }
+      return token;
+    } on DioException {
+      return null;
+    }
   }
 }

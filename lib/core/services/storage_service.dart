@@ -13,6 +13,7 @@ class StorageService {
   final FlutterSecureStorage _secure;
 
   static const String _tokenKey = 'auth_token';
+  static const String _refreshTokenKey = 'refresh_token';
 
   // --- Plain key/value ---
   String? getString(String key) => _prefs.getString(key);
@@ -20,11 +21,21 @@ class StorageService {
       _prefs.setString(key, value);
   Future<void> remove(String key) => _prefs.remove(key);
 
-  // --- Secure (token) ---
+  // --- Secure (access token) ---
   Future<void> saveToken(String token) =>
       _secure.write(key: _tokenKey, value: token);
   Future<String?> readToken() => _secure.read(key: _tokenKey);
-  Future<void> clearToken() => _secure.delete(key: _tokenKey);
+
+  // --- Secure (refresh token) ---
+  Future<void> saveRefreshToken(String token) =>
+      _secure.write(key: _refreshTokenKey, value: token);
+  Future<String?> readRefreshToken() => _secure.read(key: _refreshTokenKey);
+
+  /// Clears the whole authenticated session (access + refresh tokens).
+  Future<void> clearSession() async {
+    await _secure.delete(key: _tokenKey);
+    await _secure.delete(key: _refreshTokenKey);
+  }
 }
 
 /// Overridden in `main()` with the resolved instance — see [ProviderScope].

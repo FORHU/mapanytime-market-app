@@ -1,39 +1,43 @@
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter_template/core/config/app_config.dart';
+import 'package:flutter_template/core/errors/exceptions.dart';
 import 'package:flutter_template/core/services/interceptors/auth_interceptor.dart';
+import 'package:flutter_template/core/services/interceptors/mock_interceptor.dart';
 import 'package:flutter_template/core/services/storage_service.dart';
 import 'package:flutter_template/core/utils/logger.dart';
 
-/// Thin wrapper around [Dio].
+/// Thin, typed wrapper around [Dio]. Every network call in the app goes through
+/// here. Methods return decoded JSON and throw [AppException] subtypes on
+/// failure — repositories translate those into `Failure` values.
 ///
-/// NOTE: To keep this template runnable with no backend, [post] fakes the
-/// `/login` response. Replace the faked block with a real call:
-///
-/// ```dart
-/// final res = await client.post(path, data: body);
-/// return res.data as Map<String, dynamic>;
-/// ```
+/// Point it at your backend by setting `BASE_URL` (see `.env.*`). When
+/// `AppConfig.instance.useMock` is true, a [MockInterceptor] serves canned
+/// responses so the app runs with no server — the rest of this class behaves
+/// exactly as it would against a real API.
 class ApiService {
   ApiService({required StorageService storage, Dio? dio})
     : client =
           dio ??
           Dio(
             BaseOptions(
-              // Base URL comes from the active environment (dev/prod).
               baseUrl: AppConfig.instance.baseUrl,
               connectTimeout: const Duration(seconds: 10),
               receiveTimeout: const Duration(seconds: 10),
+              sendTimeout: const Duration(seconds: 10),
+              contentType: Headers.jsonContentType,
             ),
           ) {
-    // 1. Inject Auth Bearer tokens
-    client.interceptors.add(AuthInterceptor(storage));
+    // 1. Attach the bearer token and transparently refresh it on a 401.
+    client.interceptors.add(
+      AuthInterceptor(storage, baseUrl: client.options.baseUrl),
+    );
 
-    // 2. Smart Retry for unstable networks
+    // 2. Retry transient failures on unstable networks.
     client.interceptors.add(
       RetryInterceptor(
         dio: client,
-        logPrint: appLogger.w, // Prints retry attempts using AppLogger
+        logPrint: appLogger.w,
         retryDelays: const [
           Duration(seconds: 1),
           Duration(seconds: 2),
@@ -42,47 +46,78 @@ class ApiService {
       ),
     );
 
-    // 3. Logger (only in dev)
+    // 3. Verbose request/response logging (dev only).
     if (AppConfig.instance.enableLogging) {
       client.interceptors.add(
         LogInterceptor(requestBody: true, responseBody: true),
       );
+    }
+
+    // 4. Mock backend — must be LAST so it can short-circuit the request
+    //    before it leaves the device.
+    if (AppConfig.instance.useMock) {
+      client.interceptors.add(MockInterceptor());
     }
   }
 
   /// Exposed so interceptors/tests can configure or replace the client.
   final Dio client;
 
-  Future<Map<String, dynamic>> post(
-    String path,
-    Map<String, dynamic> body,
-  ) async {
-    // --- FAKE backend (remove once a real API exists) ---
-    await Future<void>.delayed(const Duration(milliseconds: 800));
+  Future<dynamic> get(String path, {Map<String, dynamic>? query}) =>
+      _send(() => client.get<dynamic>(path, queryParameters: query));
 
-    if (path == '/login') {
-      final email = (body['email'] as String? ?? '').trim();
-      final password = body['password'] as String? ?? '';
-      if (password.length < 6) {
-        throw ApiException('Invalid email or password');
-      }
-      return {
-        'id': '1',
-        'email': email,
-        'name': email.split('@').first,
-        'token': 'fake-jwt-token',
-      };
+  Future<dynamic> post(String path, [Object? body]) =>
+      _send(() => client.post<dynamic>(path, data: body));
+
+  Future<dynamic> put(String path, [Object? body]) =>
+      _send(() => client.put<dynamic>(path, data: body));
+
+  Future<dynamic> patch(String path, [Object? body]) =>
+      _send(() => client.patch<dynamic>(path, data: body));
+
+  Future<dynamic> delete(String path, [Object? body]) =>
+      _send(() => client.delete<dynamic>(path, data: body));
+
+  Future<dynamic> _send(Future<Response<dynamic>> Function() request) async {
+    try {
+      final response = await request();
+      return response.data;
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  /// Normalizes Dio's transport-level errors into the app's typed exceptions.
+  AppException _mapError(DioException e) {
+    final status = e.response?.statusCode;
+    if (status == 401 || status == 403) {
+      return UnauthorizedException(_messageFrom(e) ?? 'Unauthorized access');
     }
 
-    throw ApiException('Unknown endpoint: $path');
-    // --- end FAKE backend ---
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+      case DioExceptionType.connectionError:
+        return const NetworkException();
+      case DioExceptionType.badResponse:
+      case DioExceptionType.badCertificate:
+      case DioExceptionType.cancel:
+      case DioExceptionType.unknown:
+        return ServerException(
+          _messageFrom(e) ?? 'Unexpected server error',
+          statusCode: status,
+        );
+    }
   }
-}
 
-class ApiException implements Exception {
-  ApiException(this.message);
-  final String message;
-
-  @override
-  String toString() => message;
+  /// Pulls a human-readable message from a `{ "message": "..." }` error body,
+  /// falling back to Dio's own message.
+  String? _messageFrom(DioException e) {
+    final data = e.response?.data;
+    if (data is Map && data['message'] is String) {
+      return data['message'] as String;
+    }
+    return e.message;
+  }
 }

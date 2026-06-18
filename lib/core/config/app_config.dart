@@ -11,6 +11,7 @@ class AppConfig {
     required this.appName,
     required this.baseUrl,
     this.enableLogging = false,
+    this.useMock = false,
   });
 
   /// Builds config from `--dart-define`/`--dart-define-from-file` values.
@@ -35,28 +36,40 @@ class AppConfig {
         'ENABLE_LOGGING',
         defaultValue: envString != 'prod',
       ),
+      // Serve canned responses (no server needed) unless explicitly disabled.
+      useMock: bool.fromEnvironment(
+        'USE_MOCK',
+        defaultValue: envString != 'prod',
+      ),
     );
   }
 
   /// Explicit development config used by `main_dev.dart` — works without any
-  /// `--dart-define`, with logging on.
+  /// `--dart-define`, with logging on and the mock backend enabled.
   const AppConfig.dev()
     : environment = Environment.dev,
       appName = 'Clean Flutter App (Dev)',
-      baseUrl = 'https://dev.api.example.com',
-      enableLogging = true;
+      baseUrl = 'https://reqres.in/api',
+      enableLogging = true,
+      useMock = true;
 
-  /// Explicit production config used by `main_prod.dart` — logging off.
+  /// Explicit production config used by `main_prod.dart` — logging off, real
+  /// backend.
   const AppConfig.prod()
     : environment = Environment.prod,
       appName = 'Clean Flutter App',
       baseUrl = 'https://api.example.com',
-      enableLogging = false;
+      enableLogging = false,
+      useMock = false;
 
   final Environment environment;
   final String appName;
   final String baseUrl;
   final bool enableLogging;
+
+  /// When true, a `MockInterceptor` serves canned responses so the app runs
+  /// with no backend. Keep off in production.
+  final bool useMock;
 
   bool get isDev => environment == Environment.dev;
   bool get isProd => environment == Environment.prod;

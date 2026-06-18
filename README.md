@@ -263,6 +263,23 @@ test('login success updates state with user', () async {
 
 
 
+## 🔌 Connecting a Real Backend
+
+The template ships **backend-ready** but runs with **no server** out of the box.
+
+- `ApiService` ([lib/core/services/api_service.dart](lib/core/services/api_service.dart)) is a real Dio client exposing `get` / `post` / `put` / `patch` / `delete`. Transport errors are normalized into typed exceptions (`NetworkException`, `UnauthorizedException`, `ServerException`), which repositories translate into `Failure`s.
+- `AuthInterceptor` attaches the bearer token and **transparently refreshes it once on a 401**, retrying the original request; if refresh fails it clears the session and the router sends the user back to login.
+- A `MockInterceptor` serves canned responses while `useMock` is on — so `flutter run` works immediately.
+
+### Going live in 3 steps
+1. **Point at your API:** set `BASE_URL` in `.env.dev` / `.env.prod` (a public sample, `https://reqres.in/api`, is pre-filled for dev).
+2. **Turn off the mock:** set `USE_MOCK=false` (it's already `false` in `.env.prod`).
+3. **Match your endpoints/DTOs:** adjust paths in [ApiEndpoints](lib/core/constants/api_endpoints.dart) and the JSON in `UserModel.fromJson`. The login response is expected to contain `token` (and optionally `refreshToken`).
+
+No other layers change — controllers, repositories, and the UI are already wired to the typed result/error contracts.
+
+---
+
 ## 🏭 Production Build & Release
 
 This framework is not just a UI starter kit; it is a full production delivery system.
