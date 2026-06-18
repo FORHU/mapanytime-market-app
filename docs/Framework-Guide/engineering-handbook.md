@@ -13,7 +13,11 @@ This framework exists to ensure that all Flutter applications built within the o
 - **Consistent** in UI design
 - **Scalable** across teams
 - **Testable** by default
-- **Enforced** by tooling, not discipline
+- **Enforced** by tooling where practical, and by code review elsewhere
+
+> Not every rule below is mechanically enforced. Formatting, linting, tests, and
+> feature isolation are checked in CI (see §10); design-system and
+> no-API-in-UI rules are enforced by review. Each rule notes which applies.
 
 ---
 
@@ -35,7 +39,11 @@ These principles are enforced across all features:
 
 ### 2.4 Strict Feature Isolation
 - Features must not directly depend on each other
-- Cross-feature imports are forbidden
+- Cross-feature imports are forbidden *(CI-enforced — see §10)*
+- **One sanctioned exception:** the `auth` feature owns app-wide
+  session/identity state (the authenticated `UserEntity`). Other features may
+  import `auth`; `auth` must not import any other feature. No other
+  feature-to-feature imports are allowed.
 
 ### 2.5 API Access Control
 - All network access must go through `ApiService`
@@ -204,14 +212,22 @@ test('should return user on successful login', () async {
 ## ⚙️ 10. CI/CD Enforcement Layer
 
 ### 10.1 Pipeline Gates
-All code must pass:
-- `dart format`
-- `flutter analyze`
+All code must pass these **mechanically enforced** gates:
+- `dart format` (formatting)
+- `flutter analyze` (`very_good_analysis` lints)
+- Feature-isolation guard (no cross-feature imports except `auth`)
 - `flutter test`
 
 ### 10.2 Enforcement Rule
 > [!IMPORTANT]
-> **Code that fails CI cannot be merged into main.**
+> **Code that fails a CI gate cannot be merged into main.**
+
+### 10.3 Review-Enforced Rules
+The following are standards but are **not** mechanically checked — reviewers are
+responsible for them:
+- design-system tokens (no hardcoded spacing/colors/typography)
+- no API calls or raw HTTP in the UI/controller layers
+- no hardcoded user-facing strings (use `context.l10n`)
 
 ---
 

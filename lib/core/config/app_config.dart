@@ -13,6 +13,8 @@ class AppConfig {
     this.enableLogging = false,
   });
 
+  /// Builds config from `--dart-define`/`--dart-define-from-file` values.
+  /// Used by the default entry point (`main.dart`) and release builds.
   factory AppConfig.fromEnvironment() {
     const envString = String.fromEnvironment(
       'ENVIRONMENT',
@@ -22,14 +24,34 @@ class AppConfig {
       environment: envString == 'prod' ? Environment.prod : Environment.dev,
       appName: String.fromEnvironment(
         'APP_NAME',
-        defaultValue: 'flutter_tremplate',
+        defaultValue: 'flutter_template',
       ),
       baseUrl: String.fromEnvironment(
         'BASE_URL',
         defaultValue: 'https://api.example.com',
       ),
+      // Defaults on in dev, off in prod when the flag is absent.
+      enableLogging: bool.fromEnvironment(
+        'ENABLE_LOGGING',
+        defaultValue: envString != 'prod',
+      ),
     );
   }
+
+  /// Explicit development config used by `main_dev.dart` — works without any
+  /// `--dart-define`, with logging on.
+  const AppConfig.dev()
+    : environment = Environment.dev,
+      appName = 'Clean Flutter App (Dev)',
+      baseUrl = 'https://dev.api.example.com',
+      enableLogging = true;
+
+  /// Explicit production config used by `main_prod.dart` — logging off.
+  const AppConfig.prod()
+    : environment = Environment.prod,
+      appName = 'Clean Flutter App',
+      baseUrl = 'https://api.example.com',
+      enableLogging = false;
 
   final Environment environment;
   final String appName;

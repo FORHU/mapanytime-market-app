@@ -43,12 +43,19 @@ As teams grow, common issues appear:
 - tightly coupled networking code
 - untestable business logic flows
 
-This system was designed to eliminate these failure modes by enforcing architecture through:
-- the type system (Dart)
-- functional error modeling (fpdart)
-- strict linting rules (very_good_analysis)
-- CI/CD enforcement gates (GitHub Actions)
-- design system constraints (no ad-hoc UI values allowed)
+This system reduces these failure modes through a mix of **tooling-enforced** and **convention-enforced** guarantees. Be honest about which is which:
+
+| Mechanism | Enforced by | Auto-blocked in CI? |
+|---|---|---|
+| Functional error modeling (fpdart `Either`) | Type system + review | Partially (must compile) |
+| Strict linting (`very_good_analysis`) | `flutter analyze` | ✅ Yes |
+| Formatting | `dart format` | ✅ Yes |
+| Tests pass | `flutter test` | ✅ Yes |
+| No cross-feature imports | CI guard script | ✅ Yes (except `auth`) |
+| Design-system tokens (no ad-hoc UI values) | Convention + review | ❌ No (review only) |
+| No API calls / raw HTTP in UI | Convention + review | ❌ No (review only) |
+
+> The architectural *boundaries* below are real and expected, but only the rows marked ✅ are mechanically enforced today. The rest rely on code review. Treat them as standards, not guarantees.
 
 ---
 
@@ -59,7 +66,7 @@ These rules are enforced at architecture level:
 - **No API calls inside UI layer**
 - **No unhandled exceptions in presentation layer**
 - **No hardcoded spacing, colors, or typography**
-- **No cross-feature imports**
+- **No cross-feature imports** *(except the shared `auth`/session feature — see Handbook §2.4)*
 - **No raw HTTP usage outside ApiService**
 - **No state mutation outside Riverpod controllers**
 
@@ -158,7 +165,7 @@ onPressed: () async {
 ```
 
 ### ✅ The Enterprise Way (fpdart)
-Our Repositories return an `Either<Failure, Success>`. The Controller **must** handle both sides using `.fold()`. The compiler physically prevents unhandled exceptions!
+Our Repositories return an `Either<Failure, Success>`. Errors become *values*, so the failure path is part of the function's type rather than an exception that can slip past an empty `catch`. The Controller handles both sides with `.fold()`:
 
 ```dart
 // Inside AuthController
@@ -183,9 +190,10 @@ On every **Pull Request** and **Push to Main**, GitHub Actions will automaticall
 2. **Generate Localization**: Runs `flutter gen-l10n`.
 3. **Format Check**: Runs `dart format` to ensure strict syntax styling. (Fails the build if unformatted).
 4. **Lint Gate**: Runs `flutter analyze` to catch unused imports and bad practices. (Fails the build if issues exist).
-5. **Test Gate**: Runs `flutter test` across the entire project. (Fails the build if tests fail).
+5. **Feature Isolation Gate**: A guard script fails the build if a feature imports another feature's code (the shared `auth` feature is exempt).
+6. **Test Gate**: Runs `flutter test` across the entire project. (Fails the build if tests fail).
 
-*Code that violates these rules cannot reach the main branch by design.*
+*Violations of the gates above cannot reach the main branch by design. Conventions not on this list (design tokens, no-API-in-UI) are enforced by code review, not CI.*
 
 ---
 

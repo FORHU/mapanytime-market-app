@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_template/core/utils/context_extensions.dart';
 import 'package:flutter_template/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:flutter_template/features/home/controllers/home_controller.dart';
+import 'package:flutter_template/features/home/presentation/controllers/home_controller.dart';
 import 'package:flutter_template/features/home/presentation/widgets/welcome_card.dart';
 import 'package:flutter_template/routes/route_names.dart';
 import 'package:go_router/go_router.dart';

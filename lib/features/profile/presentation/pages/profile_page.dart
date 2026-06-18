@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter_template/core/utils/context_extensions.dart';
-import 'package:flutter_template/features/profile/controllers/profile_controller.dart';
+import 'package:flutter_template/features/profile/presentation/controllers/profile_controller.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
