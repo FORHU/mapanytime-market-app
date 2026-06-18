@@ -1,6 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:dio_smart_retry/dio_smart_retry.dart';
 
 import '../config/app_config.dart';
+import '../utils/logger.dart';
+import 'interceptors/auth_interceptor.dart';
+import 'storage_service.dart';
 
 /// Thin wrapper around [Dio].
 ///
@@ -12,7 +16,7 @@ import '../config/app_config.dart';
 /// return res.data as Map<String, dynamic>;
 /// ```
 class ApiService {
-  ApiService({Dio? dio})
+  ApiService({Dio? dio, required StorageService storage})
       : client = dio ??
             Dio(
               BaseOptions(
@@ -22,6 +26,24 @@ class ApiService {
                 receiveTimeout: const Duration(seconds: 10),
               ),
             ) {
+    // 1. Inject Auth Bearer tokens
+    client.interceptors.add(AuthInterceptor(storage));
+
+    // 2. Smart Retry for unstable networks
+    client.interceptors.add(
+      RetryInterceptor(
+        dio: client,
+        logPrint: (msg) => appLogger.w(msg), // Prints retry attempts using AppLogger
+        retries: 3,
+        retryDelays: const [
+          Duration(seconds: 1),
+          Duration(seconds: 2),
+          Duration(seconds: 3),
+        ],
+      ),
+    );
+
+    // 3. Logger (only in dev)
     if (AppConfig.instance.enableLogging) {
       client.interceptors.add(
         LogInterceptor(requestBody: true, responseBody: true),

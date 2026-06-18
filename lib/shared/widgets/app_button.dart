@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/app_spacing.dart';
+
 /// Full-width primary button with a built-in loading state.
-class CustomButton extends StatelessWidget {
-  const CustomButton({
+class AppButton extends StatelessWidget {
+  const AppButton({
     super.key,
     required this.label,
     required this.onPressed,
@@ -17,7 +19,7 @@ class CustomButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 52,
+      height: AppSpacing.xxl,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         child: isLoading

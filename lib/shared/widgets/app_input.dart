@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 /// Thin wrapper over [TextFormField] with a consistent look.
-class CustomTextField extends StatelessWidget {
-  const CustomTextField({
+class AppInput extends StatelessWidget {
+  const AppInput({
     super.key,
     required this.label,
     this.controller,

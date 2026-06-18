@@ -11,7 +11,7 @@ import 'package:flutter_template/core/services/storage_service.dart';
 void main() {
   testWidgets('shows the login page when unauthenticated', (tester) async {
     // Tests don't run bootstrap(), so set the active config manually.
-    AppConfig.instance = AppConfig.dev();
+    AppConfig.instance = AppConfig.fromEnvironment();
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 

@@ -24,17 +24,13 @@ class AppConfig {
   /// Set once by `bootstrap()` before `runApp`. Reading it before then throws.
   static late AppConfig instance;
 
-  factory AppConfig.dev() => const AppConfig(
-        environment: Environment.dev,
-        appName: 'Clean Flutter App (Dev)',
-        baseUrl: 'https://dev.api.example.com',
-        enableLogging: true,
-      );
-
-  factory AppConfig.prod() => const AppConfig(
-        environment: Environment.prod,
-        appName: 'Clean Flutter App',
-        baseUrl: 'https://api.example.com',
-        enableLogging: false,
-      );
+  factory AppConfig.fromEnvironment() {
+    const envString = String.fromEnvironment('ENVIRONMENT', defaultValue: 'dev');
+    return AppConfig(
+      environment: envString == 'prod' ? Environment.prod : Environment.dev,
+      appName: const String.fromEnvironment('APP_NAME', defaultValue: 'Clean Flutter App'),
+      baseUrl: const String.fromEnvironment('BASE_URL', defaultValue: 'https://api.example.com'),
+      enableLogging: const bool.fromEnvironment('ENABLE_LOGGING', defaultValue: false),
+    );
+  }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/helpers.dart';
+import '../../../../shared/widgets/app_card.dart';
 
 class WelcomeCard extends StatelessWidget {
   const WelcomeCard({super.key, required this.name});
@@ -9,14 +11,13 @@ class WelcomeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+    return Padding(
+      padding: AppSpacing.edgeInsetsMd,
+      child: AppCard(
         child: Row(
           children: [
             const CircleAvatar(child: Icon(Icons.person)),
-            const SizedBox(width: 12),
+            AppSpacing.gapMd,
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

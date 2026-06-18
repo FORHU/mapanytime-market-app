@@ -4,9 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../routes/route_names.dart';
-import '../../../../shared/widgets/custom_button.dart';
-import '../../../../shared/widgets/custom_textfield.dart';
+import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/app_input.dart';
 import '../controllers/auth_controller.dart';
 
 class LoginForm extends ConsumerStatefulWidget {
@@ -49,15 +50,15 @@ class _LoginFormState extends ConsumerState<LoginForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          CustomTextField(
+          AppInput(
             label: AppStrings.email,
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             prefixIcon: Icons.email_outlined,
             validator: Validators.email,
           ),
-          const SizedBox(height: 16),
-          CustomTextField(
+          AppSpacing.gapMd,
+          AppInput(
             label: AppStrings.password,
             controller: _passwordController,
             obscureText: true,
@@ -65,14 +66,14 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             validator: Validators.password,
           ),
           if (state.error != null) ...[
-            const SizedBox(height: 12),
+            AppSpacing.gapSm,
             Text(
               state.error!,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ],
-          const SizedBox(height: 24),
-          CustomButton(
+          AppSpacing.gapLg,
+          AppButton(
             label: AppStrings.login,
             isLoading: state.isLoading,
             onPressed: _submit,

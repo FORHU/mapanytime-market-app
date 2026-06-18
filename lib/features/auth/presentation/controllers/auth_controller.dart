@@ -10,7 +10,9 @@ import '../../domain/usecases/login_usecase.dart';
 
 // --- Dependency wiring (Riverpod providers) ---
 
-final apiServiceProvider = Provider<ApiService>((ref) => ApiService());
+final apiServiceProvider = Provider<ApiService>((ref) {
+  return ApiService(storage: ref.watch(storageServiceProvider));
+});
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final remote = AuthRemoteDataSourceImpl(ref.watch(apiServiceProvider));
@@ -50,22 +52,29 @@ class AuthController extends Notifier<AuthState> {
   @override
   AuthState build() => const AuthState();
 
-  /// Returns true on success so the UI can navigate.
   Future<bool> login(String email, String password) async {
     state = state.copyWith(isLoading: true, error: null);
-    try {
-      final user = await ref.read(loginUseCaseProvider)(email, password);
-      state = AuthState(user: user);
-      return true;
-    } catch (e) {
-      state = AuthState(error: e.toString());
-      return false;
-    }
+    
+    final result = await ref.read(loginUseCaseProvider)(email, password);
+    
+    return result.fold(
+      (failure) {
+        state = AuthState(error: failure.message);
+        return false;
+      },
+      (user) {
+        state = AuthState(user: user);
+        return true;
+      },
+    );
   }
 
   Future<void> logout() async {
-    await ref.read(authRepositoryProvider).logout();
-    state = const AuthState();
+    final result = await ref.read(authRepositoryProvider).logout();
+    result.fold(
+      (failure) => state = AuthState(error: failure.message),
+      (_) => state = const AuthState(),
+    );
   }
 }
 

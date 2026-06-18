@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
 import 'core/config/app_config.dart';
 import 'core/services/storage_service.dart';
+import 'core/utils/logger.dart';
 
 /// Shared startup used by every entry point. Pins the chosen [config], does
 /// async init (SharedPreferences), then runs the app. Keep environment-
@@ -16,7 +17,7 @@ Future<void> bootstrap(AppConfig config) async {
   final prefs = await SharedPreferences.getInstance();
 
   if (config.enableLogging) {
-    debugPrint(
+    appLogger.i(
       'Starting ${config.appName} '
       '[${config.environment.name}] -> ${config.baseUrl}',
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../widgets/login_form.dart';
 
 class LoginPage extends StatelessWidget {
@@ -12,27 +13,27 @@ class LoginPage extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: AppSpacing.edgeInsetsLg,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.flutter_dash, size: 72),
-                const SizedBox(height: 24),
+                const Icon(Icons.flutter_dash, size: AppSpacing.xxxl),
+                AppSpacing.gapLg,
                 Text(
                   AppStrings.welcomeBack,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
-                const SizedBox(height: 8),
+                AppSpacing.gapSm,
                 Text(
                   AppStrings.signInToContinue,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                const SizedBox(height: 32),
+                AppSpacing.gapXl,
                 const LoginForm(),
-                const SizedBox(height: 16),
+                AppSpacing.gapMd,
                 Text(
                   AppStrings.loginHint,
                   textAlign: TextAlign.center,
