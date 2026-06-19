@@ -5,6 +5,7 @@ import 'package:flutter_template/features/auth/presentation/controllers/auth_con
 import 'package:flutter_template/features/home/presentation/controllers/home_controller.dart';
 import 'package:flutter_template/features/home/presentation/widgets/welcome_card.dart';
 import 'package:flutter_template/routes/route_names.dart';
+import 'package:flutter_template/shared/widgets/app_app_bar.dart';
 import 'package:go_router/go_router.dart';
 
 class HomePage extends ConsumerWidget {
@@ -16,14 +17,9 @@ class HomePage extends ConsumerWidget {
     final user = ref.watch(authControllerProvider).user;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.home),
+      appBar: AppAppBar(
+        titleText: context.l10n.home,
         actions: [
-          IconButton(
-            tooltip: context.l10n.profile,
-            icon: const Icon(Icons.person_outline),
-            onPressed: () => context.push(RouteNames.profile),
-          ),
           IconButton(
             tooltip: context.l10n.logout,
             icon: const Icon(Icons.logout),

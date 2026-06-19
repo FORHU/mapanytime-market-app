@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:flutter_template/core/theme/app_spacing.dart';
+import 'package:flutter_template/theme/tokens/spacing.dart';
 import 'package:flutter_template/core/utils/helpers.dart';
 import 'package:flutter_template/shared/widgets/app_card.dart';
 
@@ -17,7 +17,7 @@ class WelcomeCard extends StatelessWidget {
         child: Row(
           children: [
             const CircleAvatar(child: Icon(Icons.person)),
-            AppSpacing.gapMd,
+            AppSpacing.md.v,
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

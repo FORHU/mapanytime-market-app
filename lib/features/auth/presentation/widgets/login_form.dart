@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_template/core/theme/app_spacing.dart';
+import 'package:flutter_template/theme/tokens/spacing.dart';
 import 'package:flutter_template/core/utils/context_extensions.dart';
 import 'package:flutter_template/core/utils/validators.dart';
 import 'package:flutter_template/features/auth/presentation/controllers/auth_controller.dart';
@@ -55,7 +55,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             prefixIcon: Icons.email_outlined,
             validator: Validators.email,
           ),
-          AppSpacing.gapMd,
+          AppSpacing.md.v,
           AppInput(
             label: context.l10n.password,
             controller: _passwordController,
@@ -64,13 +64,13 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             validator: Validators.password,
           ),
           if (state.error != null) ...[
-            AppSpacing.gapSm,
+            AppSpacing.sm.v,
             Text(
               state.error!,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ],
-          AppSpacing.gapLg,
+          AppSpacing.lg.v,
           AppButton(
             label: context.l10n.login,
             isLoading: state.isLoading,

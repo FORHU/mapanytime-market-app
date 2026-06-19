@@ -157,6 +157,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile'**
   String get profile;
+
+  /// No description provided for @worldMap.
+  ///
+  /// In en, this message translates to:
+  /// **'World Map'**
+  String get worldMap;
 }
 
 class _AppLocalizationsDelegate

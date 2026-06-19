@@ -1,10 +1,13 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_template/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:flutter_template/features/auth/presentation/pages/login_page.dart';
 import 'package:flutter_template/features/home/presentation/pages/home_page.dart';
 import 'package:flutter_template/features/profile/presentation/pages/profile_page.dart';
 import 'package:flutter_template/routes/route_names.dart';
+import 'package:flutter_template/shared/widgets/main_layout.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_template/features/worldMap/presentation/pages/world_map_page.dart';
 
 /// The app's router. `redirect` guards routes based on auth state; the login
 /// form and logout button also navigate explicitly with `context.go(...)`.
@@ -24,13 +27,44 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: RouteNames.login,
         builder: (context, state) => const LoginPage(),
       ),
-      GoRoute(
-        path: RouteNames.home,
-        builder: (context, state) => const HomePage(),
-      ),
-      GoRoute(
-        path: RouteNames.profile,
-        builder: (context, state) => const ProfilePage(),
+      ShellRoute(
+        builder: (context, state, child) => MainLayout(child: child),
+        routes: [
+          GoRoute(
+            path: RouteNames.home,
+            builder: (context, state) => const HomePage(),
+          ),
+          // Example of a route with children
+          GoRoute(
+            path: RouteNames.recommendations,
+            // Assuming you'd have a RecommendationsPage here
+            builder: (context, state) =>
+                const Scaffold(body: Center(child: Text('Recommendations'))),
+            routes: [
+              // Child route: /recommendations/details
+              // Note: Do not start child paths with a slash '/'
+              GoRoute(
+                path: 'details',
+                // Assuming you'd have a DetailsPage here
+                builder: (context, state) =>
+                    const Scaffold(body: Center(child: Text('Details'))),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: RouteNames.worldMap,
+            builder: (context, state) => const WorldMapPage(),
+          ),
+          GoRoute(
+            path: RouteNames.cart,
+            builder: (context, state) =>
+                const Scaffold(body: Center(child: Text('Cart'))),
+          ),
+          GoRoute(
+            path: RouteNames.profile,
+            builder: (context, state) => const ProfilePage(),
+          ),
+        ],
       ),
     ],
   );

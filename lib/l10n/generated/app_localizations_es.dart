@@ -38,4 +38,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get profile => 'Perfil';
+
+  @override
+  String get worldMap => 'World Map';
 }

@@ -17,21 +17,23 @@ class ProfilePage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.profile)),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              radius: 40,
-              child: Text(initial, style: const TextStyle(fontSize: 32)),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              user?.name ?? 'Unknown',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 4),
-            Text(user?.email ?? '-'),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 40,
+                child: Text(initial, style: const TextStyle(fontSize: 32)),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                user?.name ?? 'Unknown',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 4),
+              Text(user?.email ?? '-'),
+            ],
+          ),
         ),
       ),
     );
