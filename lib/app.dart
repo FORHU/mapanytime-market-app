@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mapanytime_market_web/core/config/app_config.dart';
-import 'package:mapanytime_market_web/theme/app_theme.dart';
-import 'package:mapanytime_market_web/l10n/generated/app_localizations.dart';
-import 'package:mapanytime_market_web/routes/app_routes.dart';
+import 'package:mapanytime_market_app/core/config/app_config.dart';
+import 'package:mapanytime_market_app/theme/app_theme.dart';
+import 'package:mapanytime_market_app/l10n/generated/app_localizations.dart';
+import 'package:mapanytime_market_app/routes/app_routes.dart';
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});

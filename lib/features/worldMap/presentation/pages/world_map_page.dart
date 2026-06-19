@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mapanytime_market_web/core/utils/context_extensions.dart';
+import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class WorldMapPage extends StatefulWidget {

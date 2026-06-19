@@ -92,9 +92,9 @@ BEGIN
             VALUE "CompanyName", "com.example" "\0"
             VALUE "FileDescription", "MapAnytime Market" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "mapanytime_market_web" "\0"
+            VALUE "InternalName", "mapanytime_market_app" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "mapanytime_market_web.exe" "\0"
+            VALUE "OriginalFilename", "mapanytime_market_app.exe" "\0"
             VALUE "ProductName", "MapAnytime Market" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END

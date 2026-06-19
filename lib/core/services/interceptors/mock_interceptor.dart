@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:mapanytime_market_web/core/constants/api_endpoints.dart';
+import 'package:mapanytime_market_app/core/constants/api_endpoints.dart';
 
 /// Serves canned responses so the template runs with **no backend**.
 ///

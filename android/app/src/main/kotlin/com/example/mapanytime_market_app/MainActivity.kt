@@ -1,4 +1,4 @@
-package com.example.mapanytime_market_web
+package com.example.mapanytime_market_app
 
 import io.flutter.embedding.android.FlutterActivity
 
