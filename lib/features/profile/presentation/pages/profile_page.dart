@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
-import 'package:mapanytime_market_app/features/profile/presentation/controllers/profile_controller.dart';
+import 'package:mapanytime_market_web/core/utils/context_extensions.dart';
+import 'package:mapanytime_market_web/features/profile/presentation/controllers/profile_controller.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});

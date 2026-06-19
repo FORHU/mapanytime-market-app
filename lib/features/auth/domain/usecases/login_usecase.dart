@@ -1,6 +1,6 @@
-import 'package:mapanytime_market_app/core/errors/failure.dart';
-import 'package:mapanytime_market_app/features/auth/data/repositories/auth_repository.dart';
-import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.dart';
+import 'package:mapanytime_market_web/core/errors/failure.dart';
+import 'package:mapanytime_market_web/features/auth/data/repositories/auth_repository.dart';
+import 'package:mapanytime_market_web/features/auth/domain/entities/user_entity.dart';
 import 'package:fpdart/fpdart.dart';
 
 /// A single business action. Callable like a function: `loginUseCase(e, p)`.

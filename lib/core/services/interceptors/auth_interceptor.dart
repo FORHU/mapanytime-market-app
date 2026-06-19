@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:mapanytime_market_app/core/constants/api_endpoints.dart';
-import 'package:mapanytime_market_app/core/services/storage_service.dart';
+import 'package:mapanytime_market_web/core/constants/api_endpoints.dart';
+import 'package:mapanytime_market_web/core/services/storage_service.dart';
 
 /// Attaches the access token to outgoing requests and transparently refreshes
 /// it once when the server returns 401, then retries the original request.

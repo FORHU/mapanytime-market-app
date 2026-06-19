@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
+import 'package:mapanytime_market_web/theme/tokens/spacing.dart';
 
 /// Full-width primary button with a built-in loading state.
 class AppButton extends StatelessWidget {
