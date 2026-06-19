@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
-import 'package:flutter_template/core/config/app_config.dart';
-import 'package:flutter_template/core/errors/exceptions.dart';
-import 'package:flutter_template/core/services/interceptors/auth_interceptor.dart';
-import 'package:flutter_template/core/services/interceptors/mock_interceptor.dart';
-import 'package:flutter_template/core/services/storage_service.dart';
-import 'package:flutter_template/core/utils/logger.dart';
+import 'package:mapanytime_market_app/core/config/app_config.dart';
+import 'package:mapanytime_market_app/core/errors/exceptions.dart';
+import 'package:mapanytime_market_app/core/services/interceptors/auth_interceptor.dart';
+import 'package:mapanytime_market_app/core/services/interceptors/mock_interceptor.dart';
+import 'package:mapanytime_market_app/core/services/storage_service.dart';
+import 'package:mapanytime_market_app/core/utils/logger.dart';
 
 /// Thin, typed wrapper around [Dio]. Every network call in the app goes through
 /// here. Methods return decoded JSON and throw [AppException] subtypes on

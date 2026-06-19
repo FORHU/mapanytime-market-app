@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_template/theme/tokens/spacing.dart';
-import 'package:flutter_template/core/utils/context_extensions.dart';
-import 'package:flutter_template/core/utils/validators.dart';
-import 'package:flutter_template/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:flutter_template/routes/route_names.dart';
-import 'package:flutter_template/shared/widgets/app_button.dart';
-import 'package:flutter_template/shared/widgets/app_input.dart';
+import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
+import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
+import 'package:mapanytime_market_app/core/utils/validators.dart';
+import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:mapanytime_market_app/routes/route_names.dart';
+import 'package:mapanytime_market_app/shared/widgets/app_button.dart';
+import 'package:mapanytime_market_app/shared/widgets/app_input.dart';
 import 'package:go_router/go_router.dart';
 
 class LoginForm extends ConsumerStatefulWidget {

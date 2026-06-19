@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_template/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:flutter_template/features/auth/presentation/pages/login_page.dart';
-import 'package:flutter_template/features/home/presentation/pages/home_page.dart';
-import 'package:flutter_template/features/profile/presentation/pages/profile_page.dart';
-import 'package:flutter_template/routes/route_names.dart';
-import 'package:flutter_template/shared/widgets/main_layout.dart';
+import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:mapanytime_market_app/features/auth/presentation/pages/login_page.dart';
+import 'package:mapanytime_market_app/features/home/presentation/pages/home_page.dart';
+import 'package:mapanytime_market_app/features/profile/presentation/pages/profile_page.dart';
+import 'package:mapanytime_market_app/routes/route_names.dart';
+import 'package:mapanytime_market_app/shared/widgets/main_layout.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_template/features/worldMap/presentation/pages/world_map_page.dart';
+import 'package:mapanytime_market_app/features/worldMap/presentation/pages/world_map_page.dart';
 
 /// The app's router. `redirect` guards routes based on auth state; the login
 /// form and logout button also navigate explicitly with `context.go(...)`.

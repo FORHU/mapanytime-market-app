@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_template/core/utils/context_extensions.dart';
-import 'package:flutter_template/routes/route_names.dart';
+import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
+import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:go_router/go_router.dart';
 
 class MainLayout extends StatelessWidget {

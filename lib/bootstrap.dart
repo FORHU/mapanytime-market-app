@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_template/app.dart';
-import 'package:flutter_template/core/config/app_config.dart';
-import 'package:flutter_template/core/services/storage_service.dart';
-import 'package:flutter_template/core/utils/logger.dart';
+import 'package:mapanytime_market_app/app.dart';
+import 'package:mapanytime_market_app/core/config/app_config.dart';
+import 'package:mapanytime_market_app/core/services/storage_service.dart';
+import 'package:mapanytime_market_app/core/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Shared startup used by every entry point. Pins the chosen [config], does

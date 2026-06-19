@@ -1,6 +1,6 @@
 # Flutter Enterprise Template 🚀
 
-[![Flutter Enterprise CI](https://github.com/rmValdez/flutter_template_v1/actions/workflows/flutter_ci.yml/badge.svg)](https://github.com/rmValdez/flutter_template_v1/actions/workflows/flutter_ci.yml)
+[![Flutter Enterprise CI](https://github.com/rmValdez/mapanytime_market_app/actions/workflows/flutter_ci.yml/badge.svg)](https://github.com/rmValdez/mapanytime_market_app/actions/workflows/flutter_ci.yml)
 
 A strictly enforced Flutter frontend architecture system designed for predictable scaling, enforced consistency, and long-term team maintainability.
 

@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appName => 'flutter_template';
+  String get appName => 'MapAnytime Market';
 
   @override
   String get login => 'Login';

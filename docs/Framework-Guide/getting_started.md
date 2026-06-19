@@ -49,7 +49,7 @@ Now that your computer has the tools, let's download the actual code.
 1. Open your terminal and run:
 ```bash
 git clone <your-repo-url>
-cd flutter_template_v1
+cd mapanytime_market_app
 ```
 
 2. Download all the required third-party packages and generate localizations:

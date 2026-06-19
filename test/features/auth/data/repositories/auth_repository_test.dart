@@ -1,9 +1,9 @@
-import 'package:flutter_template/core/errors/exceptions.dart';
-import 'package:flutter_template/core/errors/failure.dart';
-import 'package:flutter_template/core/services/storage_service.dart';
-import 'package:flutter_template/features/auth/data/datasources/auth_remote_datasource.dart';
-import 'package:flutter_template/features/auth/data/models/user_model.dart';
-import 'package:flutter_template/features/auth/data/repositories/auth_repository.dart';
+import 'package:mapanytime_market_app/core/errors/exceptions.dart';
+import 'package:mapanytime_market_app/core/errors/failure.dart';
+import 'package:mapanytime_market_app/core/services/storage_service.dart';
+import 'package:mapanytime_market_app/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:mapanytime_market_app/features/auth/data/models/user_model.dart';
+import 'package:mapanytime_market_app/features/auth/data/repositories/auth_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 

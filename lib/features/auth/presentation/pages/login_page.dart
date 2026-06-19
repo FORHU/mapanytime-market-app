@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_template/theme/tokens/spacing.dart';
-import 'package:flutter_template/core/utils/context_extensions.dart';
-import 'package:flutter_template/features/auth/presentation/widgets/login_form.dart';
+import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
+import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
+import 'package:mapanytime_market_app/features/auth/presentation/widgets/login_form.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});

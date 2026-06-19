@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_template/l10n/generated/app_localizations.dart';
+import 'package:mapanytime_market_app/l10n/generated/app_localizations.dart';
 
 extension L10nExtension on BuildContext {
   /// Provides clean, non-nullable access to AppLocalizations.

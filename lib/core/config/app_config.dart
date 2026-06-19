@@ -1,4 +1,4 @@
-import 'package:flutter_template/core/config/environment.dart';
+import 'package:mapanytime_market_app/core/config/environment.dart';
 
 /// Per-environment settings, fixed at startup.
 ///
@@ -25,7 +25,7 @@ class AppConfig {
       environment: envString == 'prod' ? Environment.prod : Environment.dev,
       appName: String.fromEnvironment(
         'APP_NAME',
-        defaultValue: 'flutter_template',
+        defaultValue: 'mapanytime_market_app',
       ),
       baseUrl: String.fromEnvironment(
         'BASE_URL',

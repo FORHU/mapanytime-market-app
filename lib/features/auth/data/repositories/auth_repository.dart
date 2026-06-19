@@ -1,8 +1,8 @@
-import 'package:flutter_template/core/errors/exceptions.dart';
-import 'package:flutter_template/core/errors/failure.dart';
-import 'package:flutter_template/core/services/storage_service.dart';
-import 'package:flutter_template/features/auth/data/datasources/auth_remote_datasource.dart';
-import 'package:flutter_template/features/auth/domain/entities/user_entity.dart';
+import 'package:mapanytime_market_app/core/errors/exceptions.dart';
+import 'package:mapanytime_market_app/core/errors/failure.dart';
+import 'package:mapanytime_market_app/core/services/storage_service.dart';
+import 'package:mapanytime_market_app/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.dart';
 import 'package:fpdart/fpdart.dart';
 
 /// Repository contract (the abstraction the domain layer depends on).

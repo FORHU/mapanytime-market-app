@@ -1,6 +1,6 @@
-import 'package:flutter_template/core/constants/api_endpoints.dart';
-import 'package:flutter_template/core/services/api_service.dart';
-import 'package:flutter_template/features/auth/data/models/user_model.dart';
+import 'package:mapanytime_market_app/core/constants/api_endpoints.dart';
+import 'package:mapanytime_market_app/core/services/api_service.dart';
+import 'package:mapanytime_market_app/features/auth/data/models/user_model.dart';
 
 /// Talks to the remote API. Knows nothing about storage or UI.
 // ignore: one_member_abstracts
