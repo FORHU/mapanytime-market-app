@@ -82,6 +82,11 @@ lib/
 > [!CAUTION]
 > **Reverse dependency is strictly forbidden.**
 
+### 3.4 Dependency Injection
+- **Riverpod** is the primary engine for DI (using `Provider`, `FutureProvider`, etc.).
+- Avoid traditional singleton classes. Expose core services via Riverpod providers.
+- External dependencies (e.g., `SharedPreferences`, `Dio`) must be wrapped in a provider to allow easy overriding during testing.
+
 ---
 
 ## 🔁 4. Request Lifecycle
@@ -205,9 +210,13 @@ All requests must go through: `ApiService` (Dio abstraction), which exposes
 |---|---|
 | Controllers | ✅ Yes |
 | Repositories | ✅ Yes |
-| UI Widgets | ⚠️ Optional |
+| UI Widgets | ⚠️ Optional (Golden Tests recommended) |
 
-### 9.3 Example
+### 9.3 Golden Tests (Visual Regression)
+- Golden tests are highly recommended for shared UI components (`AppButton`, `AppCard`) in the design system.
+- This ensures strict adherence to our design tokens and prevents visual regression.
+
+### 9.4 Example
 ```dart
 test('should return user on successful login', () async {
   // Arrange
@@ -275,7 +284,29 @@ The following are explicitly forbidden:
 
 ---
 
-## 🧠 13. Engineering Guarantee Model
+## 🗺️ 13. Routing & Navigation Standard
+
+### 13.1 Routing Solution
+- Use **GoRouter** for all app navigation.
+
+### 13.2 Navigation Logic Rules
+- **UI-Driven Navigation**: For simple transitions (e.g., tapping a button to view details), use `context.go()` or `context.push()`.
+- **State-Driven Navigation**: For authentication, authorization, or deep linking, use router redirects powered by Riverpod state listening. Controllers should update state, and the router should react to that state.
+
+---
+
+## 🏗️ 14. Code Generation Standard
+
+### 14.1 Tools
+- Use `build_runner` for generating Riverpod providers (`@riverpod`), Freezed classes, and JSON serialization.
+
+### 14.2 Version Control
+- Generated files (`*.g.dart`, `*.freezed.dart`) **should not** be committed to version control by default.
+- Ensure `.gitignore` ignores them, and CI/CD runs `dart run build_runner build -d` before analysis and testing. *(Alternatively, if your team prefers committing them for faster CI, explicitly document that standard here).*
+
+---
+
+## 🧠 15. Engineering Guarantee Model
 
 **This system guarantees:**
 - consistent architecture boundaries
@@ -290,7 +321,7 @@ The following are explicitly forbidden:
 
 ---
 
-## 🏁 14. Final Statement
+## 🏁 16. Final Statement
 
 > This system is not a template.
 > It is an engineering enforcement framework for Flutter frontend development, designed to ensure predictable scaling across multiple developers and long-term codebase stability.
