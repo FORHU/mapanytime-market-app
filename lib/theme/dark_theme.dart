@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-
-import 'tokens/colors.dart';
-import 'tokens/typography.dart';
-import 'components/button_theme.dart';
-import 'components/input_theme.dart';
-import 'components/card_theme.dart';
+import 'package:mapanytime_market_app/theme/components/button_theme.dart';
+import 'package:mapanytime_market_app/theme/components/card_theme.dart';
+import 'package:mapanytime_market_app/theme/components/input_theme.dart';
+import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/typography.dart';
 
 class DarkTheme {
   DarkTheme._();
@@ -13,7 +12,7 @@ class DarkTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      
+
       // Explicit Color Scheme
       colorScheme: ColorScheme.dark(
         primary: AppColors.brand.primary,
@@ -27,7 +26,7 @@ class DarkTheme {
       ),
 
       scaffoldBackgroundColor: AppColors.ui.backgroundDark,
-      
+
       // Global Typography
       textTheme: AppTypography.textTheme.apply(
         bodyColor: AppColors.text.primaryDark,
@@ -45,7 +44,8 @@ class DarkTheme {
         ),
       ),
 
-      // Components (These will automatically adapt colors based on Context, but we reuse the shapes)
+      // Components (These will automatically adapt colors based on Context,
+      // but we reuse the shapes)
       elevatedButtonTheme: AppButtonTheme.elevated,
       inputDecorationTheme: AppInputTheme.inputDecoration,
       cardTheme: AppCardTheme.cardTheme,
