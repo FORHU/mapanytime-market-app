@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-
-import 'tokens/colors.dart';
-import 'tokens/typography.dart';
-import 'components/button_theme.dart';
-import 'components/input_theme.dart';
-import 'components/card_theme.dart';
+import 'package:mapanytime_market_app/theme/components/button_theme.dart';
+import 'package:mapanytime_market_app/theme/components/card_theme.dart';
+import 'package:mapanytime_market_app/theme/components/input_theme.dart';
+import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/typography.dart';
 
 class LightTheme {
   LightTheme._();
@@ -13,7 +12,7 @@ class LightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      
+
       // Explicit Color Scheme
       colorScheme: ColorScheme.light(
         primary: AppColors.brand.primary,
@@ -27,7 +26,7 @@ class LightTheme {
       ),
 
       scaffoldBackgroundColor: AppColors.ui.background,
-      
+
       // Global Typography
       textTheme: AppTypography.textTheme.apply(
         bodyColor: AppColors.text.primary,

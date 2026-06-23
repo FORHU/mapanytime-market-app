@@ -9,5 +9,6 @@
   "signInToContinue": "Inicia sesión para continuar",
   "loginHint": "Pista: cualquier correo y una contraseña de 6+ caracteres",
   "home": "Inicio",
-  "profile": "Perfil"
+  "profile": "Perfil",
+  "worldMap": "Mapa del mundo"
 }

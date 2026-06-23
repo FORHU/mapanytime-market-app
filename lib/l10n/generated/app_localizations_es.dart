@@ -40,5 +40,5 @@ class AppLocalizationsEs extends AppLocalizations {
   String get profile => 'Perfil';
 
   @override
-  String get worldMap => 'World Map';
+  String get worldMap => 'Mapa del mundo';
 }
