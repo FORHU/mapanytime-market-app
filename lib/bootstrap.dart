@@ -4,6 +4,7 @@ import 'package:mapanytime_market_app/app.dart';
 import 'package:mapanytime_market_app/core/config/app_config.dart';
 import 'package:mapanytime_market_app/core/services/storage_service.dart';
 import 'package:mapanytime_market_app/core/utils/logger.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Shared startup used by every entry point. Pins the chosen [config], does
@@ -13,6 +14,8 @@ Future<void> bootstrap(AppConfig config) async {
   AppConfig.instance = config;
 
   WidgetsFlutterBinding.ensureInitialized();
+  MapboxOptions.setAccessToken(config.mapboxPublicToken);
+
   final prefs = await SharedPreferences.getInstance();
 
   if (config.enableLogging) {
