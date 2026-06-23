@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.mapanytime_market_app"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

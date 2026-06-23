@@ -10,6 +10,7 @@ class AppConfig {
     required this.environment,
     required this.appName,
     required this.baseUrl,
+    required this.mapboxPublicToken,
     this.enableLogging = false,
     this.useMock = false,
   });
@@ -29,8 +30,9 @@ class AppConfig {
       ),
       baseUrl: String.fromEnvironment(
         'BASE_URL',
-        defaultValue: 'https://api.example.com',
+        defaultValue: 'http://172.30.32.1:3002/api/v1',
       ),
+      mapboxPublicToken: String.fromEnvironment('MAPBOX_PUBLIC_TOKEN'),
       // Defaults on in dev, off in prod when the flag is absent.
       enableLogging: bool.fromEnvironment(
         'ENABLE_LOGGING',
@@ -48,23 +50,33 @@ class AppConfig {
   /// `--dart-define`, with logging on and the mock backend enabled.
   const AppConfig.dev()
     : environment = Environment.dev,
-      appName = 'Clean Flutter App (Dev)',
-      baseUrl = 'https://reqres.in/api',
+      appName = 'MapAnytime Market (Dev)',
+      baseUrl = 'http://172.30.32.1:3002/api/v1',
+      // Public Mapbox token (pk...) — safe to embed for dev. Restrict it by
+      // URL/scope in the Mapbox dashboard. Keep secret (sk...) tokens out of
+      // source; those belong in ~/.gradle/gradle.properties for the build.
+      mapboxPublicToken =
+          'pk.eyJ1IjoianVuZ2t3YW5zaGluIiwiYSI6ImNtcW9xcGE2aDA1d2wy'
+          'cXF2cXFzdG14bWcifQ.HR1a5C0MxCY4M0f1yEt6-A',
       enableLogging = true,
+      // Backend APIs aren't built yet — serve canned responses from
+      // MockInterceptor. Flip to false once the real endpoints exist.
       useMock = true;
 
   /// Explicit production config used by `main_prod.dart` — logging off, real
   /// backend.
   const AppConfig.prod()
     : environment = Environment.prod,
-      appName = 'Clean Flutter App',
-      baseUrl = 'https://api.example.com',
+      appName = 'MapAnytime Market',
+      baseUrl = 'http://172.30.32.1:3002/api/v1',
+      mapboxPublicToken = '',
       enableLogging = false,
       useMock = false;
 
   final Environment environment;
   final String appName;
   final String baseUrl;
+  final String mapboxPublicToken;
   final bool enableLogging;
 
   /// When true, a `MockInterceptor` serves canned responses so the app runs
