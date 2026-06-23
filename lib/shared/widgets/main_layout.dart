@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
-import 'package:go_router/go_router.dart';
 
 class MainLayout extends StatelessWidget {
   const MainLayout({
-    super.key,
     required this.child,
+    super.key,
   });
 
   final Widget child;
@@ -55,15 +55,12 @@ class MainLayout extends StatelessWidget {
         route: RouteNames.profile,
         activeColor: Colors.deepPurpleAccent,
       ),
-    ];
-
-    // Sort the items by the new order property
-    navItems.sort((a, b) => a.order.compareTo(b.order));
+    ]..sort((a, b) => a.order.compareTo(b.order));
 
     // Calculate current index dynamically based on the current location
     final location = GoRouterState.of(context).matchedLocation;
     // We check backwards or specifically to ensure we find the right match (ignoring default '/')
-    int currentIndex = navItems.indexWhere(
+    var currentIndex = navItems.indexWhere(
       (item) => item.route != '/' && location.startsWith(item.route),
     );
 
@@ -90,7 +87,8 @@ class MainLayout extends StatelessWidget {
         // Map your custom NavigationItems into BottomNavigationBarItems
         items: navItems.map((item) {
           return BottomNavigationBarItem(
-            // NOTE: BottomNavigationBarItem does not accept a 'key' parameter since it's not a Widget.
+            // NOTE: BottomNavigationBarItem does not accept a 'key' parameter
+            // since it's not a Widget.
             icon: Icon(item.icon),
             activeIcon: Icon(
               item.activeIcon,
