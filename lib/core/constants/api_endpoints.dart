@@ -9,4 +9,7 @@ class ApiEndpoints {
 
   /// Sample protected resource used to demonstrate a GET with the bearer token.
   static const String users = '/users';
+
+  /// Stores near a `lat`/`lng` query origin (used by the world map).
+  static const String storesNearby = '/stores/nearby';
 }

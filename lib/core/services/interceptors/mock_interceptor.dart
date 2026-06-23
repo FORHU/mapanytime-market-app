@@ -58,6 +58,8 @@ class MockInterceptor extends Interceptor {
             ],
           }),
         );
+      case ApiEndpoints.storesNearby:
+        handler.resolve(_ok(options, _nearbyStores));
       default:
         handler.reject(_error(options, 404, 'Unknown endpoint: $path'));
     }
@@ -68,12 +70,52 @@ class MockInterceptor extends Interceptor {
     return const <String, dynamic>{};
   }
 
-  Response<dynamic> _ok(RequestOptions options, Map<String, dynamic> data) =>
+  Response<dynamic> _ok(RequestOptions options, Object data) =>
       Response<dynamic>(
         requestOptions: options,
         statusCode: 200,
         data: data,
       );
+
+  /// Canned stores served while the backend `/stores/nearby` API is unbuilt.
+  /// Coordinates centre on Jakarta to match the controller's query origin.
+  static const List<Map<String, dynamic>> _nearbyStores = [
+    {
+      'id': '1',
+      'name': 'MapAnytime Central',
+      'lat': -6.2088,
+      'lng': 106.8456,
+      'distance': 0.5,
+    },
+    {
+      'id': '2',
+      'name': 'MapAnytime North',
+      'lat': -6.2000,
+      'lng': 106.8500,
+      'distance': 1.2,
+    },
+    {
+      'id': '3',
+      'name': 'MapAnytime South',
+      'lat': -6.2150,
+      'lng': 106.8400,
+      'distance': 2.0,
+    },
+    {
+      'id': '4',
+      'name': 'MapAnytime East',
+      'lat': -6.2050,
+      'lng': 106.8600,
+      'distance': 1.8,
+    },
+    {
+      'id': '5',
+      'name': 'MapAnytime West',
+      'lat': -6.2100,
+      'lng': 106.8300,
+      'distance': 2.5,
+    },
+  ];
 
   DioException _error(RequestOptions options, int status, String message) =>
       DioException(
