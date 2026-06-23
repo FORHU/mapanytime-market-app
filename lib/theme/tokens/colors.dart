@@ -29,7 +29,7 @@ class _UI {
 
 class _Text {
   const _Text();
-  
+
   // Light Mode Text
   Color get primary => const Color(0xFF1C1B1F);
   Color get secondary => const Color(0xFF49454F);

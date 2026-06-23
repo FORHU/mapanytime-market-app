@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-
-import 'light_theme.dart';
-import 'dark_theme.dart';
+import 'package:mapanytime_market_app/theme/dark_theme.dart';
+import 'package:mapanytime_market_app/theme/light_theme.dart';
 
 /// The central Theme configuration for the application.
 class AppTheme {

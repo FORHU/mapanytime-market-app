@@ -120,3 +120,8 @@ app.*.symbols
 
 # Environment variables
 *.env*
+
+# IDE / editor
+.idea/
+*.iml
+.vscode/
