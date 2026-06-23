@@ -2,6 +2,20 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // Mapbox SDK is served from a private Maven repo. Authenticate with a
+        // secret download token (scope DOWNLOADS:READ). Store the token as
+        // MAPBOX_DOWNLOADS_TOKEN in ~/.gradle/gradle.properties (NOT in the
+        // repo) or as an environment variable — never commit the sk... token.
+        maven {
+            url = uri("https://api.mapbox.com/downloads/v2/releases/maven")
+            authentication { create<BasicAuthentication>("basic") }
+            credentials {
+                username = "mapbox"
+                password = providers.gradleProperty("MAPBOX_DOWNLOADS_TOKEN").orNull
+                    ?: System.getenv("MAPBOX_DOWNLOADS_TOKEN")
+                    ?: ""
+            }
+        }
     }
 }
 
@@ -15,6 +29,14 @@ subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
+subprojects {
+    afterEvaluate {
+        project.extensions.findByType<com.android.build.gradle.BaseExtension>()?.apply {
+            compileSdkVersion(36)
+        }
+    }
+}
+
 subprojects {
     project.evaluationDependsOn(":app")
 }

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-
-import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 import 'package:mapanytime_market_app/core/utils/helpers.dart';
 import 'package:mapanytime_market_app/shared/widgets/app_card.dart';
+import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 class WelcomeCard extends StatelessWidget {
   const WelcomeCard({required this.name, super.key});
