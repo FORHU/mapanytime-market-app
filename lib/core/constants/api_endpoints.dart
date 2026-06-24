@@ -3,11 +3,13 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String login = '/login';
-  static const String refresh = '/refresh';
-  static const String logout = '/logout';
+  // Auth
+  static const String login = '/auth/login';
+  static const String register = '/auth/register';
+  static const String refresh = '/auth/refresh-token';
+  static const String logout = '/auth/logout';
 
-  /// Sample protected resource used to demonstrate a GET with the bearer token.
+  // Users
   static const String users = '/users';
 
   /// Stores near a `lat`/`lng` query origin (used by the world map).

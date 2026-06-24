@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
-import 'package:mapanytime_market_app/features/auth/presentation/widgets/login_form.dart';
+import 'package:mapanytime_market_app/features/auth/presentation/widgets/register_form.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatelessWidget {
+  const RegisterPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: BackButton(onPressed: () => context.go(RouteNames.login)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -19,31 +24,29 @@ class LoginPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.flutter_dash, size: AppSpacing.xxxl),
+                const Icon(Icons.storefront_outlined, size: AppSpacing.xxxl),
                 AppSpacing.lg.v,
                 Text(
-                  context.l10n.welcomeBack,
+                  'Create your account',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 AppSpacing.sm.v,
                 Text(
-                  context.l10n.signInToContinue,
+                  'Join MapAnytime Market as a buyer',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 AppSpacing.xl.v,
-                const LoginForm(),
+                const RegisterForm(),
                 AppSpacing.md.v,
-                Text(
-                  context.l10n.loginHint,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                AppSpacing.sm.v,
                 TextButton(
-                  onPressed: () => context.go(RouteNames.register),
-                  child: const Text("Don't have an account? Sign up"),
+                  onPressed: () => context.go(RouteNames.login),
+                  child: Text(
+                    context.l10n.loginHint,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ),
               ],
             ),

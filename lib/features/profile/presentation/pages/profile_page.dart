@@ -10,8 +10,8 @@ class ProfilePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(profileProvider);
-    final initial = (user?.name.isNotEmpty ?? false)
-        ? user!.name[0].toUpperCase()
+    final initial = (user?.name?.isNotEmpty ?? false)
+        ? user!.name![0].toUpperCase()
         : '?';
 
     return Scaffold(

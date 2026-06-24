@@ -90,7 +90,7 @@ class AuthInterceptor extends QueuedInterceptor {
       final data = res.data;
       if (data is! Map) return null;
 
-      final token = data['token'] as String?;
+      final token = data['accessToken'] as String?;
       final newRefresh = data['refreshToken'] as String?;
       if (token == null || token.isEmpty) return null;
 

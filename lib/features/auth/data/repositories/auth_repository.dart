@@ -8,6 +8,12 @@ import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.
 /// Repository contract (the abstraction the domain layer depends on).
 abstract class AuthRepository {
   Future<Either<Failure, UserEntity>> login(String email, String password);
+  Future<Either<Failure, UserEntity>> register(
+    String email,
+    String password,
+    String username, {
+    String? name,
+  });
   Future<Either<Failure, void>> logout();
 }
 
@@ -26,6 +32,37 @@ class AuthRepositoryImpl implements AuthRepository {
   ) async {
     try {
       final user = await _remote.login(email, password);
+      await _storage.saveToken(user.token);
+      final refreshToken = user.refreshToken;
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        await _storage.saveRefreshToken(refreshToken);
+      }
+      return Right(user);
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(e.message));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on AppException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Object catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> register(
+    String email,
+    String password,
+    String username, {
+    String? name,
+  }) async {
+    try {
+      final user = await _remote.register(
+        email,
+        password,
+        username,
+        name: name,
+      );
       await _storage.saveToken(user.token);
       final refreshToken = user.refreshToken;
       if (refreshToken != null && refreshToken.isNotEmpty) {
