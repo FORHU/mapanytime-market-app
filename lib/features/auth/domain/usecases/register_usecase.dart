@@ -11,9 +11,8 @@ class RegisterUseCase {
 
   Future<Either<Failure, UserEntity>> call(
     String email,
-    String password,
-    String username, {
+    String password, {
     String? name,
   }) =>
-      _repository.register(email.trim(), password, username.trim(), name: name);
+      _repository.register(email.trim(), password, name: name);
 }

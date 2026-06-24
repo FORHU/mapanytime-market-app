@@ -76,14 +76,13 @@ class AuthController extends Notifier<AuthState> {
 
   Future<bool> register(
     String email,
-    String password,
-    String username, {
+    String password, {
     String? name,
   }) async {
     state = state.copyWith(isLoading: true);
 
     final result = await ref
-        .read(registerUseCaseProvider)(email, password, username, name: name);
+        .read(registerUseCaseProvider)(email, password, name: name);
 
     return result.fold(
       (failure) {

@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/controllers/world_map_controller.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_bottom_sheet.dart';
@@ -18,6 +21,36 @@ class WorldMapPage extends ConsumerStatefulWidget {
 class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   MapboxMap? mapboxMap;
   PointAnnotationManager? pointAnnotationManager;
+  // Default to the safe 2D style. We will upgrade to 3D if the device is powerful.
+  String _mapStyle = 'mapbox://styles/mapbox/streets-v12';
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_checkDeviceCapabilities());
+  }
+
+  Future<void> _checkDeviceCapabilities() async {
+    if (Platform.isAndroid) {
+      try {
+        final androidInfo = await DeviceInfoPlugin().androidInfo;
+        // If it's NOT a low RAM device, AND it's a modern Android version (Android 11+ / API 30+),
+        // we can safely upgrade to the 3D Mapbox Standard style.
+        if (!androidInfo.isLowRamDevice && androidInfo.version.sdkInt >= 30) {
+          setState(() {
+            _mapStyle = MapboxStyles.STANDARD;
+          });
+        }
+      } catch (e) {
+        debugPrint('Could not check device info: $e');
+      }
+    } else if (Platform.isIOS) {
+      // iOS devices generally handle the 3D map fine.
+      setState(() {
+        _mapStyle = MapboxStyles.STANDARD;
+      });
+    }
+  }
 
   Future<void> _onMapCreated(MapboxMap mapboxMap) async {
     this.mapboxMap = mapboxMap;
@@ -45,9 +78,19 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
         ),
       );
 
-      // The puck will be displayed, but camera tracking in this Mapbox
-      // version requires the 'geolocator' package to get the exact 
-      // coordinates before manually setting the camera.
+      try {
+        final position = await geo.Geolocator.getCurrentPosition();
+        await mapboxMap!.setCamera(
+          CameraOptions(
+            center: Point(
+              coordinates: Position(position.longitude, position.latitude),
+            ),
+            zoom: 14.0,
+          ),
+        );
+      } catch (e) {
+        debugPrint('Could not fetch location: $e');
+      }
     }
   }
 
@@ -83,45 +126,50 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.worldMap)),
-      body: storesState.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => _MapError(
-          message: error is StoreLoadException
-              ? error.failure.message
-              : error.toString(),
-          onRetry: () =>
-              ref.read(worldMapControllerProvider.notifier).refresh(),
-        ),
-        data: (_) => MapWidget(
-          key: const ValueKey('mapWidget'),
-          onMapCreated: _onMapCreated,
-        ),
-      ),
-    );
-  }
-}
-
-class _MapError extends StatelessWidget {
-  const _MapError({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.location_off_outlined, size: 48),
-            const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onRetry, child: const Text('Retry')),
-          ],
-        ),
+      body: Stack(
+        children: [
+          MapWidget(
+            key: const ValueKey('mapWidget'),
+            textureView: true,
+            styleUri: _mapStyle,
+            onMapCreated: _onMapCreated,
+          ),
+          if (storesState.isLoading)
+            const Center(child: CircularProgressIndicator()),
+          if (storesState.hasError && !storesState.isLoading)
+            Positioned(
+              bottom: 24,
+              left: 24,
+              right: 24,
+              child: Card(
+                color: Colors.white.withValues(alpha: 0.9),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: Colors.red),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          storesState.error is StoreLoadException
+                              ? (storesState.error as StoreLoadException)
+                                    .failure
+                                    .message
+                              : storesState.error.toString(),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => ref
+                            .read(worldMapControllerProvider.notifier)
+                            .refresh(),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

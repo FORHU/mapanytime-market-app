@@ -18,7 +18,6 @@ class UserModel extends UserEntity {
   const UserModel({
     required super.id,
     required super.email,
-    required super.username,
     required this.token,
     super.name,
     super.avatarUrl,
@@ -37,11 +36,14 @@ class UserModel extends UserEntity {
         ? payload['user'] as Map<String, dynamic>
         : payload;
 
+    final firstName = userMap['firstName'] as String? ?? '';
+    final lastName = userMap['lastName'] as String? ?? '';
+    final fullName = '$firstName $lastName'.trim();
+
     return UserModel(
       id: userMap['id'] as String,
       email: userMap['email'] as String,
-      username: userMap['username'] as String,
-      name: userMap['name'] as String?,
+      name: fullName.isEmpty ? null : fullName,
       avatarUrl: userMap['avatar'] as String?,
       onboardingCompleted: userMap['onboardingCompleted'] as bool? ?? false,
       // login/register returns `accessToken`; refresh returns `accessToken` too.
@@ -59,7 +61,6 @@ class UserModel extends UserEntity {
   Map<String, dynamic> toJson() => {
         'id': id,
         'email': email,
-        'username': username,
         'name': name,
         'avatarUrl': avatarUrl,
         'onboardingCompleted': onboardingCompleted,

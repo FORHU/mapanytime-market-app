@@ -20,6 +20,26 @@ Ensure there are no major errors.
 
 ## ⚙️ 2. Project Setup
 
+### Configure Mapbox Tokens (Required)
+Mapbox is used for the world map and requires two separate authentication tokens to build and run the app successfully.
+
+1. **Get your Tokens:**
+   - Go to your Mapbox Account and create a new token.
+   - For your **Secret Token (`sk.`)**, you must check the `DOWNLOADS:READ` box under Secret scopes.
+   - For your **Public Token (`pk.`)**, use the default public token provided by Mapbox.
+
+2. **Setup the Secret Token (For building the app):**
+   - Open (or create) the `gradle.properties` file in your global Gradle folder:
+     - **Windows:** `C:\Users\<YourUsername>\.gradle\gradle.properties`
+     - **Mac/Linux:** `~/.gradle/gradle.properties`
+   - Add the following line:
+     `MAPBOX_DOWNLOADS_TOKEN=sk.YOUR_SECRET_TOKEN_HERE`
+
+3. **Setup the Public Token (For running the app):**
+   - Open `.env.dev` in the root of the Flutter project.
+   - Ensure the public token is set:
+     `MAPBOX_PUBLIC_TOKEN=pk.YOUR_PUBLIC_TOKEN_HERE`
+
 ### Fetch Dependencies
 Download all the packages required for the project:
 ```bash
@@ -91,3 +111,17 @@ If multiple devices are connected, Flutter will prompt you to choose one. You ca
 - **Hot Reload:** Press `r` in the terminal while `flutter run` is active to instantly see your UI changes without losing state.
 - **Hot Restart:** Press `R` to completely restart the app and reset its state.
 - **Run Tests:** `flutter test`
+
+---
+
+## 📦 6. Building for Release (APK)
+
+When you are ready to build the app to share with others or install on your physical device without a debugger, you must build an APK and inject your environment variables (like the Mapbox tokens) into it.
+
+Run the following command in your terminal:
+```bash
+flutter build apk --dart-define-from-file=.env.dev
+```
+
+This will generate your APK file at:
+`build/app/outputs/flutter-apk/app-release.apk`

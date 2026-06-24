@@ -19,14 +19,14 @@ class RegisterForm extends ConsumerStatefulWidget {
 class _RegisterFormState extends ConsumerState<RegisterForm> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  final _usernameController = TextEditingController();
+
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
 
   @override
   void dispose() {
     _emailController.dispose();
-    _usernameController.dispose();
+
     _passwordController.dispose();
     _nameController.dispose();
     super.dispose();
@@ -40,7 +40,7 @@ class _RegisterFormState extends ConsumerState<RegisterForm> {
         .register(
           _emailController.text,
           _passwordController.text,
-          _usernameController.text,
+
           name: _nameController.text.trim().isEmpty
               ? null
               : _nameController.text.trim(),
@@ -65,14 +65,6 @@ class _RegisterFormState extends ConsumerState<RegisterForm> {
             keyboardType: TextInputType.emailAddress,
             prefixIcon: Icons.email_outlined,
             validator: Validators.email,
-          ),
-          AppSpacing.md.v,
-          AppInput(
-            label: 'Username',
-            controller: _usernameController,
-            prefixIcon: Icons.alternate_email,
-            validator: (v) =>
-                (v == null || v.trim().isEmpty) ? 'Username is required' : null,
           ),
           AppSpacing.md.v,
           AppInput(

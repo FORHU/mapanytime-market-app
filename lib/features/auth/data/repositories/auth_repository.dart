@@ -8,12 +8,8 @@ import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.
 /// Repository contract (the abstraction the domain layer depends on).
 abstract class AuthRepository {
   Future<Either<Failure, UserEntity>> login(String email, String password);
-  Future<Either<Failure, UserEntity>> register(
-    String email,
-    String password,
-    String username, {
-    String? name,
-  });
+  Future<Either<Failure, UserEntity>> register(String email, String password,
+      {String? name});
   Future<Either<Failure, void>> logout();
 }
 
@@ -50,17 +46,12 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, UserEntity>> register(
-    String email,
-    String password,
-    String username, {
-    String? name,
-  }) async {
+  Future<Either<Failure, UserEntity>> register(String email, String password,
+      {String? name}) async {
     try {
       final user = await _remote.register(
         email,
         password,
-        username,
         name: name,
       );
       await _storage.saveToken(user.token);
