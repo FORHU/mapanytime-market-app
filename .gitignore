@@ -125,3 +125,6 @@ app.*.symbols
 .idea/
 *.iml
 .vscode/
+
+# Private Docs
+docs/
