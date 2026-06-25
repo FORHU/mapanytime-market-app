@@ -9,6 +9,7 @@ abstract class StoreRemoteDataSource {
   Future<List<StoreModel>> getNearbyStores({
     required double lat,
     required double lng,
+    double radius = 10,
   });
 }
 
@@ -21,11 +22,12 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
   Future<List<StoreModel>> getNearbyStores({
     required double lat,
     required double lng,
+    double radius = 10,
   }) async {
     try {
       final responseData = await _api.get(
         ApiEndpoints.storesNearby,
-        query: {'lat': lat, 'lng': lng},
+        query: {'lat': lat, 'lng': lng, 'radius': radius},
       );
 
       final rawList = responseData is Map && responseData['data'] is List

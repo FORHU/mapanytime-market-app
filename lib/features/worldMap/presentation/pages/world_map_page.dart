@@ -42,6 +42,10 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
   // Custom Flutter Overlay State
   final Map<String, ScreenCoordinate> _storeScreenPositions = {};
+  
+  // API Debouncer
+  Timer? _debounceTimer;
+  bool _isCameraMoving = false;
 
   @override
   void initState() {
@@ -157,6 +161,35 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   // ... (rest remains unchanged)
   Future<void> _enableUserLocation() async {
     final status = await Permission.locationWhenInUse.request();
+    
+    if (status.isPermanentlyDenied) {
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Location Required'),
+          content: const Text(
+            'We need your location to show stores near you. '
+            'Please enable location permissions in your settings.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                unawaited(openAppSettings());
+              },
+              child: const Text('Open Settings'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     if (status.isGranted && mapboxMap != null) {
       // Disabled Native Location Puck because it causes GPU SIGSEGV crashes
       // on some devices.
@@ -170,6 +203,10 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
             zoom: 14,
           ),
         );
+        
+        // Force an explicit fetch of stores around the user's initial location
+        // since programmatic setCamera calls sometimes bypass the camera movement listener
+        unawaited(_onCameraIdle());
 
         // Start listening to the custom GPS stream to draw our own tracker
         _positionStreamSubscription =
@@ -290,11 +327,51 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     }
   }
 
+  Future<void> _onCameraIdle() async {
+    if (mapboxMap == null) return;
+    
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 600), () async {
+      if (!mounted) return;
+      setState(() {
+        _isCameraMoving = false;
+      });
+      
+      try {
+        final cameraState = await mapboxMap!.getCameraState();
+        final center = cameraState.center;
+        
+        // Only fetch if we are relatively zoomed in
+        if (cameraState.zoom < 8) return; 
+
+        // Dynamic radius: at zoom 14, ~5km. At zoom 10, ~50km.
+        final radius = 50.0 / (cameraState.zoom / 10.0);
+        final notifier = ref.read(worldMapControllerProvider.notifier);
+        await notifier.fetchStoresAtLocation(
+          lat: center.coordinates.lat.toDouble(),
+          lng: center.coordinates.lng.toDouble(),
+          radius: radius,
+        );
+      } on Exception catch (e) {
+        debugPrint('Failed to get camera state for debounced fetch: $e');
+      }
+    });
+  }
+
   @override
   void dispose() {
-    _positionStreamSubscription?.cancel();
-    unawaited(pointAnnotationManager?.deleteAll());
-    unawaited(storeCircleAnnotationManager?.deleteAll());
+    _debounceTimer?.cancel();
+    
+    final cancelSub = _positionStreamSubscription?.cancel();
+    if (cancelSub != null) unawaited(cancelSub);
+
+    final cancelPoints = pointAnnotationManager?.deleteAll();
+    if (cancelPoints != null) unawaited(cancelPoints);
+
+    final cancelStores =
+        storeCircleAnnotationManager?.deleteAll();
+    if (cancelStores != null) unawaited(cancelStores);
+    
     pointAnnotationManager = null;
     storeCircleAnnotationManager = null;
     mapboxMap = null;
@@ -320,8 +397,15 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                   key: const ValueKey('mapWidget'),
                   styleUri: _mapStyle,
                   onMapCreated: _onMapCreated,
-                  onCameraChangeListener: (_) =>
-                      unawaited(_updateStoreScreenPositions()),
+                  onCameraChangeListener: (_) {
+                    if (!_isCameraMoving) {
+                      setState(() {
+                        _isCameraMoving = true;
+                      });
+                    }
+                    unawaited(_updateStoreScreenPositions());
+                    unawaited(_onCameraIdle());
+                  },
                 ),
                 // Render the Custom Flutter Red Ribbon Tags over the Map!
                 ..._storeScreenPositions.entries.map((entry) {
@@ -334,21 +418,28 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
                   if (store == null) return const SizedBox.shrink();
 
-                  // We center the tag horizontally, and anchor it so the tail
-                  // points at the Y coordinate
+                  // We use FractionalTranslation to perfectly center the tag horizontally
+                  // and anchor its bottom tip directly to the geographic point,
+                  // regardless of how wide the store name text is!
                   return Positioned(
-                    left: coord.x - 50, // Center approx (width ~100 / 2)
-                    top:
-                        coord.y - 40, // Offset upwards so the tail hits the pin
-                    child: StoreTagWidget(
-                      name: store.name,
-                      onTap: () {
-                        StoreBottomSheet.show(
-                          context,
-                          store,
-                          onNavigate: () => {},
-                        );
-                      },
+                    left: coord.x,
+                    top: coord.y,
+                    child: FractionalTranslation(
+                      translation: const Offset(-0.5, -1.0),
+                      child: AnimatedOpacity(
+                        opacity: _isCameraMoving ? 0.0 : 1.0,
+                        duration: const Duration(milliseconds: 150),
+                        child: StoreTagWidget(
+                          name: store.name,
+                          onTap: () {
+                            StoreBottomSheet.show(
+                              context,
+                              store,
+                              onNavigate: () => {},
+                            );
+                          },
+                        ),
+                      ),
                     ),
                   );
                 }),

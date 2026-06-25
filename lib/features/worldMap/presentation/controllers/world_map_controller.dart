@@ -65,6 +65,45 @@ class WorldMapController extends AsyncNotifier<List<StoreEntity>> {
     );
   }
 
+  /// Manually update stores at a specific location without needing GPS
+  Future<void> fetchStoresAtLocation({
+    required double lat,
+    required double lng,
+    double radius = 10,
+  }) async {
+    state = const AsyncValue.loading();
+    final result = await ref.read(getNearbyStoresUseCaseProvider)(
+      lat: lat,
+      lng: lng,
+      radius: radius,
+    );
+    
+    state = result.fold(
+      (failure) => AsyncValue.error(
+        StoreLoadException(failure),
+        StackTrace.current,
+      ),
+      (newStores) {
+        final currentStores = state.valueOrNull ?? [];
+        // Use a map to deduplicate stores by ID
+        final Map<String, StoreEntity> storeMap = {
+          for (final s in currentStores) s.id: s,
+        };
+        for (final s in newStores) {
+          storeMap[s.id] = s;
+        }
+        
+        final mergedList = storeMap.values.toList();
+        // Keep a maximum of 500 stores in memory to prevent performance degradation
+        // We drop from the beginning of the list (older camera centers)
+        if (mergedList.length > 500) {
+          return AsyncValue.data(mergedList.sublist(mergedList.length - 500));
+        }
+        return AsyncValue.data(mergedList);
+      },
+    );
+  }
+
   /// Re-fetches, showing a loading spinner while the request is in flight.
   Future<void> refresh() async {
     state = const AsyncValue.loading();

@@ -13,5 +13,7 @@ class GetNearbyStoresUseCase {
   Future<Either<Failure, List<StoreEntity>>> call({
     required double lat,
     required double lng,
-  }) => _repository.getNearbyStores(lat: lat, lng: lng);
+    double radius = 10,
+  }) =>
+      _repository.getNearbyStores(lat: lat, lng: lng, radius: radius);
 }

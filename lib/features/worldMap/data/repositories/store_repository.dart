@@ -10,6 +10,7 @@ abstract class StoreRepository {
   Future<Either<Failure, List<StoreEntity>>> getNearbyStores({
     required double lat,
     required double lng,
+    double radius = 10,
   });
 }
 
@@ -25,9 +26,14 @@ class StoreRepositoryImpl implements StoreRepository {
   Future<Either<Failure, List<StoreEntity>>> getNearbyStores({
     required double lat,
     required double lng,
+    double radius = 10,
   }) async {
     try {
-      final stores = await _remote.getNearbyStores(lat: lat, lng: lng);
+      final stores = await _remote.getNearbyStores(
+        lat: lat,
+        lng: lng,
+        radius: radius,
+      );
       return Right(stores);
     } on UnauthorizedException catch (e) {
       return Left(UnauthorizedFailure(e.message));
