@@ -56,7 +56,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       pointAnnotationManager?.addOnPointAnnotationClickListener(
         _PointAnnotationClickListener(context, ref, _storeIdByAnnotationId),
       );
-      
+
       await _renderMarkers();
       await _enableUserLocation();
     } on Exception catch (e) {
@@ -107,7 +107,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
         .toList();
 
     final createdAnnotations = await manager.createMulti(options);
-    
+
     // Map the generated annotation IDs safely back to the actual Store IDs
     for (var i = 0; i < createdAnnotations.length; i++) {
       final annotation = createdAnnotations[i];
@@ -179,8 +179,8 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
               ),
             ),
           Positioned(
-            bottom: 32,
-            right: 16,
+            bottom: 40,
+            right: 20,
             child: Column(
               children: [
                 CircleAvatar(
@@ -199,39 +199,39 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                     backgroundColor: Colors.white,
                     child: Icon(Icons.layers, color: Colors.black87),
                   ),
-                onSelected: (style) {
-                  setState(() {
-                    _mapStyle = style;
-                  });
-                  // Load style and re-render markers securely
-                  unawaited(
-                    mapboxMap?.loadStyleURI(style).then((_) {
-                      unawaited(_renderMarkers());
-                    }),
-                  );
-                },
-              itemBuilder: (context) => <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
-                  value: 'mapbox://styles/mapbox/streets-v12',
-                  child: Text('Streets'),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'mapbox://styles/mapbox/satellite-streets-v12',
-                  child: Text('Satellite Streets'),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'mapbox://styles/mapbox/dark-v11',
-                  child: Text('Dark Mode'),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'mapbox://styles/mapbox/light-v11',
-                  child: Text('Light Mode'),
+                  onSelected: (style) {
+                    setState(() {
+                      _mapStyle = style;
+                    });
+                    // Load style and re-render markers securely
+                    unawaited(
+                      mapboxMap?.loadStyleURI(style).then((_) {
+                        unawaited(_renderMarkers());
+                      }),
+                    );
+                  },
+                  itemBuilder: (context) => <PopupMenuEntry<String>>[
+                    const PopupMenuItem<String>(
+                      value: 'mapbox://styles/mapbox/streets-v12',
+                      child: Text('Streets'),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'mapbox://styles/mapbox/satellite-streets-v12',
+                      child: Text('Satellite Streets'),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'mapbox://styles/mapbox/dark-v11',
+                      child: Text('Dark Mode'),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'mapbox://styles/mapbox/light-v11',
+                      child: Text('Light Mode'),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
         ],
       ),
     );
@@ -251,7 +251,7 @@ class _PointAnnotationClickListener implements OnPointAnnotationClickListener {
   @override
   bool onPointAnnotationClick(PointAnnotation annotation) {
     final stores = ref.read(worldMapControllerProvider).valueOrNull ?? [];
-    
+
     final targetStoreId = storeIdMap[annotation.id];
     if (targetStoreId == null) return false;
 
