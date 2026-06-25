@@ -6,14 +6,20 @@ import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_en
 /// A single business action. Callable like a function:
 /// `getNearbyStoresUseCase(lat: ..., lng: ...)`.
 class GetNearbyStoresUseCase {
-  GetNearbyStoresUseCase(this._repository);
-
-  final StoreRepository _repository;
+  GetNearbyStoresUseCase(this.repository);
+  final StoreRepository repository;
 
   Future<Either<Failure, List<StoreEntity>>> call({
-    required double lat,
-    required double lng,
-    double radius = 10,
-  }) =>
-      _repository.getNearbyStores(lat: lat, lng: lng, radius: radius);
+    required double north,
+    required double south,
+    required double east,
+    required double west,
+  }) {
+    return repository.getNearbyStores(
+      north: north,
+      south: south,
+      east: east,
+      west: west,
+    );
+  }
 }

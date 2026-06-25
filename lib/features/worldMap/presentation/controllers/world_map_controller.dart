@@ -56,8 +56,10 @@ class WorldMapController extends AsyncNotifier<List<StoreEntity>> {
     }
 
     final result = await ref.read(getNearbyStoresUseCaseProvider)(
-      lat: lat,
-      lng: lng,
+      north: lat + 0.05,
+      south: lat - 0.05,
+      east: lng + 0.05,
+      west: lng - 0.05,
     );
     return result.fold(
       (failure) => throw StoreLoadException(failure),
@@ -67,15 +69,17 @@ class WorldMapController extends AsyncNotifier<List<StoreEntity>> {
 
   /// Manually update stores at a specific location without needing GPS
   Future<void> fetchStoresAtLocation({
-    required double lat,
-    required double lng,
-    double radius = 10,
+    required double north,
+    required double south,
+    required double east,
+    required double west,
   }) async {
     state = const AsyncValue.loading();
     final result = await ref.read(getNearbyStoresUseCaseProvider)(
-      lat: lat,
-      lng: lng,
-      radius: radius,
+      north: north,
+      south: south,
+      east: east,
+      west: west,
     );
     
     state = result.fold(

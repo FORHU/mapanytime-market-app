@@ -251,10 +251,16 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     final stores = ref.read(worldMapControllerProvider).valueOrNull ?? [];
     if (stores.isEmpty) return;
 
-    unawaited(manager.deleteAll()); // Only deletes stores now
-    _storeIdByAnnotationId.clear();
+    // Diff Engine: Only create native markers for stores we haven't seen yet!
+    final existingStoreIds = _storeIdByAnnotationId.values.toSet();
+    final newStores = stores.where((s) => !existingStoreIds.contains(s.id)).toList();
 
-    final options = stores
+    if (newStores.isEmpty) {
+      unawaited(_updateStoreScreenPositions());
+      return;
+    }
+
+    final options = newStores
         .map(
           (store) => CircleAnnotationOptions(
             geometry: Point(coordinates: Position(store.lng, store.lat)),
@@ -266,17 +272,16 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
         )
         .toList();
 
-    if (options.isEmpty) return;
     try {
       debugPrint(
-        'Attempting to render ${options.length} store markers as circles...',
+        'Attempting to render ${options.length} NEW store markers as circles...',
       );
       final annotations = await manager.createMulti(options);
       debugPrint('Successfully created ${annotations.length} circle markers!');
       for (var i = 0; i < annotations.length; i++) {
         final annotation = annotations[i];
         if (annotation != null) {
-          _storeIdByAnnotationId[annotation.id] = stores[i].id;
+          _storeIdByAnnotationId[annotation.id] = newStores[i].id;
         }
       }
     } on Exception catch (e, stack) {
@@ -339,18 +344,31 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       
       try {
         final cameraState = await mapboxMap!.getCameraState();
-        final center = cameraState.center;
         
         // Only fetch if we are relatively zoomed in
         if (cameraState.zoom < 8) return; 
 
-        // Dynamic radius: at zoom 14, ~5km. At zoom 10, ~50km.
-        final radius = 50.0 / (cameraState.zoom / 10.0);
+        // Get the exact viewport boundaries of the user's physical screen
+        final coordinateBounds = await mapboxMap!.coordinateBoundsForCamera(
+          CameraOptions(
+            center: cameraState.center,
+            zoom: cameraState.zoom,
+            pitch: cameraState.pitch,
+            bearing: cameraState.bearing,
+          ),
+        );
+
+        final north = coordinateBounds.northeast.coordinates.lat.toDouble();
+        final south = coordinateBounds.southwest.coordinates.lat.toDouble();
+        final east = coordinateBounds.northeast.coordinates.lng.toDouble();
+        final west = coordinateBounds.southwest.coordinates.lng.toDouble();
+
         final notifier = ref.read(worldMapControllerProvider.notifier);
         await notifier.fetchStoresAtLocation(
-          lat: center.coordinates.lat.toDouble(),
-          lng: center.coordinates.lng.toDouble(),
-          radius: radius,
+          north: north,
+          south: south,
+          east: east,
+          west: west,
         );
       } on Exception catch (e) {
         debugPrint('Failed to get camera state for debounced fetch: $e');
