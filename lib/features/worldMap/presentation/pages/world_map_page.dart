@@ -1,18 +1,20 @@
+// The Mapbox plugin uses some deprecated interfaces.
+// ignore_for_file: deprecated_member_use
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/controllers/world_map_controller.dart';
+import 'package:mapanytime_market_app/features/worldMap/presentation/pages/components/mapbox_style_manager.dart';
+import 'package:mapanytime_market_app/features/worldMap/presentation/pages/components/user_location_manager.dart';
+import 'package:mapanytime_market_app/features/worldMap/presentation/pages/components/world_map_ui_overlay.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_bottom_sheet.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_list_view.dart';
-import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_tag_widget.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/world_map_floating_controls.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/world_map_status_overlay.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class WorldMapPage extends ConsumerStatefulWidget {
   const WorldMapPage({super.key});
@@ -23,33 +25,202 @@ class WorldMapPage extends ConsumerStatefulWidget {
 
 class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   MapboxMap? mapboxMap;
-  PointAnnotationManager? pointAnnotationManager;
-  // Default to the safe 2D streets style.
-  String _mapStyle = 'mapbox://styles/mapbox/streets-v12';
+  
+  // Managers
+  late final UserLocationManager _locationManager;
+  MapboxStyleManager? _styleManager;
 
-  // We map Annotation IDs to the Store ID to prevent name-collision bugs
-  final Map<String, String> _storeIdByAnnotationId = {};
+  // Custom UI State
+  final Map<String, ScreenCoordinate> _storeScreenPositions = {};
+  String? _selectedStoreId;
+  double _currentZoom = 14;
   bool _is3DMode = false;
   bool _showListView = false;
+  bool _isCameraMoving = false;
 
-  // Custom GPS Tracker variables
-  StreamSubscription<geo.Position>? _positionStreamSubscription;
+  // Route State
   PolylineAnnotationManager? polylineAnnotationManager;
   PolylineAnnotation? _currentRoute;
-  CircleAnnotationManager? circleAnnotationManager; // For User GPS
-  CircleAnnotationManager? storeCircleAnnotationManager; // For Stores
-  CircleAnnotation? _userLocationAnnotation;
 
-  // Custom Flutter Overlay State
-  final Map<String, ScreenCoordinate> _storeScreenPositions = {};
-  
-  // API Debouncer
   Timer? _debounceTimer;
-  bool _isCameraMoving = false;
+  String _mapStyle = 'mapbox://styles/mapbox/streets-v12';
 
   @override
   void initState() {
     super.initState();
+    _locationManager = UserLocationManager();
+  }
+
+  Future<void> _onMapCreated(MapboxMap mapboxMap) async {
+    this.mapboxMap = mapboxMap;
+    _styleManager = MapboxStyleManager(mapboxMap);
+
+    try {
+      polylineAnnotationManager = await mapboxMap.annotations
+          .createPolylineAnnotationManager();
+      
+      await _locationManager.initialize(mapboxMap);
+      await _styleManager!.initializeClusters();
+      await _styleManager!.hidePoiLayers();
+
+      if (!mounted) return;
+
+      await _renderMarkers();
+      await _locationManager.enableUserLocation();
+    } on Exception catch (e) {
+      debugPrint('Error initializing map: $e');
+    }
+  }
+
+  void _onMapTap(MapContentGestureContext tapContext) {
+    unawaited(_handleMapTap(tapContext));
+  }
+
+  Future<void> _handleMapTap(MapContentGestureContext tapContext) async {
+    if (mapboxMap == null) return;
+    
+    final point = tapContext.point;
+    final screenPoint = tapContext.touchPosition;
+
+    final screenBox = ScreenBox(
+        min: ScreenCoordinate(x: screenPoint.x - 20, y: screenPoint.y - 20),
+        max: ScreenCoordinate(x: screenPoint.x + 20, y: screenPoint.y + 20));
+
+    final features = await mapboxMap!.queryRenderedFeatures(
+        RenderedQueryGeometry.fromScreenBox(screenBox),
+        RenderedQueryOptions(
+            layerIds: ['clusters', 'unclustered-point']));
+
+    if (features.isNotEmpty) {
+      final firstFeature = features.first;
+      if (firstFeature == null) return;
+      
+      final geoJsonFeature = firstFeature.queriedFeature.feature;
+      final properties = geoJsonFeature['properties'] as Map?;
+      
+      if (properties != null) {
+        final isCluster = properties['cluster'] == true;
+        if (isCluster) {
+          final currentCamera = await mapboxMap!.getCameraState();
+          await mapboxMap!.setCamera(CameraOptions(
+            center: point,
+            zoom: currentCamera.zoom + 2,
+          ));
+        } else {
+          final storeId = properties['storeId'] as String?;
+          if (storeId != null) {
+            _selectStore(storeId);
+          }
+        }
+      }
+    }
+  }
+
+  void _selectStore(String storeId) {
+    if (mounted) {
+      setState(() {
+        _selectedStoreId = storeId;
+      });
+      unawaited(_updateStoreScreenPositions());
+    }
+
+    final stores = ref.read(worldMapControllerProvider).valueOrNull ?? [];
+    final store = stores.where((s) => s.id == storeId).firstOrNull;
+    if (store != null) {
+      unawaited(
+        StoreBottomSheet.show(
+          context,
+          store,
+          onNavigate: () => _startNavigationTo(store),
+        ).whenComplete(() {
+          if (mounted) {
+            setState(() {
+              _selectedStoreId = null;
+            });
+            unawaited(_updateStoreScreenPositions());
+          }
+        }),
+      );
+    }
+  }
+
+  Future<void> _renderMarkers() async {
+    if (_styleManager == null) return;
+    
+    final stores = ref.read(worldMapControllerProvider).valueOrNull ?? [];
+    await _styleManager!.updateGeoJsonSource(stores);
+    unawaited(_updateStoreScreenPositions());
+  }
+
+  Future<void> _updateStoreScreenPositions({int retries = 3}) async {
+    if (mapboxMap == null) return;
+
+    final stores = ref.read(worldMapControllerProvider).valueOrNull ?? [];
+    if (stores.isEmpty) {
+      if (mounted) {
+        setState(_storeScreenPositions.clear);
+      }
+      return;
+    }
+
+    try {
+      final cameraState = await mapboxMap!.getCameraState();
+      _currentZoom = cameraState.zoom;
+      
+      final points = stores
+          .map((s) => Point(coordinates: Position(s.lng, s.lat)))
+          .toList();
+      final screenCoords = await mapboxMap!.pixelsForCoordinates(points);
+      
+      if (screenCoords.length == stores.length) {
+        final newPositions = <String, ScreenCoordinate>{};
+        for (var i = 0; i < stores.length; i++) {
+          newPositions[stores[i].id] = screenCoords[i]!;
+        }
+        
+        if (mounted) {
+          setState(() {
+            _storeScreenPositions
+              ..clear()
+              ..addAll(newPositions);
+          });
+        }
+      }
+    } on Exception catch (e) {
+      debugPrint('Failed to update screen positions: $e');
+      if (retries > 0) {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await _updateStoreScreenPositions(retries: retries - 1);
+      }
+    }
+  }
+
+  Future<void> _onCameraIdle() async {
+    if (mapboxMap == null || !mounted) return;
+
+    setState(() {
+      _isCameraMoving = false;
+    });
+
+    final cameraState = await mapboxMap!.getCameraState();
+    final center = cameraState.center;
+
+    if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
+
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+      final lat = center.coordinates.lat.toDouble();
+      final lng = center.coordinates.lng.toDouble();
+      unawaited(
+        ref.read(worldMapControllerProvider.notifier).fetchStoresAtLocation(
+              north: lat + 0.05,
+              south: lat - 0.05,
+              east: lng + 0.05,
+              west: lng - 0.05,
+            )
+      );
+      unawaited(_updateStoreScreenPositions());
+    });
   }
 
   void _toggle3DMode() {
@@ -59,26 +230,22 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     unawaited(
       mapboxMap?.setCamera(
         CameraOptions(
-          pitch: _is3DMode ? 60.0 : 0.0,
+          pitch: _is3DMode ? 60 : 0,
         ),
       ),
     );
   }
 
   Future<void> _startNavigationTo(StoreEntity store) async {
-    if (_userLocationAnnotation == null || polylineAnnotationManager == null) {
-      return;
-    }
+    final userPoint = _locationManager.getUserLocation();
+    if (userPoint == null || polylineAnnotationManager == null) return;
 
-    final userPoint = _userLocationAnnotation!.geometry;
     final storePoint = Point(coordinates: Position(store.lng, store.lat));
 
-    // Clear old route
     if (_currentRoute != null) {
       await polylineAnnotationManager!.delete(_currentRoute!);
     }
 
-    // Draw simple straight line route
     _currentRoute = await polylineAnnotationManager!.create(
       PolylineAnnotationOptions(
         geometry: LineString(
@@ -92,316 +259,43 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       ),
     );
 
-    // Enter Navigation Guide Mode
     setState(() {
       _is3DMode = true;
     });
 
-    await mapboxMap?.setCamera(
-      CameraOptions(
-        center: userPoint,
-        zoom: 16, // Zoom in tight
-        pitch: 60, // Tilt camera
-        bearing: 0, // Face North (could calculate actual bearing here)
+    unawaited(
+      mapboxMap?.setCamera(
+        CameraOptions(
+          center: userPoint,
+          zoom: 18,
+          pitch: 60,
+          bearing: 0,
+        ),
       ),
     );
-  }
-
-  Future<void> _onMapCreated(MapboxMap mapboxMap) async {
-    try {
-      this.mapboxMap = mapboxMap;
-      pointAnnotationManager = await mapboxMap.annotations
-          .createPointAnnotationManager();
-      polylineAnnotationManager = await mapboxMap.annotations
-          .createPolylineAnnotationManager();
-      circleAnnotationManager = await mapboxMap.annotations
-          .createCircleAnnotationManager();
-      storeCircleAnnotationManager = await mapboxMap.annotations
-          .createCircleAnnotationManager();
-
-      // Hide all default Mapbox businesses, restaurants, and transit stops
-      try {
-        final layers = await mapboxMap.style.getStyleLayers();
-        for (final layer in layers) {
-          if (layer == null) continue;
-          final id = layer.id.toLowerCase();
-          // Hide points of interest and transit labels
-          if (id.contains('poi') || id.contains('transit')) {
-            await mapboxMap.style.setStyleLayerProperty(
-              layer.id,
-              'visibility',
-              'none',
-            );
-          }
-        }
-      } on Exception catch (e) {
-        debugPrint('Note: Some POI layers could not be hidden: $e');
-      }
-
-      if (!mounted) return;
-
-      // The listener is deprecated but currently the only way to tap pins.
-      // ignore: deprecated_member_use
-      pointAnnotationManager?.addOnPointAnnotationClickListener(
-        _PointAnnotationClickListener(
-          context,
-          ref,
-          _storeIdByAnnotationId,
-          _startNavigationTo,
-        ),
-      );
-
-      await _renderMarkers();
-      await _enableUserLocation();
-    } on Exception catch (e) {
-      debugPrint('Mapbox initialization failed: $e');
-    }
-  }
-
-  // ... (rest remains unchanged)
-  Future<void> _enableUserLocation() async {
-    final status = await Permission.locationWhenInUse.request();
-    
-    if (status.isPermanentlyDenied) {
-      if (!mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Location Required'),
-          content: const Text(
-            'We need your location to show stores near you. '
-            'Please enable location permissions in your settings.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                unawaited(openAppSettings());
-              },
-              child: const Text('Open Settings'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
-    if (status.isGranted && mapboxMap != null) {
-      // Disabled Native Location Puck because it causes GPU SIGSEGV crashes
-      // on some devices.
-      try {
-        final initialPos = await geo.Geolocator.getCurrentPosition();
-        await mapboxMap!.setCamera(
-          CameraOptions(
-            center: Point(
-              coordinates: Position(initialPos.longitude, initialPos.latitude),
-            ),
-            zoom: 14,
-          ),
-        );
-        
-        // Force an explicit fetch of stores around the user's initial location
-        // since programmatic setCamera calls sometimes bypass the camera movement listener
-        unawaited(_onCameraIdle());
-
-        // Start listening to the custom GPS stream to draw our own tracker
-        _positionStreamSubscription =
-            geo.Geolocator.getPositionStream(
-              locationSettings: const geo.LocationSettings(
-                accuracy: geo.LocationAccuracy.high,
-                distanceFilter: 2, // Update every 2 meters
-              ),
-            ).listen((currentPos) async {
-              if (!mounted || circleAnnotationManager == null) return;
-
-              final pos = Position(currentPos.longitude, currentPos.latitude);
-
-              if (_userLocationAnnotation == null) {
-                // Create a safe, hardware-accelerated vector circle instead of text/images
-                _userLocationAnnotation = await circleAnnotationManager!.create(
-                  CircleAnnotationOptions(
-                    geometry: Point(coordinates: pos),
-                    circleColor: Colors.blue.toARGB32(),
-                    circleRadius: 10,
-                    circleStrokeColor: Colors.white.toARGB32(),
-                    circleStrokeWidth: 3,
-                  ),
-                );
-              } else {
-                // Update the existing marker's position
-                _userLocationAnnotation!.geometry = Point(coordinates: pos);
-                await circleAnnotationManager!.update(_userLocationAnnotation!);
-              }
-            });
-      } on Exception catch (e) {
-        debugPrint('Could not fetch location: $e');
-      }
-    }
-  }
-
-  Future<void> _renderMarkers() async {
-    final manager =
-        storeCircleAnnotationManager; // Use dedicated store manager!
-    if (manager == null || mapboxMap == null) return;
-
-    final stores = ref.read(worldMapControllerProvider).valueOrNull ?? [];
-    if (stores.isEmpty) return;
-
-    // Diff Engine: Only create native markers for stores we haven't seen yet!
-    final existingStoreIds = _storeIdByAnnotationId.values.toSet();
-    final newStores = stores.where((s) => !existingStoreIds.contains(s.id)).toList();
-
-    if (newStores.isEmpty) {
-      unawaited(_updateStoreScreenPositions());
-      return;
-    }
-
-    final options = newStores
-        .map(
-          (store) => CircleAnnotationOptions(
-            geometry: Point(coordinates: Position(store.lng, store.lat)),
-            circleColor: Colors.red.toARGB32(), // Red dot for stores
-            circleRadius: 12,
-            circleStrokeColor: Colors.white.toARGB32(),
-            circleStrokeWidth: 3,
-          ),
-        )
-        .toList();
-
-    try {
-      debugPrint(
-        'Attempting to render ${options.length} NEW store markers as circles...',
-      );
-      final annotations = await manager.createMulti(options);
-      debugPrint('Successfully created ${annotations.length} circle markers!');
-      for (var i = 0; i < annotations.length; i++) {
-        final annotation = annotations[i];
-        if (annotation != null) {
-          _storeIdByAnnotationId[annotation.id] = newStores[i].id;
-        }
-      }
-    } on Exception catch (e, stack) {
-      debugPrint('Failed to create circle annotations: $e\n$stack');
-    }
-
-    // Trigger overlay update for the newly loaded stores
-    unawaited(_updateStoreScreenPositions());
-  }
-
-  Future<void> _updateStoreScreenPositions({int retries = 3}) async {
-    if (mapboxMap == null || _showListView) return;
-    final stores = ref.read(worldMapControllerProvider).valueOrNull ?? [];
-    if (stores.isEmpty) return;
-
-    debugPrint('Calculating screen positions for ${stores.length} stores...');
-    final newPositions = <String, ScreenCoordinate>{};
-    var hadError = false;
-
-    for (final store in stores) {
-      try {
-        final screenCoord = await mapboxMap!.pixelForCoordinate(
-          Point(coordinates: Position(store.lng, store.lat)),
-        );
-        newPositions[store.id] = screenCoord;
-      } on Exception catch (_) {
-        hadError = true;
-      }
-    }
-
-    if (mounted) {
-      setState(() {
-        _storeScreenPositions
-          ..clear()
-          ..addAll(newPositions);
-      });
-    }
-
-    // If Mapbox native renderer wasn't ready, it throws. We retry a few times.
-    if (hadError && retries > 0) {
-      unawaited(
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) {
-            unawaited(_updateStoreScreenPositions(retries: retries - 1));
-          }
-        }),
-      );
-    }
-  }
-
-  Future<void> _onCameraIdle() async {
-    if (mapboxMap == null) return;
-    
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 600), () async {
-      if (!mounted) return;
-      setState(() {
-        _isCameraMoving = false;
-      });
-      
-      try {
-        final cameraState = await mapboxMap!.getCameraState();
-        
-        // Only fetch if we are relatively zoomed in
-        if (cameraState.zoom < 8) return; 
-
-        // Get the exact viewport boundaries of the user's physical screen
-        final coordinateBounds = await mapboxMap!.coordinateBoundsForCamera(
-          CameraOptions(
-            center: cameraState.center,
-            zoom: cameraState.zoom,
-            pitch: cameraState.pitch,
-            bearing: cameraState.bearing,
-          ),
-        );
-
-        final north = coordinateBounds.northeast.coordinates.lat.toDouble();
-        final south = coordinateBounds.southwest.coordinates.lat.toDouble();
-        final east = coordinateBounds.northeast.coordinates.lng.toDouble();
-        final west = coordinateBounds.southwest.coordinates.lng.toDouble();
-
-        final notifier = ref.read(worldMapControllerProvider.notifier);
-        await notifier.fetchStoresAtLocation(
-          north: north,
-          south: south,
-          east: east,
-          west: west,
-        );
-      } on Exception catch (e) {
-        debugPrint('Failed to get camera state for debounced fetch: $e');
-      }
-    });
   }
 
   @override
   void dispose() {
     _debounceTimer?.cancel();
     
-    final cancelSub = _positionStreamSubscription?.cancel();
-    if (cancelSub != null) unawaited(cancelSub);
-
-    final cancelPoints = pointAnnotationManager?.deleteAll();
-    if (cancelPoints != null) unawaited(cancelPoints);
-
-    final cancelStores =
-        storeCircleAnnotationManager?.deleteAll();
-    if (cancelStores != null) unawaited(cancelStores);
+    final cancelRoute = polylineAnnotationManager?.deleteAll();
+    if (cancelRoute != null) unawaited(cancelRoute);
     
-    pointAnnotationManager = null;
-    storeCircleAnnotationManager = null;
+    unawaited(_locationManager.dispose());
+
+    polylineAnnotationManager = null;
     mapboxMap = null;
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Re-render pins whenever the store list changes (e.g. after a refresh).
     ref.listen(worldMapControllerProvider, (previous, next) {
       unawaited(_renderMarkers());
     });
+
+    final stores = ref.read(worldMapControllerProvider).valueOrNull ?? [];
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.worldMap)),
@@ -415,116 +309,67 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                   key: const ValueKey('mapWidget'),
                   styleUri: _mapStyle,
                   onMapCreated: _onMapCreated,
+                  onTapListener: _onMapTap,
                   onCameraChangeListener: (_) {
                     if (!_isCameraMoving) {
                       setState(() {
                         _isCameraMoving = true;
                       });
                     }
-                    unawaited(_updateStoreScreenPositions());
                     unawaited(_onCameraIdle());
                   },
                 ),
-                // Render the Custom Flutter Red Ribbon Tags over the Map!
-                ..._storeScreenPositions.entries.map((entry) {
-                  final storeId = entry.key;
-                  final coord = entry.value;
-                  final store =
-                      (ref.read(worldMapControllerProvider).valueOrNull ?? [])
-                          .where((s) => s.id == storeId)
-                          .firstOrNull;
+                
+                WorldMapUiOverlay(
+                  storeScreenPositions: _storeScreenPositions,
+                  selectedStoreId: _selectedStoreId,
+                  currentZoom: _currentZoom,
+                  stores: stores,
+                  onNavigate: _startNavigationTo,
+                ),
 
-                  if (store == null) return const SizedBox.shrink();
+                const Positioned(
+                  top: 16,
+                  left: 0,
+                  right: 0,
+                  child: WorldMapStatusOverlay(),
+                ),
 
-                  // We use FractionalTranslation to perfectly center the tag horizontally
-                  // and anchor its bottom tip directly to the geographic point,
-                  // regardless of how wide the store name text is!
-                  return Positioned(
-                    left: coord.x,
-                    top: coord.y,
-                    child: FractionalTranslation(
-                      translation: const Offset(-0.5, -1.0),
-                      child: AnimatedOpacity(
-                        opacity: _isCameraMoving ? 0.0 : 1.0,
-                        duration: const Duration(milliseconds: 150),
-                        child: StoreTagWidget(
-                          name: store.name,
-                          onTap: () {
-                            StoreBottomSheet.show(
-                              context,
-                              store,
-                              onNavigate: () => {},
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  );
-                }),
+                Positioned(
+                  bottom: 16,
+                  right: 16,
+                  child: WorldMapFloatingControls(
+                    is3DMode: _is3DMode,
+                    isListView: _showListView,
+                    onToggle3DMode: _toggle3DMode,
+                    onToggleListView: () {
+                      setState(() {
+                        _showListView = !_showListView;
+                      });
+                    },
+                    onStyleSelected: (style) {
+                      setState(() {
+                        _mapStyle = style;
+                      });
+                    },
+                  ),
+                ),
               ],
             ),
           ),
-          if (_showListView)
-            StoreListView(
-              onNavigate: (store) {
-                // Handle navigation inside list view
-              },
-            ),
-          const WorldMapStatusOverlay(),
-          WorldMapFloatingControls(
-            is3DMode: _is3DMode,
-            isListView: _showListView,
-            onToggleListView: () {
-              setState(() {
-                _showListView = !_showListView;
-              });
-            },
-            onToggle3DMode: _toggle3DMode,
-            onStyleSelected: (style) {
-              setState(() {
-                _mapStyle = style;
-              });
-              // Load style and re-render markers securely
-              unawaited(
-                mapboxMap?.loadStyleURI(style).then((_) {
-                  unawaited(_renderMarkers());
-                }),
-              );
-            },
-          ),
+          if (_showListView) StoreListView(onNavigate: _startNavigationTo),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          setState(() {
+            _showListView = !_showListView;
+          });
+        },
+        icon: Icon(_showListView ? Icons.map : Icons.list),
+        label: Text(_showListView ? 'View Map' : 'View List'),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
-  }
-}
-
-/// Opens the store bottom sheet when a map pin is tapped. The mapbox plugin
-/// only offers this listener through a deprecated interface for now.
-// ignore: deprecated_member_use
-class _PointAnnotationClickListener implements OnPointAnnotationClickListener {
-  _PointAnnotationClickListener(
-    this.context,
-    this.ref,
-    this.storeIdMap,
-    this.onNavigate,
-  );
-
-  final BuildContext context;
-  final WidgetRef ref;
-  final Map<String, String> storeIdMap;
-  final void Function(StoreEntity store) onNavigate;
-
-  @override
-  bool onPointAnnotationClick(PointAnnotation annotation) {
-    final stores = ref.read(worldMapControllerProvider).valueOrNull ?? [];
-
-    final targetStoreId = storeIdMap[annotation.id];
-    if (targetStoreId == null) return false;
-
-    final store = stores.where((s) => s.id == targetStoreId).firstOrNull;
-    if (store == null) return false;
-
-    StoreBottomSheet.show(context, store, onNavigate: () => onNavigate(store));
-    return true;
   }
 }

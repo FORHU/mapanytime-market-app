@@ -11,7 +11,7 @@ class WorldMapStatusOverlay extends ConsumerWidget {
 
     return Stack(
       children: [
-        if (storesState.isLoading)
+        if (storesState.isLoading && !storesState.hasValue)
           const Center(child: CircularProgressIndicator()),
         if (storesState.hasError && !storesState.isLoading)
           Positioned(

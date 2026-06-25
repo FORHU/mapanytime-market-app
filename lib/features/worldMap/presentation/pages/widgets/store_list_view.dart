@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
@@ -64,10 +66,12 @@ class StoreListView extends ConsumerWidget {
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
-                    StoreBottomSheet.show(
-                      context,
-                      store,
-                      onNavigate: () => onNavigate(store),
+                    unawaited(
+                      StoreBottomSheet.show(
+                        context,
+                        store,
+                        onNavigate: () => onNavigate(store),
+                      ),
                     );
                   },
                 ),

@@ -9,20 +9,18 @@ class StoreBottomSheet extends StatelessWidget {
   final StoreEntity store;
   final VoidCallback? onNavigate;
 
-  static void show(
+  static Future<void> show(
     BuildContext context,
     StoreEntity store, {
     VoidCallback? onNavigate,
   }) {
-    unawaited(
-      showModalBottomSheet<void>(
-        context: context,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        builder: (context) =>
-            StoreBottomSheet(store: store, onNavigate: onNavigate),
+    return showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
+      builder: (context) =>
+          StoreBottomSheet(store: store, onNavigate: onNavigate),
     );
   }
 

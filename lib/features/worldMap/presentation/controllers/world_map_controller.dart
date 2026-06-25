@@ -81,27 +81,28 @@ class WorldMapController extends AsyncNotifier<List<StoreEntity>> {
       east: east,
       west: west,
     );
-    
+
     state = result.fold(
       (failure) => AsyncValue.error(
         StoreLoadException(failure),
         StackTrace.current,
       ),
       (newStores) {
+        if (newStores.isEmpty) return state;
+
         final currentStores = state.valueOrNull ?? [];
-        // Use a map to deduplicate stores by ID
-        final Map<String, StoreEntity> storeMap = {
+        final storeMap = <String, StoreEntity>{
           for (final s in currentStores) s.id: s,
         };
         for (final s in newStores) {
           storeMap[s.id] = s;
         }
-        
+
         final mergedList = storeMap.values.toList();
-        // Keep a maximum of 500 stores in memory to prevent performance degradation
-        // We drop from the beginning of the list (older camera centers)
         if (mergedList.length > 500) {
-          return AsyncValue.data(mergedList.sublist(mergedList.length - 500));
+          return AsyncValue.data(
+            mergedList.sublist(mergedList.length - 500),
+          );
         }
         return AsyncValue.data(mergedList);
       },
