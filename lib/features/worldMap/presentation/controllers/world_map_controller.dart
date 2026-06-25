@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:mapanytime_market_app/core/errors/failure.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart'
     show apiServiceProvider;
@@ -36,17 +37,27 @@ class StoreLoadException implements Exception {
 /// as an [AsyncValue] so the UI can render each state explicitly. A [Failure]
 /// from the use case is thrown into the error channel and read back in the UI.
 class WorldMapController extends AsyncNotifier<List<StoreEntity>> {
-  // Jakarta — the demo query origin until real geolocation is wired in.
-  static const double _originLat = -6.2088;
-  static const double _originLng = 106.8456;
-
   @override
   Future<List<StoreEntity>> build() => _fetchNearbyStores();
 
   Future<List<StoreEntity>> _fetchNearbyStores() async {
+    var lat = 0.0;
+    var lng = 0.0;
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+      lat = position.latitude;
+      lng = position.longitude;
+    } on Exception catch (_) {
+      throw Exception('GPS Location is required to find nearby stores.');
+    }
+
     final result = await ref.read(getNearbyStoresUseCaseProvider)(
-      lat: _originLat,
-      lng: _originLng,
+      lat: lat,
+      lng: lng,
     );
     return result.fold(
       (failure) => throw StoreLoadException(failure),

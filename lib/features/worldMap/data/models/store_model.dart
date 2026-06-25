@@ -11,13 +11,16 @@ class StoreModel extends StoreEntity {
     required super.distance,
   });
 
-  factory StoreModel.fromJson(Map<String, dynamic> json) => StoreModel(
-    id: json['id'] as String? ?? '',
-    name: json['name'] as String? ?? 'Unknown Store',
-    lat: (json['lat'] as num?)?.toDouble() ?? 0.0,
-    lng: (json['lng'] as num?)?.toDouble() ?? 0.0,
-    distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
-  );
+  factory StoreModel.fromJson(Map<String, dynamic> json) {
+    final locs = json['storeLocations'] as Map<String, dynamic>? ?? {};
+    return StoreModel(
+      id: json['id'] as String? ?? '',
+      name: json['storeName'] as String? ?? 'Unknown Store',
+      lat: (locs['latitude'] as num?)?.toDouble() ?? 0.0,
+      lng: (locs['longitude'] as num?)?.toDouble() ?? 0.0,
+      distance: (json['DistanceKm'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
     'id': id,

@@ -23,13 +23,16 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
     required double lng,
   }) async {
     try {
-      final data = await _api.get(
+      final responseData = await _api.get(
         ApiEndpoints.storesNearby,
         query: {'lat': lat, 'lng': lng},
       );
 
-      final list = data is List ? data : const <dynamic>[];
-      return list
+      final rawList = responseData is Map && responseData['data'] is List
+          ? responseData['data'] as List
+          : const <dynamic>[];
+
+      return rawList
           .map((e) => StoreModel.fromJson((e as Map).cast<String, dynamic>()))
           .toList();
     } on Exception catch (_) {

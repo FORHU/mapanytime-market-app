@@ -4,18 +4,24 @@ import 'package:flutter/material.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 
 class StoreBottomSheet extends StatelessWidget {
-  const StoreBottomSheet({required this.store, super.key});
+  const StoreBottomSheet({required this.store, this.onNavigate, super.key});
 
   final StoreEntity store;
+  final VoidCallback? onNavigate;
 
-  static void show(BuildContext context, StoreEntity store) {
+  static void show(
+    BuildContext context,
+    StoreEntity store, {
+    VoidCallback? onNavigate,
+  }) {
     unawaited(
       showModalBottomSheet<void>(
         context: context,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        builder: (context) => StoreBottomSheet(store: store),
+        builder: (context) =>
+            StoreBottomSheet(store: store, onNavigate: onNavigate),
       ),
     );
   }
@@ -45,23 +51,45 @@ class StoreBottomSheet extends StatelessWidget {
             style: theme.textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
           ),
           const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Navigating to ${store.name}...')),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    onNavigate?.call();
+                  },
+                  icon: const Icon(Icons.navigation),
+                  label: const Text('Navigate'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: const Text(
-              'Shop Now',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Opening ${store.name} storefront...'),
+                      ),
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Shop Now'),
+                ),
+              ),
+            ],
           ),
         ],
       ),
