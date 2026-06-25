@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart' as geo;
@@ -21,62 +19,57 @@ class WorldMapPage extends ConsumerStatefulWidget {
 class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   MapboxMap? mapboxMap;
   PointAnnotationManager? pointAnnotationManager;
-  // Default to the safe 2D style. We will upgrade to 3D if the device is powerful.
+  // Default to the safe 2D streets style.
   String _mapStyle = 'mapbox://styles/mapbox/streets-v12';
+
+  // We map Annotation IDs to the Store ID to prevent name-collision bugs
+  final Map<String, String> _storeIdByAnnotationId = {};
+  bool _is3DMode = false;
 
   @override
   void initState() {
     super.initState();
-    unawaited(_checkDeviceCapabilities());
   }
 
-  Future<void> _checkDeviceCapabilities() async {
-    if (Platform.isAndroid) {
-      try {
-        final androidInfo = await DeviceInfoPlugin().androidInfo;
-        // If it's NOT a low RAM device, AND it's a modern Android version (Android 11+ / API 30+),
-        // we can safely upgrade to the 3D Mapbox Standard style.
-        if (!androidInfo.isLowRamDevice && androidInfo.version.sdkInt >= 30) {
-          setState(() {
-            _mapStyle = MapboxStyles.STANDARD;
-          });
-        }
-      } catch (e) {
-        debugPrint('Could not check device info: $e');
-      }
-    } else if (Platform.isIOS) {
-      // iOS devices generally handle the 3D map fine.
-      setState(() {
-        _mapStyle = MapboxStyles.STANDARD;
-      });
-    }
+  void _toggle3DMode() {
+    setState(() {
+      _is3DMode = !_is3DMode;
+    });
+    unawaited(
+      mapboxMap?.setCamera(
+        CameraOptions(
+          pitch: _is3DMode ? 60.0 : 0.0,
+        ),
+      ),
+    );
   }
 
   Future<void> _onMapCreated(MapboxMap mapboxMap) async {
-    this.mapboxMap = mapboxMap;
-    pointAnnotationManager = await mapboxMap.annotations
-        .createPointAnnotationManager();
-    if (!mounted) return;
+    try {
+      this.mapboxMap = mapboxMap;
+      pointAnnotationManager = await mapboxMap.annotations
+          .createPointAnnotationManager();
+      if (!mounted) return;
 
-    // The plugin only exposes the click listener via this deprecated setter;
-    // there is no replacement API in the current mapbox_maps_flutter version.
-    // ignore: deprecated_member_use
-    pointAnnotationManager?.addOnPointAnnotationClickListener(
-      _PointAnnotationClickListener(context, ref),
-    );
-    await _renderMarkers();
-    await _enableUserLocation();
+      // The listener is deprecated but currently the only way to tap pins.
+      // ignore: deprecated_member_use
+      pointAnnotationManager?.addOnPointAnnotationClickListener(
+        _PointAnnotationClickListener(context, ref, _storeIdByAnnotationId),
+      );
+      
+      await _renderMarkers();
+      await _enableUserLocation();
+    } on Exception catch (e) {
+      debugPrint('Mapbox initialization failed: $e');
+    }
   }
 
   Future<void> _enableUserLocation() async {
     final status = await Permission.locationWhenInUse.request();
     if (status.isGranted && mapboxMap != null) {
-      await mapboxMap!.location.updateSettings(
-        LocationComponentSettings(
-          enabled: true,
-          puckBearingEnabled: true,
-        ),
-      );
+      // Disabled Location Puck rendering here because it causes SIGSEGV Native
+      // Crashes on older PowerVR GPUs (like Realme C11).
+      // The camera will still center on the GPS location below!
 
       try {
         final position = await geo.Geolocator.getCurrentPosition();
@@ -85,10 +78,10 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
             center: Point(
               coordinates: Position(position.longitude, position.latitude),
             ),
-            zoom: 14.0,
+            zoom: 14,
           ),
         );
-      } catch (e) {
+      } on Exception catch (e) {
         debugPrint('Could not fetch location: $e');
       }
     }
@@ -100,10 +93,11 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
     final stores = ref.read(worldMapControllerProvider).valueOrNull ?? [];
 
+    _storeIdByAnnotationId.clear();
     await manager.deleteAll();
     if (stores.isEmpty) return;
 
-    final annotations = stores
+    final options = stores
         .map(
           (store) => PointAnnotationOptions(
             geometry: Point(coordinates: Position(store.lng, store.lat)),
@@ -112,7 +106,23 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
         )
         .toList();
 
-    await manager.createMulti(annotations);
+    final createdAnnotations = await manager.createMulti(options);
+    
+    // Map the generated annotation IDs safely back to the actual Store IDs
+    for (var i = 0; i < createdAnnotations.length; i++) {
+      final annotation = createdAnnotations[i];
+      if (annotation != null) {
+        _storeIdByAnnotationId[annotation.id] = stores[i].id;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    unawaited(pointAnnotationManager?.deleteAll());
+    pointAnnotationManager = null;
+    mapboxMap = null;
+    super.dispose();
   }
 
   @override
@@ -130,7 +140,6 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
         children: [
           MapWidget(
             key: const ValueKey('mapWidget'),
-            textureView: true,
             styleUri: _mapStyle,
             onMapCreated: _onMapCreated,
           ),
@@ -144,7 +153,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
               child: Card(
                 color: Colors.white.withValues(alpha: 0.9),
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
                       const Icon(Icons.error_outline, color: Colors.red),
@@ -152,7 +161,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                       Expanded(
                         child: Text(
                           storesState.error is StoreLoadException
-                              ? (storesState.error as StoreLoadException)
+                              ? (storesState.error! as StoreLoadException)
                                     .failure
                                     .message
                               : storesState.error.toString(),
@@ -169,6 +178,60 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                 ),
               ),
             ),
+          Positioned(
+            bottom: 32,
+            right: 16,
+            child: Column(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: IconButton(
+                    icon: Icon(
+                      _is3DMode ? Icons.threed_rotation : Icons.map,
+                      color: Colors.black87,
+                    ),
+                    onPressed: _toggle3DMode,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                PopupMenuButton<String>(
+                  icon: const CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.layers, color: Colors.black87),
+                  ),
+                onSelected: (style) {
+                  setState(() {
+                    _mapStyle = style;
+                  });
+                  // Load style and re-render markers securely
+                  unawaited(
+                    mapboxMap?.loadStyleURI(style).then((_) {
+                      unawaited(_renderMarkers());
+                    }),
+                  );
+                },
+              itemBuilder: (context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'mapbox://styles/mapbox/streets-v12',
+                  child: Text('Streets'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'mapbox://styles/mapbox/satellite-streets-v12',
+                  child: Text('Satellite Streets'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'mapbox://styles/mapbox/dark-v11',
+                  child: Text('Dark Mode'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'mapbox://styles/mapbox/light-v11',
+                  child: Text('Light Mode'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
         ],
       ),
     );
@@ -179,17 +242,20 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 /// only offers this listener through a deprecated interface for now.
 // ignore: deprecated_member_use
 class _PointAnnotationClickListener implements OnPointAnnotationClickListener {
-  _PointAnnotationClickListener(this.context, this.ref);
+  _PointAnnotationClickListener(this.context, this.ref, this.storeIdMap);
 
   final BuildContext context;
   final WidgetRef ref;
+  final Map<String, String> storeIdMap;
 
   @override
   bool onPointAnnotationClick(PointAnnotation annotation) {
     final stores = ref.read(worldMapControllerProvider).valueOrNull ?? [];
-    final store = stores
-        .where((s) => s.name == annotation.textField)
-        .firstOrNull;
+    
+    final targetStoreId = storeIdMap[annotation.id];
+    if (targetStoreId == null) return false;
+
+    final store = stores.where((s) => s.id == targetStoreId).firstOrNull;
     if (store == null) return false;
 
     StoreBottomSheet.show(context, store);

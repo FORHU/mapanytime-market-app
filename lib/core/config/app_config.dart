@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mapanytime_market_app/core/config/environment.dart';
 
 /// Per-environment settings, fixed at startup.
@@ -15,37 +16,21 @@ class AppConfig {
     this.useMock = false,
   });
 
-  /// Builds config from `--dart-define`/`--dart-define-from-file` values.
-  /// Used by the default entry point (`main.dart`) and release builds.
+  /// Builds config from `flutter_dotenv` values loaded at runtime.
+  /// Used by the default entry point (`main.dart`).
   factory AppConfig.fromEnvironment() {
-    const envString = String.fromEnvironment(
-      'ENVIRONMENT',
-      defaultValue: 'dev',
-    );
-    return const AppConfig(
+    final envString = dotenv.env['ENVIRONMENT'] ?? 'dev';
+    return AppConfig(
       environment: envString == 'prod' ? Environment.prod : Environment.dev,
-      appName: String.fromEnvironment(
-        'APP_NAME',
-        defaultValue: 'mapanytime_market_app',
-      ),
-      baseUrl: String.fromEnvironment(
-        'BASE_URL',
-        defaultValue: '',
-      ),
-      mapboxPublicToken: String.fromEnvironment(
-        'MAPBOX_PUBLIC_TOKEN',
-        defaultValue: 'pk.eyJ1IjoianVuZ2t3YW5zaGluIiwiYSI6ImNtcW9xcGE2aDA1d2wycXF2cXFzdG14bWcifQ.HR1a5C0MxCY4M0f1yEt6-A',
-      ),
-      // Defaults on in dev, off in prod when the flag is absent.
-      enableLogging: bool.fromEnvironment(
-        'ENABLE_LOGGING',
-        defaultValue: envString != 'prod',
-      ),
-      // Serve canned responses (no server needed) unless explicitly disabled.
-      useMock: bool.fromEnvironment(
-        'USE_MOCK',
-        defaultValue: false,
-      ),
+      appName: dotenv.env['APP_NAME'] ?? 'mapanytime_market_app',
+      baseUrl: dotenv.env['BASE_URL'] ?? '',
+      mapboxPublicToken: dotenv.env['MAPBOX_PUBLIC_TOKEN'] ??
+          'pk.eyJ1IjoianVuZ2t3YW5zaGluIiwiYSI6ImNtcW9xcGE2aDA1d2wycXF2cXFzdG14'
+              'bWcifQ.HR1a5C0MxCY4M0f1yEt6-A',
+      enableLogging: (dotenv.env['ENABLE_LOGGING'] ??
+              (envString != 'prod' ? 'true' : 'false'))
+          .toLowerCase() == 'true',
+      useMock: (dotenv.env['USE_MOCK'] ?? 'false').toLowerCase() == 'true',
     );
   }
 

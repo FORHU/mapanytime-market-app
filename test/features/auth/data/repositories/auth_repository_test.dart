@@ -28,7 +28,6 @@ void main() {
     const tUser = UserModel(
       id: '1',
       email: tEmail,
-      username: 'testuser',
       name: 'Test',
       token: 'access-token',
       refreshToken: 'refresh-token',

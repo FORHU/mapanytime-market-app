@@ -32,8 +32,9 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
       return list
           .map((e) => StoreModel.fromJson((e as Map).cast<String, dynamic>()))
           .toList();
-    } catch (e) {
-      // If the backend team hasn't built the endpoint yet (404), just return empty
+    } on Exception catch (_) {
+      // If the backend team hasn't built the endpoint yet (404),
+      // just return empty
       return [];
     }
   }

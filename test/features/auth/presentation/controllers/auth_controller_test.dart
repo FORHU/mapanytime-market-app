@@ -30,7 +30,6 @@ void main() {
     const tUser = UserEntity(
       id: '1',
       email: tEmail,
-      username: 'testuser',
       name: 'Test',
     );
 

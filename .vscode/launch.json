@@ -5,19 +5,13 @@
             "name": "Flutter: Dev",
             "request": "launch",
             "type": "dart",
-            "program": "lib/main.dart",
-            "toolArgs": [
-                "--dart-define-from-file=.env.dev"
-            ]
+            "program": "lib/main.dart"
         },
         {
             "name": "Flutter: Prod",
             "request": "launch",
             "type": "dart",
-            "program": "lib/main.dart",
-            "toolArgs": [
-                "--dart-define-from-file=.env.prod"
-            ]
+            "program": "lib/main_prod.dart"
         }
     ]
 }
