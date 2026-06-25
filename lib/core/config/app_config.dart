@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mapanytime_market_app/core/config/environment.dart';
 
 /// Per-environment settings, fixed at startup.
@@ -15,34 +16,21 @@ class AppConfig {
     this.useMock = false,
   });
 
-  /// Builds config from `--dart-define`/`--dart-define-from-file` values.
-  /// Used by the default entry point (`main.dart`) and release builds.
+  /// Builds config from `flutter_dotenv` values loaded at runtime.
+  /// Used by the default entry point (`main.dart`).
   factory AppConfig.fromEnvironment() {
-    const envString = String.fromEnvironment(
-      'ENVIRONMENT',
-      defaultValue: 'dev',
-    );
-    return const AppConfig(
+    final envString = dotenv.env['ENVIRONMENT'] ?? 'dev';
+    return AppConfig(
       environment: envString == 'prod' ? Environment.prod : Environment.dev,
-      appName: String.fromEnvironment(
-        'APP_NAME',
-        defaultValue: 'mapanytime_market_app',
-      ),
-      baseUrl: String.fromEnvironment(
-        'BASE_URL',
-        defaultValue: 'http://172.30.32.1:3002/api/v1',
-      ),
-      mapboxPublicToken: String.fromEnvironment('MAPBOX_PUBLIC_TOKEN'),
-      // Defaults on in dev, off in prod when the flag is absent.
-      enableLogging: bool.fromEnvironment(
-        'ENABLE_LOGGING',
-        defaultValue: envString != 'prod',
-      ),
-      // Serve canned responses (no server needed) unless explicitly disabled.
-      useMock: bool.fromEnvironment(
-        'USE_MOCK',
-        defaultValue: envString != 'prod',
-      ),
+      appName: dotenv.env['APP_NAME'] ?? 'mapanytime_market_app',
+      baseUrl: dotenv.env['BASE_URL'] ?? '',
+      mapboxPublicToken: dotenv.env['MAPBOX_PUBLIC_TOKEN'] ??
+          'pk.eyJ1IjoianVuZ2t3YW5zaGluIiwiYSI6ImNtcW9xcGE2aDA1d2wycXF2cXFzdG14'
+              'bWcifQ.HR1a5C0MxCY4M0f1yEt6-A',
+      enableLogging: (dotenv.env['ENABLE_LOGGING'] ??
+              (envString != 'prod' ? 'true' : 'false'))
+          .toLowerCase() == 'true',
+      useMock: (dotenv.env['USE_MOCK'] ?? 'false').toLowerCase() == 'true',
     );
   }
 
@@ -51,24 +39,19 @@ class AppConfig {
   const AppConfig.dev()
     : environment = Environment.dev,
       appName = 'MapAnytime Market (Dev)',
-      baseUrl = 'http://172.30.32.1:3002/api/v1',
-      // Public Mapbox token (pk...) — safe to embed for dev. Restrict it by
-      // URL/scope in the Mapbox dashboard. Keep secret (sk...) tokens out of
-      // source; those belong in ~/.gradle/gradle.properties for the build.
-      mapboxPublicToken =
-          'pk.eyJ1IjoianVuZ2t3YW5zaGluIiwiYSI6ImNtcW9xcGE2aDA1d2wy'
-          'cXF2cXFzdG14bWcifQ.HR1a5C0MxCY4M0f1yEt6-A',
+      baseUrl = '',
+      // Public Mapbox token (pk...) should be injected via .env.dev
+      mapboxPublicToken = '',
       enableLogging = true,
-      // Backend APIs aren't built yet — serve canned responses from
-      // MockInterceptor. Flip to false once the real endpoints exist.
-      useMock = true;
+      // Set to false so the app connects to the real backend.
+      useMock = false;
 
   /// Explicit production config used by `main_prod.dart` — logging off, real
   /// backend.
   const AppConfig.prod()
     : environment = Environment.prod,
       appName = 'MapAnytime Market',
-      baseUrl = 'http://172.30.32.1:3002/api/v1',
+      baseUrl = '',
       mapboxPublicToken = '',
       enableLogging = false,
       useMock = false;

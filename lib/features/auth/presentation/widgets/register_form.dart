@@ -9,22 +9,26 @@ import 'package:mapanytime_market_app/shared/widgets/app_button.dart';
 import 'package:mapanytime_market_app/shared/widgets/app_input.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
-class LoginForm extends ConsumerStatefulWidget {
-  const LoginForm({super.key});
+class RegisterForm extends ConsumerStatefulWidget {
+  const RegisterForm({super.key});
 
   @override
-  ConsumerState<LoginForm> createState() => _LoginFormState();
+  ConsumerState<RegisterForm> createState() => _RegisterFormState();
 }
 
-class _LoginFormState extends ConsumerState<LoginForm> {
+class _RegisterFormState extends ConsumerState<RegisterForm> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'buyer@example.com');
-  final _passwordController = TextEditingController(text: 'Buyer123');
+  final _emailController = TextEditingController();
+
+  final _passwordController = TextEditingController();
+  final _nameController = TextEditingController();
 
   @override
   void dispose() {
     _emailController.dispose();
+
     _passwordController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
@@ -33,7 +37,14 @@ class _LoginFormState extends ConsumerState<LoginForm> {
 
     final success = await ref
         .read(authControllerProvider.notifier)
-        .login(_emailController.text, _passwordController.text);
+        .register(
+          _emailController.text,
+          _passwordController.text,
+
+          name: _nameController.text.trim().isEmpty
+              ? null
+              : _nameController.text.trim(),
+        );
 
     if (!mounted) return;
     if (success) context.go(RouteNames.home);
@@ -57,6 +68,12 @@ class _LoginFormState extends ConsumerState<LoginForm> {
           ),
           AppSpacing.md.v,
           AppInput(
+            label: 'Full name (optional)',
+            controller: _nameController,
+            prefixIcon: Icons.person_outline,
+          ),
+          AppSpacing.md.v,
+          AppInput(
             label: context.l10n.password,
             controller: _passwordController,
             obscureText: true,
@@ -72,7 +89,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
           ],
           AppSpacing.lg.v,
           AppButton(
-            label: context.l10n.login,
+            label: 'Create account',
             isLoading: state.isLoading,
             onPressed: _submit,
           ),

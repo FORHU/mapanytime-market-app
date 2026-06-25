@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mapanytime_market_app/bootstrap.dart';
 import 'package:mapanytime_market_app/core/config/app_config.dart';
 
@@ -7,4 +9,8 @@ import 'package:mapanytime_market_app/core/config/app_config.dart';
 ///
 /// For explicit, define-free targets use `lib/main_dev.dart` or
 /// `lib/main_prod.dart`.
-Future<void> main() => bootstrap(AppConfig.fromEnvironment());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env.dev');
+  await bootstrap(AppConfig.fromEnvironment());
+}

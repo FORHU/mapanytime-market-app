@@ -22,14 +22,20 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
     required double lat,
     required double lng,
   }) async {
-    final data = await _api.get(
-      ApiEndpoints.storesNearby,
-      query: {'lat': lat, 'lng': lng},
-    );
+    try {
+      final data = await _api.get(
+        ApiEndpoints.storesNearby,
+        query: {'lat': lat, 'lng': lng},
+      );
 
-    final list = data is List ? data : const <dynamic>[];
-    return list
-        .map((e) => StoreModel.fromJson((e as Map).cast<String, dynamic>()))
-        .toList();
+      final list = data is List ? data : const <dynamic>[];
+      return list
+          .map((e) => StoreModel.fromJson((e as Map).cast<String, dynamic>()))
+          .toList();
+    } on Exception catch (_) {
+      // If the backend team hasn't built the endpoint yet (404),
+      // just return empty
+      return [];
+    }
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/controllers/world_map_controller.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_bottom_sheet.dart';
@@ -18,36 +19,71 @@ class WorldMapPage extends ConsumerStatefulWidget {
 class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   MapboxMap? mapboxMap;
   PointAnnotationManager? pointAnnotationManager;
+  // Default to the safe 2D streets style.
+  String _mapStyle = 'mapbox://styles/mapbox/streets-v12';
+
+  // We map Annotation IDs to the Store ID to prevent name-collision bugs
+  final Map<String, String> _storeIdByAnnotationId = {};
+  bool _is3DMode = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void _toggle3DMode() {
+    setState(() {
+      _is3DMode = !_is3DMode;
+    });
+    unawaited(
+      mapboxMap?.setCamera(
+        CameraOptions(
+          pitch: _is3DMode ? 60.0 : 0.0,
+        ),
+      ),
+    );
+  }
 
   Future<void> _onMapCreated(MapboxMap mapboxMap) async {
-    this.mapboxMap = mapboxMap;
-    pointAnnotationManager = await mapboxMap.annotations
-        .createPointAnnotationManager();
-    if (!mounted) return;
+    try {
+      this.mapboxMap = mapboxMap;
+      pointAnnotationManager = await mapboxMap.annotations
+          .createPointAnnotationManager();
+      if (!mounted) return;
 
-    // The plugin only exposes the click listener via this deprecated setter;
-    // there is no replacement API in the current mapbox_maps_flutter version.
-    // ignore: deprecated_member_use
-    pointAnnotationManager?.addOnPointAnnotationClickListener(
-      _PointAnnotationClickListener(context, ref),
-    );
-    await _renderMarkers();
-    await _enableUserLocation();
+      // The listener is deprecated but currently the only way to tap pins.
+      // ignore: deprecated_member_use
+      pointAnnotationManager?.addOnPointAnnotationClickListener(
+        _PointAnnotationClickListener(context, ref, _storeIdByAnnotationId),
+      );
+
+      await _renderMarkers();
+      await _enableUserLocation();
+    } on Exception catch (e) {
+      debugPrint('Mapbox initialization failed: $e');
+    }
   }
 
   Future<void> _enableUserLocation() async {
     final status = await Permission.locationWhenInUse.request();
     if (status.isGranted && mapboxMap != null) {
-      await mapboxMap!.location.updateSettings(
-        LocationComponentSettings(
-          enabled: true,
-          puckBearingEnabled: true,
-        ),
-      );
+      // Disabled Location Puck rendering here because it causes SIGSEGV Native
+      // Crashes on older PowerVR GPUs (like Realme C11).
+      // The camera will still center on the GPS location below!
 
-      // The puck will be displayed, but camera tracking in this Mapbox
-      // version requires the 'geolocator' package to get the exact 
-      // coordinates before manually setting the camera.
+      try {
+        final position = await geo.Geolocator.getCurrentPosition();
+        await mapboxMap!.setCamera(
+          CameraOptions(
+            center: Point(
+              coordinates: Position(position.longitude, position.latitude),
+            ),
+            zoom: 14,
+          ),
+        );
+      } on Exception catch (e) {
+        debugPrint('Could not fetch location: $e');
+      }
     }
   }
 
@@ -57,10 +93,11 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
     final stores = ref.read(worldMapControllerProvider).valueOrNull ?? [];
 
+    _storeIdByAnnotationId.clear();
     await manager.deleteAll();
     if (stores.isEmpty) return;
 
-    final annotations = stores
+    final options = stores
         .map(
           (store) => PointAnnotationOptions(
             geometry: Point(coordinates: Position(store.lng, store.lat)),
@@ -69,7 +106,23 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
         )
         .toList();
 
-    await manager.createMulti(annotations);
+    final createdAnnotations = await manager.createMulti(options);
+
+    // Map the generated annotation IDs safely back to the actual Store IDs
+    for (var i = 0; i < createdAnnotations.length; i++) {
+      final annotation = createdAnnotations[i];
+      if (annotation != null) {
+        _storeIdByAnnotationId[annotation.id] = stores[i].id;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    unawaited(pointAnnotationManager?.deleteAll());
+    pointAnnotationManager = null;
+    mapboxMap = null;
+    super.dispose();
   }
 
   @override
@@ -83,45 +136,103 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.worldMap)),
-      body: storesState.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => _MapError(
-          message: error is StoreLoadException
-              ? error.failure.message
-              : error.toString(),
-          onRetry: () =>
-              ref.read(worldMapControllerProvider.notifier).refresh(),
-        ),
-        data: (_) => MapWidget(
-          key: const ValueKey('mapWidget'),
-          onMapCreated: _onMapCreated,
-        ),
-      ),
-    );
-  }
-}
-
-class _MapError extends StatelessWidget {
-  const _MapError({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.location_off_outlined, size: 48),
-            const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onRetry, child: const Text('Retry')),
-          ],
-        ),
+      body: Stack(
+        children: [
+          MapWidget(
+            key: const ValueKey('mapWidget'),
+            styleUri: _mapStyle,
+            onMapCreated: _onMapCreated,
+          ),
+          if (storesState.isLoading)
+            const Center(child: CircularProgressIndicator()),
+          if (storesState.hasError && !storesState.isLoading)
+            Positioned(
+              bottom: 24,
+              left: 24,
+              right: 24,
+              child: Card(
+                color: Colors.white.withValues(alpha: 0.9),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: Colors.red),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          storesState.error is StoreLoadException
+                              ? (storesState.error! as StoreLoadException)
+                                    .failure
+                                    .message
+                              : storesState.error.toString(),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => ref
+                            .read(worldMapControllerProvider.notifier)
+                            .refresh(),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          Positioned(
+            bottom: 40,
+            right: 20,
+            child: Column(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: IconButton(
+                    icon: Icon(
+                      _is3DMode ? Icons.threed_rotation : Icons.map,
+                      color: Colors.black87,
+                    ),
+                    onPressed: _toggle3DMode,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                PopupMenuButton<String>(
+                  icon: const CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.layers, color: Colors.black87),
+                  ),
+                  onSelected: (style) {
+                    setState(() {
+                      _mapStyle = style;
+                    });
+                    // Load style and re-render markers securely
+                    unawaited(
+                      mapboxMap?.loadStyleURI(style).then((_) {
+                        unawaited(_renderMarkers());
+                      }),
+                    );
+                  },
+                  itemBuilder: (context) => <PopupMenuEntry<String>>[
+                    const PopupMenuItem<String>(
+                      value: 'mapbox://styles/mapbox/streets-v12',
+                      child: Text('Streets'),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'mapbox://styles/mapbox/satellite-streets-v12',
+                      child: Text('Satellite Streets'),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'mapbox://styles/mapbox/dark-v11',
+                      child: Text('Dark Mode'),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'mapbox://styles/mapbox/light-v11',
+                      child: Text('Light Mode'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -131,17 +242,20 @@ class _MapError extends StatelessWidget {
 /// only offers this listener through a deprecated interface for now.
 // ignore: deprecated_member_use
 class _PointAnnotationClickListener implements OnPointAnnotationClickListener {
-  _PointAnnotationClickListener(this.context, this.ref);
+  _PointAnnotationClickListener(this.context, this.ref, this.storeIdMap);
 
   final BuildContext context;
   final WidgetRef ref;
+  final Map<String, String> storeIdMap;
 
   @override
   bool onPointAnnotationClick(PointAnnotation annotation) {
     final stores = ref.read(worldMapControllerProvider).valueOrNull ?? [];
-    final store = stores
-        .where((s) => s.name == annotation.textField)
-        .firstOrNull;
+
+    final targetStoreId = storeIdMap[annotation.id];
+    if (targetStoreId == null) return false;
+
+    final store = stores.where((s) => s.id == targetStoreId).firstOrNull;
     if (store == null) return false;
 
     StoreBottomSheet.show(context, store);

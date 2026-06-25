@@ -7,6 +7,7 @@ import 'package:mapanytime_market_app/features/auth/data/datasources/auth_remote
 import 'package:mapanytime_market_app/features/auth/data/repositories/auth_repository.dart';
 import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.dart';
 import 'package:mapanytime_market_app/features/auth/domain/usecases/login_usecase.dart';
+import 'package:mapanytime_market_app/features/auth/domain/usecases/register_usecase.dart';
 
 // --- Dependency wiring (Riverpod providers) ---
 
@@ -21,6 +22,10 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 
 final loginUseCaseProvider = Provider<LoginUseCase>(
   (ref) => LoginUseCase(ref.watch(authRepositoryProvider)),
+);
+
+final registerUseCaseProvider = Provider<RegisterUseCase>(
+  (ref) => RegisterUseCase(ref.watch(authRepositoryProvider)),
 );
 
 // --- State ---
@@ -56,6 +61,28 @@ class AuthController extends Notifier<AuthState> {
     state = state.copyWith(isLoading: true);
 
     final result = await ref.read(loginUseCaseProvider)(email, password);
+
+    return result.fold(
+      (failure) {
+        state = AuthState(error: failure.message);
+        return false;
+      },
+      (user) {
+        state = AuthState(user: user);
+        return true;
+      },
+    );
+  }
+
+  Future<bool> register(
+    String email,
+    String password, {
+    String? name,
+  }) async {
+    state = state.copyWith(isLoading: true);
+
+    final result = await ref
+        .read(registerUseCaseProvider)(email, password, name: name);
 
     return result.fold(
       (failure) {

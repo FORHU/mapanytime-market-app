@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/pages/login_page.dart';
+import 'package:mapanytime_market_app/features/auth/presentation/pages/register_page.dart';
 import 'package:mapanytime_market_app/features/home/presentation/pages/home_page.dart';
 import 'package:mapanytime_market_app/features/profile/presentation/pages/profile_page.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/world_map_page.dart';
@@ -17,15 +18,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final isAuth = ref.read(authControllerProvider).isAuthenticated;
       final goingToLogin = state.matchedLocation == RouteNames.login;
+      final goingToRegister = state.matchedLocation == RouteNames.register;
 
-      if (!isAuth) return goingToLogin ? null : RouteNames.login;
-      if (goingToLogin) return RouteNames.home;
+      if (!isAuth) {
+        return (goingToLogin || goingToRegister) ? null : RouteNames.login;
+      }
+      if (goingToLogin || goingToRegister) return RouteNames.home;
       return null;
     },
     routes: [
       GoRoute(
         path: RouteNames.login,
         builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: RouteNames.register,
+        builder: (context, state) => const RegisterPage(),
       ),
       ShellRoute(
         builder: (context, state, child) => MainLayout(child: child),
