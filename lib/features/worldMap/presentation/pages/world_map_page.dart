@@ -196,13 +196,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
             properties.containsKey('cluster_id') ||
             properties.containsKey('point_count');
         if (isCluster) {
-          final currentCamera = await mapboxMap!.getCameraState();
-          await mapboxMap!.setCamera(
-            CameraOptions(
-              center: point,
-              zoom: currentCamera.zoom + 2,
-            ),
-          );
+          await _expandCluster(geoJsonFeature, fallbackCenter: point);
         } else {
           final storeId = properties['storeId'] as String?;
           if (storeId != null) {
@@ -211,6 +205,85 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
         }
       }
     }
+  }
+
+  /// Tapped a cluster (the circle with a number). Pull the cluster's actual
+  /// member stores out of Mapbox and frame the camera so every one of them is
+  /// on screen — then the user can tap an individual pin. A fixed "+2" zoom
+  /// often left dense clusters unbroken (you'd tap forever and never reach a
+  /// store), and zooming on the centroid could land on an empty gap between
+  /// spread-out members. Framing the leaves avoids both. Falls back to a
+  /// simple zoom-in if the cluster APIs are unavailable.
+  Future<void> _expandCluster(
+    Map<String?, Object?> clusterFeature, {
+    required Point fallbackCenter,
+  }) async {
+    if (mapboxMap == null) return;
+
+    final pointCount = (clusterFeature['properties'] as Map?)?['point_count'];
+    final limit = pointCount is num ? pointCount.toInt() : 100;
+
+    try {
+      final leaves = await mapboxMap!.getGeoJsonClusterLeaves(
+        'stores_source',
+        clusterFeature,
+        limit,
+        0,
+      );
+
+      final coords = <Point>[];
+      final leafFeatures =
+          leaves.featureCollection ?? <Map<String?, Object?>?>[];
+      for (final leaf in leafFeatures) {
+        final geometry = leaf?['geometry'];
+        if (geometry is Map) {
+          final c = geometry['coordinates'];
+          if (c is List && c.length >= 2) {
+            coords.add(
+              Point(
+                coordinates: Position(
+                  (c[0] as num).toDouble(),
+                  (c[1] as num).toDouble(),
+                ),
+              ),
+            );
+          }
+        }
+      }
+
+      debugPrint(
+        'Cluster tapped: point_count=$limit, resolved ${coords.length} '
+        'member coordinates',
+      );
+
+      if (coords.length >= 2) {
+        // Frame all member stores. Extra bottom padding keeps pins clear of
+        // the floating controls / bottom sheet area.
+        final camera = await mapboxMap!.cameraForCoordinates(
+          coords,
+          MbxEdgeInsets(top: 120, left: 60, bottom: 220, right: 60),
+          null,
+          null,
+        );
+        await mapboxMap!.flyTo(camera, MapAnimationOptions(duration: 600));
+        return;
+      }
+      if (coords.length == 1) {
+        await mapboxMap!.flyTo(
+          CameraOptions(center: coords.first, zoom: 16),
+          MapAnimationOptions(duration: 600),
+        );
+        return;
+      }
+    } on Exception catch (e) {
+      debugPrint('Cluster leaves failed, falling back to zoom-in: $e');
+    }
+
+    // Fallback: zoom in on the cluster.
+    final currentCamera = await mapboxMap!.getCameraState();
+    await mapboxMap!.setCamera(
+      CameraOptions(center: fallbackCenter, zoom: currentCamera.zoom + 2),
+    );
   }
 
   void _selectStore(String storeId) {
