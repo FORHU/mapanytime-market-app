@@ -6,6 +6,8 @@ import 'package:mapanytime_market_app/features/auth/presentation/pages/login_pag
 import 'package:mapanytime_market_app/features/auth/presentation/pages/register_page.dart';
 import 'package:mapanytime_market_app/features/home/presentation/pages/home_page.dart';
 import 'package:mapanytime_market_app/features/profile/presentation/pages/profile_page.dart';
+import 'package:mapanytime_market_app/features/store/presentation/pages/storefront_page.dart';
+import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/world_map_page.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/main_layout.dart';
@@ -72,6 +74,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RouteNames.profile,
             builder: (context, state) => const ProfilePage(),
+          ),
+          GoRoute(
+            path: RouteNames.storefront,
+            builder: (context, state) {
+              final store = state.extra as StoreEntity?;
+              if (store == null) {
+                return const Scaffold(
+                  body: Center(child: Text('Error: No store provided')),
+                );
+              }
+              return StorefrontPage(store: store);
+            },
           ),
         ],
       ),

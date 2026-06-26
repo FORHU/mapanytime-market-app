@@ -48,7 +48,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel> checkAuth(String token) async {
     final data = await _api.get(ApiEndpoints.me);
     final json = (data as Map).cast<String, dynamic>();
-    // Inject token because the `UserModel.fromJson` requires it and the `me` endpoint doesn't return it
+    // Inject token because the `UserModel.fromJson` requires it and the `me` 
+    // endpoint doesn't return it
     if (json.containsKey('data')) {
       (json['data'] as Map<String, dynamic>)['accessToken'] = token;
     } else {

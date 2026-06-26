@@ -2,34 +2,25 @@ import 'package:flutter/material.dart';
 
 class WorldMapFloatingControls extends StatelessWidget {
   const WorldMapFloatingControls({
-    required this.is3DMode,
-    required this.isListView,
-    required this.onToggle3DMode,
-    required this.onToggleListView,
     required this.onStyleSelected,
+    required this.onLocateMe,
     super.key,
   });
 
-  final bool is3DMode;
-  final bool isListView;
-  final VoidCallback onToggle3DMode;
-  final VoidCallback onToggleListView;
   final ValueChanged<String> onStyleSelected;
+  final VoidCallback onLocateMe;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (!isListView) ...[
           CircleAvatar(
             backgroundColor: Colors.white,
             child: IconButton(
-              icon: Icon(
-                is3DMode ? Icons.threed_rotation : Icons.map,
-                color: Colors.black87,
-              ),
-              onPressed: onToggle3DMode,
+              icon: const Icon(Icons.my_location, color: Colors.black87),
+              onPressed: onLocateMe,
+              tooltip: 'Locate Me',
             ),
           ),
           const SizedBox(height: 8),
@@ -58,19 +49,6 @@ class WorldMapFloatingControls extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
-        ],
-        CircleAvatar(
-          backgroundColor: Colors.white,
-          child: IconButton(
-            icon: Icon(
-              isListView ? Icons.map : Icons.insert_drive_file_outlined,
-              color: Colors.black87,
-            ),
-            onPressed: onToggleListView,
-            tooltip: isListView ? 'Switch to Map' : 'Switch to List',
-          ),
-        ),
       ],
     );
   }

@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mapanytime_market_app/features/auth/data/models/user_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Two-tier local storage:
 /// * [SharedPreferences] for non-sensitive values (flags, prefs, cache keys).
@@ -35,7 +35,7 @@ class StorageService {
       _secure.write(key: _refreshTokenKey, value: token);
   Future<String?> readRefreshToken() => _secure.read(key: _refreshTokenKey);
 
-  /// Clears the whole authenticated session (access + refresh tokens, and user).
+  /// Clears the whole authenticated session (access + refresh tokens, user).
   Future<void> clearSession() async {
     await _secure.delete(key: _tokenKey);
     await _secure.delete(key: _refreshTokenKey);
@@ -51,7 +51,7 @@ class StorageService {
     if (str == null) return null;
     try {
       return UserModel.fromJson(jsonDecode(str) as Map<String, dynamic>);
-    } catch (_) {
+    } on Exception catch (_) {
       return null;
     }
   }

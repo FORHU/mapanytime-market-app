@@ -41,40 +41,43 @@ class WorldMapController extends AsyncNotifier<List<StoreEntity>> {
   Future<List<StoreEntity>> build() => _fetchNearbyStores();
 
   Future<List<StoreEntity>> _fetchNearbyStores() async {
-    var lat = 0.0;
-    var lng = 0.0;
+    // Try to get GPS to fetch nearby stores on first load.
+    // If GPS is unavailable, return an empty list — the camera-idle
+    // listener will kick off a proper fetch once the map is positioned.
     try {
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
         ),
       );
-      lat = position.latitude;
-      lng = position.longitude;
-    } on Exception catch (_) {
-      throw Exception('GPS Location is required to find nearby stores.');
-    }
+      final lat = position.latitude;
+      final lng = position.longitude;
 
-    final result = await ref.read(getNearbyStoresUseCaseProvider)(
-      north: lat + 0.05,
-      south: lat - 0.05,
-      east: lng + 0.05,
-      west: lng - 0.05,
-    );
-    return result.fold(
-      (failure) => throw StoreLoadException(failure),
-      (stores) => stores,
-    );
+      final result = await ref.read(getNearbyStoresUseCaseProvider)(
+        north: lat + 0.05,
+        south: lat - 0.05,
+        east: lng + 0.05,
+        west: lng - 0.05,
+      );
+      return result.fold(
+        (failure) => <StoreEntity>[],
+        (stores) => stores,
+      );
+    } on Exception catch (_) {
+      // GPS failed or timed out — map will still open, stores load on pan.
+      return <StoreEntity>[];
+    }
   }
 
-  /// Manually update stores at a specific location without needing GPS
+  /// Manually update stores at a specific location without needing GPS.
+  /// Does NOT set loading state — we silently fetch so existing pins don't
+  /// disappear while the new request is in flight.
   Future<void> fetchStoresAtLocation({
     required double north,
     required double south,
     required double east,
     required double west,
   }) async {
-    state = const AsyncValue.loading();
     final result = await ref.read(getNearbyStoresUseCaseProvider)(
       north: north,
       south: south,
@@ -88,9 +91,13 @@ class WorldMapController extends AsyncNotifier<List<StoreEntity>> {
         StackTrace.current,
       ),
       (newStores) {
-        if (newStores.isEmpty) return state;
-
+        // Always merge with existing stores (even if newStores is empty).
+        // This replaces any error/loading state with a valid data state.
         final currentStores = state.valueOrNull ?? [];
+        if (newStores.isEmpty) {
+          return AsyncValue.data(currentStores);
+        }
+
         final storeMap = <String, StoreEntity>{
           for (final s in currentStores) s.id: s,
         };

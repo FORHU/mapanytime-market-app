@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,8 +9,8 @@ import 'package:mapanytime_market_app/features/auth/data/datasources/auth_remote
 import 'package:mapanytime_market_app/features/auth/data/repositories/auth_repository.dart';
 import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.dart';
 import 'package:mapanytime_market_app/features/auth/domain/usecases/login_usecase.dart';
-import 'package:mapanytime_market_app/features/auth/domain/usecases/register_usecase.dart';
 import 'package:mapanytime_market_app/features/auth/domain/usecases/refresh_auth_usecase.dart';
+import 'package:mapanytime_market_app/features/auth/domain/usecases/register_usecase.dart';
 
 // --- Dependency wiring (Riverpod providers) ---
 
@@ -63,8 +65,7 @@ class AuthController extends Notifier<AuthState> {
   AuthState build() {
     final cachedUser = ref.read(storageServiceProvider).readUserModel();
     if (cachedUser != null) {
-      // Trigger background refresh silently
-      Future.microtask(() => refreshAuth());
+      unawaited(Future.microtask(refreshAuth));
     }
     return AuthState(user: cachedUser);
   }
@@ -72,7 +73,8 @@ class AuthController extends Notifier<AuthState> {
   Future<void> refreshAuth() async {
     final result = await ref.read(refreshAuthUseCaseProvider).execute();
     result.fold(
-      (failure) => state = const AuthState(), // If failed (e.g. token expired), log out
+      // If failed (e.g. token expired), log out
+      (failure) => state = const AuthState(),
       (user) => state = AuthState(user: user),
     );
   }

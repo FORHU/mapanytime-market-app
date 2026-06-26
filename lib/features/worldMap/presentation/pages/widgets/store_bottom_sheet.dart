@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
+import 'package:mapanytime_market_app/routes/route_names.dart';
 
 class StoreBottomSheet extends StatelessWidget {
   const StoreBottomSheet({required this.store, this.onNavigate, super.key});
@@ -72,11 +74,10 @@ class StoreBottomSheet extends StatelessWidget {
                 child: OutlinedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Opening ${store.name} storefront...'),
-                      ),
-                    );
+                    unawaited(context.push(
+                      RouteNames.storefront, 
+                      extra: store,
+                    ));
                   },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),

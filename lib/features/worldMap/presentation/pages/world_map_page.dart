@@ -1,10 +1,10 @@
 // The Mapbox plugin uses some deprecated interfaces.
 // ignore_for_file: deprecated_member_use
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/worldMap/data/datasources/directions_datasource.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
@@ -33,8 +33,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
   // Custom UI State
   String? _selectedStoreId;
-  bool _is3DMode = false;
-  bool _showListView = false;
+  final bool _showListView = false;
 
   // Route State
   PolylineAnnotationManager? polylineAnnotationManager;
@@ -61,7 +60,11 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     _storesSubscription ??= ref.listenManual(
       worldMapControllerProvider,
       (previous, next) {
-        unawaited(_renderMarkers());
+        // Only re-render when we have actual data to show.
+        // Skip loading/error transitions to avoid clearing the map.
+        if (next.hasValue) {
+          unawaited(_renderMarkers());
+        }
       },
     );
   }
@@ -71,18 +74,12 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     _styleManager = MapboxStyleManager(mapboxMap);
 
     try {
-      polylineAnnotationManager =
-          await mapboxMap.annotations.createPolylineAnnotationManager();
-
-      await _locationManager.initialize(mapboxMap);
-      await _styleManager!.initializeClusters();
-      await _styleManager!.hidePoiLayers();
-
       if (!mounted) return;
 
       final countryCode = ref.read(authControllerProvider).user?.countryCode;
       
-      // 1. Immediately set camera to fallback country (prevents map from starting at 0,0)
+      // 1. Immediately set camera to fallback country (prevents map from
+      // starting at 0,0)
       await mapboxMap.setCamera(
         CameraOptions(
           center: _getCountryCenter(countryCode),
@@ -90,20 +87,57 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
         ),
       );
 
-      await _renderMarkers();
-      
-      // 2. Request user location. If found, it will pan to their exact house.
-      // We don't await this so it doesn't block the rest of the map initialization
-      // if the GPS sensor hangs.
-      _locationManager.enableUserLocation(
-        onFirstFix: (point) {
-          if (mounted && mapboxMap != null) {
-            mapboxMap.setCamera(CameraOptions(center: point, zoom: 14));
-          }
-        },
-      );
+      // The rest of the initialization (layers, GPS annotations) will happen
+      // in _onStyleLoaded
     } on Exception catch (e) {
       debugPrint('Error initializing map: $e');
+    }
+  }
+
+  Future<void> _onStyleLoaded(StyleLoadedEventData event) async {
+    if (mapboxMap == null || !mounted) return;
+
+    try {
+      // Recreate managers since styles wipe layers/annotations
+      polylineAnnotationManager =
+          await mapboxMap!.annotations.createPolylineAnnotationManager();
+      
+      await _locationManager.initialize(mapboxMap!);
+      await _styleManager!.initializeClusters();
+      debugPrint('_onStyleLoaded: initializeClusters done');
+      await _styleManager!.hidePoiLayers();
+      await _renderMarkers();
+      debugPrint('_onStyleLoaded: renderMarkers done');
+
+      // Trigger an initial store fetch for the current camera position.
+      // This ensures stores appear without the user needing to pan.
+      final cameraState = await mapboxMap!.getCameraState();
+      final center = cameraState.center;
+      final lat = center.coordinates.lat.toDouble();
+      final lng = center.coordinates.lng.toDouble();
+      final zoom = cameraState.zoom;
+      final span = math.max(0.05, 360.0 / math.pow(2, zoom));
+      unawaited(
+        ref.read(worldMapControllerProvider.notifier).fetchStoresAtLocation(
+          north: lat + span,
+          south: lat - span,
+          east: lng + span,
+          west: lng - span,
+        ),
+      );
+
+      // Start/Resume tracking user location
+      unawaited(_locationManager.enableUserLocation(
+        onFirstFix: (point) {
+          if (mounted && mapboxMap != null) {
+            unawaited(mapboxMap!.setCamera(
+              CameraOptions(center: point, zoom: 14),
+            ));
+          }
+        },
+      ));
+    } on Exception catch (e) {
+      debugPrint('Error handling style loaded: $e\n$e');
     }
   }
 
@@ -225,30 +259,27 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     // Wait 750ms after the camera stops moving before fetching new stores.
     _debounceTimer = Timer(const Duration(milliseconds: 750), () {
       if (!mounted) return;
+      
       final lat = center.coordinates.lat.toDouble();
       final lng = center.coordinates.lng.toDouble();
+      final zoom = cameraState.zoom;
+      
+      // Calculate dynamic bounds based on zoom level.
+      // At zoom 5 (country level), this will fetch a very large area 
+      // (e.g. the whole Philippines)
+      // At zoom 14+ (street level), this will fetch a small radius 
+      // (0.05 degrees ~ 5km).
+      final span = math.max(0.05, 360.0 / math.pow(2, zoom));
+      
       unawaited(
         ref.read(worldMapControllerProvider.notifier).fetchStoresAtLocation(
-              north: lat + 0.05,
-              south: lat - 0.05,
-              east: lng + 0.05,
-              west: lng - 0.05,
+              north: lat + span,
+              south: lat - span,
+              east: lng + span,
+              west: lng - span,
             ),
       );
     });
-  }
-
-  void _toggle3DMode() {
-    setState(() {
-      _is3DMode = !_is3DMode;
-    });
-    unawaited(
-      mapboxMap?.setCamera(
-        CameraOptions(
-          pitch: _is3DMode ? 60 : 0,
-        ),
-      ),
-    );
   }
 
   Future<void> _startNavigationTo(StoreEntity store) async {
@@ -291,9 +322,6 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       ),
     );
 
-    setState(() {
-      _is3DMode = true;
-    });
 
     unawaited(
       mapboxMap?.setCamera(
@@ -325,7 +353,6 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.worldMap)),
       body: Stack(
         children: [
           Offstage(
@@ -337,6 +364,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                   styleUri: _mapStyle,
                   onMapCreated: _onMapCreated,
                   onTapListener: _onMapTap,
+                  onStyleLoadedListener: _onStyleLoaded,
                   onCameraChangeListener: (_) {
                     unawaited(_onCameraIdle());
                   },
@@ -349,17 +377,61 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                   child: WorldMapStatusOverlay(),
                 ),
 
+                // SEARCH BAR
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 16,
+                  left: 16,
+                  right: 16,
+                  child: GestureDetector(
+                    onTap: () {
+                      // TODO(Phase2): Open full search screen
+                      debugPrint('Search tapped');
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16, 
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.search, color: Colors.black54),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Search stores or products...',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
                 Positioned(
                   bottom: 16,
                   right: 16,
                   child: WorldMapFloatingControls(
-                    is3DMode: _is3DMode,
-                    isListView: _showListView,
-                    onToggle3DMode: _toggle3DMode,
-                    onToggleListView: () {
-                      setState(() {
-                        _showListView = !_showListView;
-                      });
+                    onLocateMe: () {
+                      final point = _locationManager.getUserLocation();
+                      if (point != null && mapboxMap != null) {
+                        unawaited(mapboxMap!.setCamera(CameraOptions(
+                          center: point,
+                          zoom: 15,
+                        )));
+                      }
                     },
                     onStyleSelected: (style) async {
                       if (mapboxMap == null) return;
@@ -368,12 +440,6 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                       });
 
                       await mapboxMap!.loadStyleURI(style);
-
-                      // After a style change, all custom layers and the
-                      // GeoJSON source are wiped by Mapbox — re-add them.
-                      await _styleManager!.initializeClusters();
-                      await _styleManager!.hidePoiLayers();
-                      await _renderMarkers();
                     },
                   ),
                 ),
