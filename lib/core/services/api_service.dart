@@ -3,7 +3,6 @@ import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:mapanytime_market_app/core/config/app_config.dart';
 import 'package:mapanytime_market_app/core/errors/exceptions.dart';
 import 'package:mapanytime_market_app/core/services/interceptors/auth_interceptor.dart';
-import 'package:mapanytime_market_app/core/services/interceptors/mock_interceptor.dart';
 import 'package:mapanytime_market_app/core/services/storage_service.dart';
 import 'package:mapanytime_market_app/core/utils/logger.dart';
 
@@ -11,23 +10,20 @@ import 'package:mapanytime_market_app/core/utils/logger.dart';
 /// here. Methods return decoded JSON and throw [AppException] subtypes on
 /// failure — repositories translate those into `Failure` values.
 ///
-/// Point it at your backend by setting `BASE_URL` (see `.env.*`). When
-/// `AppConfig.instance.useMock` is true, a [MockInterceptor] serves canned
-/// responses so the app runs with no server — the rest of this class behaves
-/// exactly as it would against a real API.
+/// Point it at your backend by setting `BASE_URL` (see `.env.*`).
 class ApiService {
   ApiService({required StorageService storage, Dio? dio})
-    : client =
-          dio ??
-          Dio(
-            BaseOptions(
-              baseUrl: AppConfig.instance.baseUrl,
-              connectTimeout: const Duration(seconds: 10),
-              receiveTimeout: const Duration(seconds: 10),
-              sendTimeout: const Duration(seconds: 10),
-              contentType: Headers.jsonContentType,
-            ),
-          ) {
+      : client =
+            dio ??
+            Dio(
+              BaseOptions(
+                baseUrl: AppConfig.instance.baseUrl,
+                connectTimeout: const Duration(seconds: 10),
+                receiveTimeout: const Duration(seconds: 10),
+                sendTimeout: const Duration(seconds: 10),
+                contentType: Headers.jsonContentType,
+              ),
+            ) {
     // 1. Attach the bearer token and transparently refresh it on a 401.
     client.interceptors.add(
       AuthInterceptor(storage, baseUrl: client.options.baseUrl),
@@ -51,12 +47,6 @@ class ApiService {
       client.interceptors.add(
         LogInterceptor(requestBody: true, responseBody: true),
       );
-    }
-
-    // 4. Mock backend — must be LAST so it can short-circuit the request
-    //    before it leaves the device.
-    if (AppConfig.instance.useMock) {
-      client.interceptors.add(MockInterceptor());
     }
   }
 

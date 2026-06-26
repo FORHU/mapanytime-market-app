@@ -21,6 +21,7 @@ class UserModel extends UserEntity {
     required this.token,
     super.name,
     super.avatarUrl,
+    super.countryCode,
     super.onboardingCompleted,
     this.refreshToken,
   });
@@ -43,8 +44,10 @@ class UserModel extends UserEntity {
     return UserModel(
       id: userMap['id'] as String,
       email: userMap['email'] as String,
-      name: fullName.isEmpty ? null : fullName,
-      avatarUrl: userMap['avatar'] as String?,
+      name: userMap['name'] as String? ?? (fullName.isEmpty ? null : fullName),
+      avatarUrl: (userMap['avatarUrl'] ?? userMap['avatar']) as String?,
+      countryCode: (payload['location'] as Map?)?['country'] as String? ??
+          userMap['countryCode'] as String?,
       onboardingCompleted: userMap['onboardingCompleted'] as bool? ?? false,
       // login/register returns `accessToken`; refresh returns `accessToken` too.
       token: (payload['accessToken'] ?? payload['token']) as String,
@@ -63,6 +66,7 @@ class UserModel extends UserEntity {
         'email': email,
         'name': name,
         'avatarUrl': avatarUrl,
+        'countryCode': countryCode,
         'onboardingCompleted': onboardingCompleted,
         'token': token,
         'refreshToken': refreshToken,

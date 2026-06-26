@@ -8,9 +8,10 @@ import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.
 /// Repository contract (the abstraction the domain layer depends on).
 abstract class AuthRepository {
   Future<Either<Failure, UserEntity>> login(String email, String password);
-  Future<Either<Failure, UserEntity>> register(String email, String password,
-      {String? name});
+  Future<Either<Failure, void>> register(String email, String password,
+      {String? name, String? countryCode});
   Future<Either<Failure, void>> logout();
+  Future<Either<Failure, UserEntity>> refreshAuth();
 }
 
 /// Coordinates the remote data source and local token storage. Catches the
@@ -33,6 +34,8 @@ class AuthRepositoryImpl implements AuthRepository {
       if (refreshToken != null && refreshToken.isNotEmpty) {
         await _storage.saveRefreshToken(refreshToken);
       }
+      // Save full user model to local cache for instant offline startup
+      await _storage.saveUserModel(user);
       return Right(user);
     } on UnauthorizedException catch (e) {
       return Left(UnauthorizedFailure(e.message));
@@ -46,20 +49,16 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, UserEntity>> register(String email, String password,
-      {String? name}) async {
+  Future<Either<Failure, void>> register(String email, String password,
+      {String? name, String? countryCode}) async {
     try {
-      final user = await _remote.register(
+      await _remote.register(
         email,
         password,
         name: name,
+        countryCode: countryCode,
       );
-      await _storage.saveToken(user.token);
-      final refreshToken = user.refreshToken;
-      if (refreshToken != null && refreshToken.isNotEmpty) {
-        await _storage.saveRefreshToken(refreshToken);
-      }
-      return Right(user);
+      return const Right(null);
     } on UnauthorizedException catch (e) {
       return Left(UnauthorizedFailure(e.message));
     } on NetworkException catch (e) {
@@ -78,6 +77,29 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Right(null);
     } on Object catch (e) {
       return Left(CacheFailure('Failed to clear local session: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> refreshAuth() async {
+    try {
+      final token = await _storage.readToken();
+      if (token == null || token.isEmpty) {
+        return const Left(UnauthorizedFailure('No token found'));
+      }
+      final user = await _remote.checkAuth(token);
+      // Update local cache with fresh background fetch
+      await _storage.saveUserModel(user);
+      return Right(user);
+    } on UnauthorizedException catch (e) {
+      await _storage.clearSession(); // Clear stale tokens
+      return Left(UnauthorizedFailure(e.message));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on AppException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Object catch (e) {
+      return Left(ServerFailure(e.toString()));
     }
   }
 }

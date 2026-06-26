@@ -14,7 +14,7 @@ class UserLocationManager {
         await mapboxMap.annotations.createCircleAnnotationManager();
   }
 
-  Future<void> enableUserLocation() async {
+  Future<void> enableUserLocation({void Function(Point)? onFirstFix}) async {
     final status = await Permission.locationWhenInUse.request();
 
     if (status.isGranted) {
@@ -25,20 +25,18 @@ class UserLocationManager {
           return;
         }
 
-        _positionStreamSubscription = geo.Geolocator.getPositionStream(
-          locationSettings: const geo.LocationSettings(
-            accuracy: geo.LocationAccuracy.high,
-            distanceFilter: 2, // Update every 2 meters
-          ),
-        ).listen((currentPos) async {
-          if (_circleAnnotationManager == null) return;
+        bool hasFiredFirstFix = false;
 
-          final pos = Position(currentPos.longitude, currentPos.latitude);
+        Future<void> updateDot(geo.Position currentPos) async {
+          if (_circleAnnotationManager == null) return;
+          final pos = Point(
+            coordinates: Position(currentPos.longitude, currentPos.latitude),
+          );
 
           if (_userLocationAnnotation == null) {
             _userLocationAnnotation = await _circleAnnotationManager!.create(
               CircleAnnotationOptions(
-                geometry: Point(coordinates: pos),
+                geometry: pos,
                 circleColor: Colors.blue.toARGB32(),
                 circleRadius: 10,
                 circleStrokeColor: Colors.white.toARGB32(),
@@ -46,9 +44,36 @@ class UserLocationManager {
               ),
             );
           } else {
-            _userLocationAnnotation!.geometry = Point(coordinates: pos);
+            _userLocationAnnotation!.geometry = pos;
             await _circleAnnotationManager!.update(_userLocationAnnotation!);
           }
+
+          if (!hasFiredFirstFix && onFirstFix != null) {
+            hasFiredFirstFix = true;
+            onFirstFix(pos);
+          }
+        }
+
+        // Fetch once immediately for stationary users / emulators
+        try {
+          final initialPos = await geo.Geolocator.getCurrentPosition()
+              .timeout(const Duration(seconds: 4));
+          await updateDot(initialPos);
+        } on Exception catch (_) {
+          // If GPS hangs or times out, try last known position
+          final lastPos = await geo.Geolocator.getLastKnownPosition();
+          if (lastPos != null) {
+            await updateDot(lastPos);
+          }
+        }
+
+        _positionStreamSubscription = geo.Geolocator.getPositionStream(
+          locationSettings: const geo.LocationSettings(
+            accuracy: geo.LocationAccuracy.high,
+            distanceFilter: 2, // Update every 2 metres
+          ),
+        ).listen((currentPos) async {
+          await updateDot(currentPos);
         });
       } on Exception catch (e) {
         debugPrint('Could not fetch location: $e');

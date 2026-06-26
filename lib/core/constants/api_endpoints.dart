@@ -11,6 +11,7 @@ class ApiEndpoints {
 
   // Users
   static const String users = '/users';
+  static const String me = '/users/me';
 
   /// Stores near a `lat`/`lng` query origin (used by the world map).
   static const String storesNearby = '/stores/nearby';

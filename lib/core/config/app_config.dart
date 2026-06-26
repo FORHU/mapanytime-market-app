@@ -1,11 +1,6 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mapanytime_market_app/core/config/environment.dart';
 
-/// Per-environment settings, fixed at startup.
-///
-/// One [AppConfig] is chosen by the entry point (main_dev/main_prod) and
-/// assigned to [instance] inside `bootstrap()`. Read it anywhere via
-/// `AppConfig.instance`.
 class AppConfig {
   const AppConfig({
     required this.environment,
@@ -13,7 +8,6 @@ class AppConfig {
     required this.baseUrl,
     required this.mapboxPublicToken,
     this.enableLogging = false,
-    this.useMock = false,
   });
 
   /// Builds config from `flutter_dotenv` values loaded at runtime.
@@ -24,47 +18,40 @@ class AppConfig {
       environment: envString == 'prod' ? Environment.prod : Environment.dev,
       appName: dotenv.env['APP_NAME'] ?? 'mapanytime_market_app',
       baseUrl: dotenv.env['BASE_URL'] ?? '',
-      mapboxPublicToken: dotenv.env['MAPBOX_PUBLIC_TOKEN'] ??
+      mapboxPublicToken:
+          dotenv.env['MAPBOX_PUBLIC_TOKEN'] ??
           'pk.eyJ1IjoianVuZ2t3YW5zaGluIiwiYSI6ImNtcW9xcGE2aDA1d2wycXF2cXFzdG14'
               'bWcifQ.HR1a5C0MxCY4M0f1yEt6-A',
       enableLogging: (dotenv.env['ENABLE_LOGGING'] ??
-              (envString != 'prod' ? 'true' : 'false'))
-          .toLowerCase() == 'true',
-      useMock: (dotenv.env['USE_MOCK'] ?? 'false').toLowerCase() == 'true',
+                  (envString != 'prod' ? 'true' : 'false'))
+              .toLowerCase() ==
+          'true',
     );
   }
 
   /// Explicit development config used by `main_dev.dart` — works without any
-  /// `--dart-define`, with logging on and the mock backend enabled.
+  /// `--dart-define`, with logging on and pointed at the real backend.
   const AppConfig.dev()
-    : environment = Environment.dev,
-      appName = 'MapAnytime Market (Dev)',
-      baseUrl = '',
-      // Public Mapbox token (pk...) should be injected via .env.dev
-      mapboxPublicToken = '',
-      enableLogging = true,
-      // Set to false so the app connects to the real backend.
-      useMock = false;
+      : environment = Environment.dev,
+        appName = 'MapAnytime Market (Dev)',
+        baseUrl = '',
+        mapboxPublicToken = '',
+        enableLogging = true;
 
   /// Explicit production config used by `main_prod.dart` — logging off, real
   /// backend.
   const AppConfig.prod()
-    : environment = Environment.prod,
-      appName = 'MapAnytime Market',
-      baseUrl = '',
-      mapboxPublicToken = '',
-      enableLogging = false,
-      useMock = false;
+      : environment = Environment.prod,
+        appName = 'MapAnytime Market',
+        baseUrl = '',
+        mapboxPublicToken = '',
+        enableLogging = false;
 
   final Environment environment;
   final String appName;
   final String baseUrl;
   final String mapboxPublicToken;
   final bool enableLogging;
-
-  /// When true, a `MockInterceptor` serves canned responses so the app runs
-  /// with no backend. Keep off in production.
-  final bool useMock;
 
   bool get isDev => environment == Environment.dev;
   bool get isProd => environment == Environment.prod;

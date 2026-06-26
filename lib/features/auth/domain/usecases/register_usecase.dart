@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:fpdart/fpdart.dart';
 import 'package:mapanytime_market_app/core/errors/failure.dart';
 import 'package:mapanytime_market_app/features/auth/data/repositories/auth_repository.dart';
@@ -9,10 +10,17 @@ class RegisterUseCase {
 
   final AuthRepository _repository;
 
-  Future<Either<Failure, UserEntity>> call(
+  Future<Either<Failure, void>> call(
     String email,
     String password, {
     String? name,
-  }) =>
-      _repository.register(email.trim(), password, name: name);
+  }) {
+    final countryCode = PlatformDispatcher.instance.locale.countryCode;
+    return _repository.register(
+      email.trim(),
+      password,
+      name: name,
+      countryCode: countryCode,
+    );
+  }
 }
