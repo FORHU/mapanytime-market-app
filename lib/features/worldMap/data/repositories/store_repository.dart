@@ -8,8 +8,10 @@ import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_en
 // ignore: one_member_abstracts
 abstract class StoreRepository {
   Future<Either<Failure, List<StoreEntity>>> getNearbyStores({
-    required double lat,
-    required double lng,
+    required double north,
+    required double south,
+    required double east,
+    required double west,
   });
 }
 
@@ -23,11 +25,18 @@ class StoreRepositoryImpl implements StoreRepository {
 
   @override
   Future<Either<Failure, List<StoreEntity>>> getNearbyStores({
-    required double lat,
-    required double lng,
+    required double north,
+    required double south,
+    required double east,
+    required double west,
   }) async {
     try {
-      final stores = await _remote.getNearbyStores(lat: lat, lng: lng);
+      final stores = await _remote.getNearbyStores(
+        north: north,
+        south: south,
+        east: east,
+        west: west,
+      );
       return Right(stores);
     } on UnauthorizedException catch (e) {
       return Left(UnauthorizedFailure(e.message));

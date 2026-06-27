@@ -3,6 +3,7 @@ class RouteNames {
   RouteNames._();
 
   static const String home = '/';
+  static const String storefront = '/storefront';
   static const String recommendations = '/recommendations';
   static const String worldMap = '/worldMap';
   static const String cart = '/cart';

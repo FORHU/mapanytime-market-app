@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,6 +9,7 @@ import 'package:mapanytime_market_app/features/auth/data/datasources/auth_remote
 import 'package:mapanytime_market_app/features/auth/data/repositories/auth_repository.dart';
 import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.dart';
 import 'package:mapanytime_market_app/features/auth/domain/usecases/login_usecase.dart';
+import 'package:mapanytime_market_app/features/auth/domain/usecases/refresh_auth_usecase.dart';
 import 'package:mapanytime_market_app/features/auth/domain/usecases/register_usecase.dart';
 
 // --- Dependency wiring (Riverpod providers) ---
@@ -26,6 +29,10 @@ final loginUseCaseProvider = Provider<LoginUseCase>(
 
 final registerUseCaseProvider = Provider<RegisterUseCase>(
   (ref) => RegisterUseCase(ref.watch(authRepositoryProvider)),
+);
+
+final refreshAuthUseCaseProvider = Provider<RefreshAuthUseCase>(
+  (ref) => RefreshAuthUseCase(ref.watch(authRepositoryProvider)),
 );
 
 // --- State ---
@@ -55,7 +62,22 @@ class AuthState extends Equatable {
 
 class AuthController extends Notifier<AuthState> {
   @override
-  AuthState build() => const AuthState();
+  AuthState build() {
+    final cachedUser = ref.read(storageServiceProvider).readUserModel();
+    if (cachedUser != null) {
+      unawaited(Future.microtask(refreshAuth));
+    }
+    return AuthState(user: cachedUser);
+  }
+
+  Future<void> refreshAuth() async {
+    final result = await ref.read(refreshAuthUseCaseProvider).execute();
+    result.fold(
+      // If failed (e.g. token expired), log out
+      (failure) => state = const AuthState(),
+      (user) => state = AuthState(user: user),
+    );
+  }
 
   Future<bool> login(String email, String password) async {
     state = state.copyWith(isLoading: true);
@@ -89,8 +111,8 @@ class AuthController extends Notifier<AuthState> {
         state = AuthState(error: failure.message);
         return false;
       },
-      (user) {
-        state = AuthState(user: user);
+      (_) {
+        state = const AuthState();
         return true;
       },
     );

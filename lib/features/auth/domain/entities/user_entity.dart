@@ -8,6 +8,7 @@ class UserEntity extends Equatable {
     required this.email,
     this.name,
     this.avatarUrl,
+    this.countryCode,
     this.onboardingCompleted = false,
   });
 
@@ -15,9 +16,10 @@ class UserEntity extends Equatable {
   final String email;
   final String? name;
   final String? avatarUrl;
+  final String? countryCode;
   final bool onboardingCompleted;
 
-  @override
+    @override
   List<Object?> get props =>
-      [id, email, name, avatarUrl, onboardingCompleted];
+      [id, email, name, avatarUrl, countryCode, onboardingCompleted];
 }
