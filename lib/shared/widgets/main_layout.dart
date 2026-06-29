@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
+import 'package:mapanytime_market_app/shared/widgets/animated_bottom_navigation.dart';
 
+/// App shell: hosts the routed [child] and the premium glass bottom navigation.
 class MainLayout extends StatelessWidget {
   const MainLayout({
     required this.child,
@@ -13,110 +15,76 @@ class MainLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Define items WITH their corresponding route paths
-    final navItems = [
-      NavigationItem(
-        label: context.l10n.home,
-        icon: Icons.home_outlined,
-        activeIcon: Icons.home,
-        order: 0,
+    // Tab destinations paired with their routes (order = tab order).
+    final destinations = <_Destination>[
+      _Destination(
+        item: NavBarItem(
+          label: context.l10n.home,
+          icon: Icons.home_outlined,
+          activeIcon: Icons.home_rounded,
+        ),
         route: RouteNames.home,
-        activeColor: Colors.greenAccent, // 👈 Custom active color for this tab
       ),
-      const NavigationItem(
-        label: 'For You',
-        icon: Icons.star_outline,
-        activeIcon: Icons.star,
-        order: 1,
+      const _Destination(
+        item: NavBarItem(
+          label: 'For You',
+          icon: Icons.auto_awesome_outlined,
+          activeIcon: Icons.auto_awesome_rounded,
+        ),
         route: RouteNames.recommendations,
-        activeColor: Colors.amber, // 👈 Custom active color for this tab
       ),
-      const NavigationItem(
-        label: 'World Map',
-        icon: Icons.map_outlined,
-        activeIcon: Icons.map,
-        order: 2,
+      const _Destination(
+        item: NavBarItem(
+          label: 'Map',
+          icon: Icons.map_outlined,
+          activeIcon: Icons.map_rounded,
+        ),
         route: RouteNames.worldMap,
-        activeColor: Colors.blue, // 👈 Custom active color for this tab
       ),
-      const NavigationItem(
-        label: 'Cart',
-        icon: Icons.shopping_cart_outlined,
-        activeIcon: Icons.shopping_cart,
-        order: 3,
+      const _Destination(
+        item: NavBarItem(
+          label: 'Cart',
+          icon: Icons.shopping_bag_outlined,
+          activeIcon: Icons.shopping_bag_rounded,
+        ),
         route: RouteNames.cart,
-        activeColor: Colors.orangeAccent,
       ),
-      NavigationItem(
-        label: context.l10n.profile,
-        icon: Icons.person_outline,
-        activeIcon: Icons.person,
-        order: 4,
+      _Destination(
+        item: NavBarItem(
+          label: context.l10n.profile,
+          icon: Icons.person_outline_rounded,
+          activeIcon: Icons.person_rounded,
+        ),
         route: RouteNames.profile,
-        activeColor: Colors.deepPurpleAccent,
       ),
-    ]..sort((a, b) => a.order.compareTo(b.order));
+    ];
 
-    // Calculate current index dynamically based on the current location
+    // Resolve the active tab from the current route (ignoring root '/').
     final location = GoRouterState.of(context).matchedLocation;
-    // We check backwards or specifically to ensure we find the right match (ignoring default '/')
-    var currentIndex = navItems.indexWhere(
-      (item) => item.route != '/' && location.startsWith(item.route),
+    var currentIndex = destinations.indexWhere(
+      (d) => d.route != '/' && location.startsWith(d.route),
     );
-
-    // If not found (or it's the root '/'), default to index of Home
     if (currentIndex == -1) {
-      currentIndex = navItems.indexWhere(
-        (item) => item.route == RouteNames.home,
+      currentIndex = destinations.indexWhere(
+        (d) => d.route == RouteNames.home,
       );
-      if (currentIndex == -1) currentIndex = 0; // Fallback
+      if (currentIndex == -1) currentIndex = 0;
     }
 
     return Scaffold(
       body: child,
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType
-            .fixed, // Ensure all items show properly when > 3
+      bottomNavigationBar: AnimatedBottomNavigation(
+        items: [for (final d in destinations) d.item],
         currentIndex: currentIndex,
-        onTap: (index) {
-          // Navigate dynamically based on the tapped item's route
-          context.go(navItems[index].route);
-        },
-        selectedItemColor: Colors.black, // 👈 selected icon color
-        unselectedItemColor: Colors.black,
-        // Map your custom NavigationItems into BottomNavigationBarItems
-        items: navItems.map((item) {
-          return BottomNavigationBarItem(
-            // NOTE: BottomNavigationBarItem does not accept a 'key' parameter
-            // since it's not a Widget.
-            icon: Icon(item.icon),
-            activeIcon: Icon(
-              item.activeIcon,
-              color: item.activeColor, // Apply the custom color if it exists
-            ),
-            label: item.label,
-          );
-        }).toList(),
+        onTap: (index) => context.go(destinations[index].route),
       ),
     );
   }
 }
 
-// Define your custom data class at the bottom of the file
-class NavigationItem {
-  const NavigationItem({
-    required this.label,
-    required this.icon,
-    required this.activeIcon,
-    required this.order,
-    required this.route,
-    this.activeColor, // Optional custom color when selected
-  });
+class _Destination {
+  const _Destination({required this.item, required this.route});
 
-  final String label;
-  final IconData icon;
-  final IconData activeIcon;
-  final int order;
+  final NavBarItem item;
   final String route;
-  final Color? activeColor;
 }

@@ -1,0 +1,103 @@
+import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
+import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
+import 'package:mapanytime_market_app/shared/widgets/price_tag.dart';
+import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
+import 'package:mapanytime_market_app/theme/tokens/radius.dart';
+import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
+
+/// A vertical product card: image, name, price and store/distance.
+class ProductCard extends StatelessWidget {
+  const ProductCard({
+    required this.name,
+    required this.imageUrl,
+    required this.price,
+    this.storeName,
+    this.distanceKm,
+    this.onTap,
+    this.width = 168,
+    super.key,
+  });
+
+  final String name;
+  final String imageUrl;
+  final num price;
+  final String? storeName;
+  final double? distanceKm;
+  final VoidCallback? onTap;
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: width,
+        decoration: BoxDecoration(
+          color: AppColors.ui.surfaceDark,
+          borderRadius: AppRadius.brCard,
+          border: Border.all(color: AppColors.ui.borderDark),
+          boxShadow: AppEffects.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            NetworkImageBox(
+              url: imageUrl,
+              height: width * 0.9,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppRadius.card),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.sm + 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.text.primaryDark,
+                    ),
+                  ),
+                  const Gap(6),
+                  if (storeName != null)
+                    Text(
+                      storeName!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.text.tertiaryDark,
+                      ),
+                    ),
+                  const Gap(AppSpacing.sm),
+                  Row(
+                    children: [
+                      PriceTag(amount: price, fontSize: 15),
+                      const Spacer(),
+                      if (distanceKm != null)
+                        Text(
+                          '${distanceKm!.toStringAsFixed(1)} km',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.brand.primary,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

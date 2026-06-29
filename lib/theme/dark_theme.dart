@@ -13,19 +13,28 @@ class DarkTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
 
-      // Explicit Color Scheme
+      // Explicit Color Scheme — dark-premium palette
       colorScheme: ColorScheme.dark(
         primary: AppColors.brand.primary,
+        onPrimary: Colors.white,
         secondary: AppColors.brand.secondary,
+        onSecondary: Colors.white,
         surface: AppColors.ui.surfaceDark,
-        error: AppColors.status.error,
-        onPrimary: AppColors.ui.surface,
-        onSecondary: AppColors.ui.surface,
         onSurface: AppColors.text.primaryDark,
-        onError: AppColors.ui.surface,
+        onSurfaceVariant: AppColors.text.secondaryDark,
+        surfaceContainerHighest: AppColors.ui.surfaceElevatedDark,
+        outline: AppColors.ui.borderDark,
+        error: AppColors.status.error,
+        onError: Colors.white,
       ),
 
       scaffoldBackgroundColor: AppColors.ui.backgroundDark,
+      canvasColor: AppColors.ui.backgroundDark,
+      dividerTheme: DividerThemeData(
+        color: AppColors.ui.borderDark,
+        thickness: 1,
+        space: 1,
+      ),
 
       // Global Typography
       textTheme: AppTypography.textTheme.apply(

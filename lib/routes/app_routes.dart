@@ -10,6 +10,7 @@ import 'package:mapanytime_market_app/features/store/presentation/pages/storefro
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/world_map_page.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
+import 'package:mapanytime_market_app/shared/dev/component_gallery_page.dart';
 import 'package:mapanytime_market_app/shared/widgets/main_layout.dart';
 
 /// The app's router. `redirect` guards routes based on auth state; the login
@@ -21,15 +22,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final isAuth = ref.read(authControllerProvider).isAuthenticated;
       final goingToLogin = state.matchedLocation == RouteNames.login;
       final goingToRegister = state.matchedLocation == RouteNames.register;
+      // Dev-only gallery is always reachable (no auth) for design review.
+      final goingToGallery = state.matchedLocation == RouteNames.gallery;
 
       if (!isAuth) {
-        return (goingToLogin || goingToRegister) ? null : RouteNames.login;
+        return (goingToLogin || goingToRegister || goingToGallery)
+            ? null
+            : RouteNames.login;
       }
       if (goingToLogin || goingToRegister) return RouteNames.home;
       return null;
     },
     routes: [
-
+      GoRoute(
+        path: RouteNames.gallery,
+        builder: (context, state) => const ComponentGalleryPage(),
+      ),
       GoRoute(
         path: RouteNames.login,
         builder: (context, state) => const LoginPage(),
