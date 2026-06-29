@@ -12,6 +12,8 @@ abstract class StoreRepository {
     required double south,
     required double east,
     required double west,
+    double? centerLat,
+    double? centerLng,
   });
 }
 
@@ -29,6 +31,8 @@ class StoreRepositoryImpl implements StoreRepository {
     required double south,
     required double east,
     required double west,
+    double? centerLat,
+    double? centerLng,
   }) async {
     try {
       final stores = await _remote.getNearbyStores(
@@ -36,6 +40,8 @@ class StoreRepositoryImpl implements StoreRepository {
         south: south,
         east: east,
         west: west,
+        centerLat: centerLat,
+        centerLng: centerLng,
       );
       return Right(stores);
     } on UnauthorizedException catch (e) {

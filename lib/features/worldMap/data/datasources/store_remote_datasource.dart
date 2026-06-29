@@ -13,6 +13,8 @@ abstract class StoreRemoteDataSource {
     required double south,
     required double east,
     required double west,
+    double? centerLat,
+    double? centerLng,
   });
 }
 
@@ -27,15 +29,23 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
     required double south,
     required double east,
     required double west,
+    double? centerLat,
+    double? centerLng,
   }) async {
+    final query = <String, dynamic>{
+      'north': north,
+      'south': south,
+      'east': east,
+      'west': west,
+      // Pass the center point so the API computes precise distances.
+      // Falls back to bounding-box midpoint server-side if omitted.
+      'lat': ?centerLat,
+      'lng': ?centerLng,
+    };
+
     final responseData = await _apiService.get(
       ApiEndpoints.storesNearby,
-      query: {
-        'north': north,
-        'south': south,
-        'east': east,
-        'west': west,
-      },
+      query: query,
     );
 
     final rawList = responseData is Map && responseData['data'] is List
