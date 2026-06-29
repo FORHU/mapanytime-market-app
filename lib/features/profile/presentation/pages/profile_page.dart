@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
+import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 
@@ -42,6 +43,14 @@ class ProfilePage extends ConsumerWidget {
                 subtitle: const Text('Preview the design system'),
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: () => context.go(RouteNames.gallery),
+              ),
+              ListTile(
+                leading: const Icon(Icons.logout_rounded),
+                title: Text(context.l10n.logout),
+                onTap: () async {
+                  await ref.read(authControllerProvider.notifier).logout();
+                  if (context.mounted) context.go(RouteNames.login);
+                },
               ),
             ],
           ),

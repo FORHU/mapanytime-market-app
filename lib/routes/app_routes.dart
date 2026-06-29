@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/pages/login_page.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/pages/register_page.dart';
-import 'package:mapanytime_market_app/features/home/presentation/pages/home_page.dart';
+import 'package:mapanytime_market_app/features/landing/presentation/pages/landing_page.dart';
 import 'package:mapanytime_market_app/features/profile/presentation/pages/profile_page.dart';
 import 'package:mapanytime_market_app/features/store/presentation/pages/storefront_page.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
@@ -51,7 +51,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: RouteNames.home,
-            builder: (context, state) => const HomePage(),
+            builder: (context, state) => const LandingPage(),
           ),
           // Example of a route with children
           GoRoute(
