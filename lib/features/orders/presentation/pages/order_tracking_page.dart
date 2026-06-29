@@ -59,8 +59,7 @@ class OrderTrackingPage extends StatelessWidget {
                           quantity: line.quantity,
                           total: line.lineTotal,
                         ),
-                        if (line != order.lines.last)
-                          const Gap(AppSpacing.sm),
+                        if (line != order.lines.last) const Gap(AppSpacing.sm),
                       ],
                       const Gap(AppSpacing.sm),
                       Divider(color: AppColors.ui.borderDark, height: 1),

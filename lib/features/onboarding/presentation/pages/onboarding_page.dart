@@ -28,19 +28,22 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     _Slide(
       icon: Icons.map_rounded,
       title: 'Discover stores\naround you',
-      body: 'Explore a live map of shops nearby and find exactly '
+      body:
+          'Explore a live map of shops nearby and find exactly '
           'what you need.',
     ),
     _Slide(
       icon: Icons.shopping_bag_rounded,
       title: 'Order in a tap',
-      body: 'Browse products from any store and add them to your '
+      body:
+          'Browse products from any store and add them to your '
           'cart in seconds.',
     ),
     _Slide(
       icon: Icons.qr_code_rounded,
       title: 'Skip the line',
-      body: 'Show your QR pickup pass at the counter and grab '
+      body:
+          'Show your QR pickup pass at the counter and grab '
           'your order — no waiting.',
     ),
   ];

@@ -19,7 +19,13 @@ class UserEntity extends Equatable {
   final String? countryCode;
   final bool onboardingCompleted;
 
-    @override
-  List<Object?> get props =>
-      [id, email, name, avatarUrl, countryCode, onboardingCompleted];
+  @override
+  List<Object?> get props => [
+    id,
+    email,
+    name,
+    avatarUrl,
+    countryCode,
+    onboardingCompleted,
+  ];
 }

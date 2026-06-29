@@ -20,8 +20,9 @@ class ProfilePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(profileProvider);
     final name = user?.name ?? 'Unknown';
-    final initial =
-        (user?.name?.isNotEmpty ?? false) ? user!.name![0].toUpperCase() : '?';
+    final initial = (user?.name?.isNotEmpty ?? false)
+        ? user!.name![0].toUpperCase()
+        : '?';
 
     return Scaffold(
       appBar: AppBar(
@@ -209,11 +210,17 @@ class _StatsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Row(
       children: [
-        Expanded(child: _StatTile(value: '8', label: 'Orders')),
+        Expanded(
+          child: _StatTile(value: '8', label: 'Orders'),
+        ),
         Gap(AppSpacing.sm),
-        Expanded(child: _StatTile(value: '320', label: 'Points')),
+        Expanded(
+          child: _StatTile(value: '320', label: 'Points'),
+        ),
         Gap(AppSpacing.sm),
-        Expanded(child: _StatTile(value: '12', label: 'Saved')),
+        Expanded(
+          child: _StatTile(value: '12', label: 'Saved'),
+        ),
       ],
     );
   }

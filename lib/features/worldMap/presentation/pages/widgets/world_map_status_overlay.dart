@@ -42,9 +42,8 @@ class WorldMapStatusOverlay extends ConsumerWidget {
                     ),
                   ),
                   TextButton(
-                    onPressed: () => ref
-                        .read(worldMapControllerProvider.notifier)
-                        .refresh(),
+                    onPressed: () =>
+                        ref.read(worldMapControllerProvider.notifier).refresh(),
                     child: Text(
                       'Retry',
                       style: TextStyle(

@@ -90,8 +90,8 @@ class AuthInterceptor extends QueuedInterceptor {
       final data = res.data;
       if (data is! Map) return null;
 
-      final payload = data.containsKey('data') 
-          ? data['data'] as Map<String, dynamic> 
+      final payload = data.containsKey('data')
+          ? data['data'] as Map<String, dynamic>
           : data;
 
       final token = payload['accessToken'] as String?;

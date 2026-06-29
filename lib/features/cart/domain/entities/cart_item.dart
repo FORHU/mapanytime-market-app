@@ -17,11 +17,11 @@ class CartItem {
   num get lineTotal => product.price * quantity;
 
   CartItem copyWith({int? quantity}) => CartItem(
-        product: product,
-        storeId: storeId,
-        storeName: storeName,
-        quantity: quantity ?? this.quantity,
-      );
+    product: product,
+    storeId: storeId,
+    storeName: storeName,
+    quantity: quantity ?? this.quantity,
+  );
 }
 
 /// Cart lines grouped under one store, for the grouped cart view.
@@ -36,6 +36,5 @@ class CartStoreGroup {
   final String storeName;
   final List<CartItem> items;
 
-  num get subtotal =>
-      items.fold<num>(0, (sum, item) => sum + item.lineTotal);
+  num get subtotal => items.fold<num>(0, (sum, item) => sum + item.lineTotal);
 }

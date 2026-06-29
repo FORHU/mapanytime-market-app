@@ -10,13 +10,13 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 /// the app's ApiService which targets the project backend.
 class DirectionsDatasource {
   DirectionsDatasource()
-      : _dio = Dio(
-          BaseOptions(
-            baseUrl: 'https://api.mapbox.com',
-            connectTimeout: const Duration(seconds: 10),
-            receiveTimeout: const Duration(seconds: 10),
-          ),
-        );
+    : _dio = Dio(
+        BaseOptions(
+          baseUrl: 'https://api.mapbox.com',
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      );
 
   final Dio _dio;
 

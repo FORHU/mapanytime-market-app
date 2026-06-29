@@ -11,5 +11,5 @@ final storeRepositoryProvider = Provider<StoreRepository>(
 /// Loads storefront details for a given store id (mock for now).
 final FutureProviderFamily<StoreDetails, String> storeDetailsProvider =
     FutureProvider.family<StoreDetails, String>((ref, storeId) {
-  return ref.watch(storeRepositoryProvider).getStoreDetails(storeId);
-});
+      return ref.watch(storeRepositoryProvider).getStoreDetails(storeId);
+    });

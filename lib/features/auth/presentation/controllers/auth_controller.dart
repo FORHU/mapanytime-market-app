@@ -103,8 +103,11 @@ class AuthController extends Notifier<AuthState> {
   }) async {
     state = state.copyWith(isLoading: true);
 
-    final result = await ref
-        .read(registerUseCaseProvider)(email, password, name: name);
+    final result = await ref.read(registerUseCaseProvider)(
+      email,
+      password,
+      name: name,
+    );
 
     return result.fold(
       (failure) {

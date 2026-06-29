@@ -87,9 +87,7 @@ class _StoreBody extends StatelessWidget {
     final selectedLabel = details.productCategories[selectedCategory];
     final products = selectedLabel == 'All'
         ? details.products
-        : details.products
-            .where((p) => p.category == selectedLabel)
-            .toList();
+        : details.products.where((p) => p.category == selectedLabel).toList();
 
     return ListView(
       padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
@@ -127,10 +125,10 @@ class _StoreBody extends StatelessWidget {
                 const Gap(AppSpacing.sm),
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.star_rounded,
                       size: 18,
-                      color: Color(0xFFFBBF24),
+                      color: AppColors.status.warning,
                     ),
                     const Gap(4),
                     Text(
@@ -289,8 +287,9 @@ class _OpenBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        isOpen ? AppColors.status.success : AppColors.text.tertiaryDark;
+    final color = isOpen
+        ? AppColors.status.success
+        : AppColors.text.tertiaryDark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(

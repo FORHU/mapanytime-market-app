@@ -81,7 +81,9 @@ class ProductDetailPage extends ConsumerWidget {
           ),
           _BottomCta(
             onAdd: () {
-              ref.read(cartProvider.notifier).add(
+              ref
+                  .read(cartProvider.notifier)
+                  .add(
                     product: product,
                     storeId: storeId,
                     storeName: storeName,

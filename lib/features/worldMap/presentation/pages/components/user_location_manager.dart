@@ -28,12 +28,14 @@ class UserLocationManager {
 
         // Enable the native Mapbox pulsing location puck
         if (_mapboxMap != null) {
-          await _mapboxMap!.location.updateSettings(LocationComponentSettings(
-            enabled: true,
-            pulsingEnabled: true,
-            showAccuracyRing: true,
-            puckBearingEnabled: true,
-          ));
+          await _mapboxMap!.location.updateSettings(
+            LocationComponentSettings(
+              enabled: true,
+              pulsingEnabled: true,
+              showAccuracyRing: true,
+              puckBearingEnabled: true,
+            ),
+          );
         }
 
         Future<void> updateLastLocation(geo.Position currentPos) async {
@@ -59,14 +61,15 @@ class UserLocationManager {
           }
         }
 
-        _positionStreamSubscription = geo.Geolocator.getPositionStream(
-          locationSettings: const geo.LocationSettings(
-            accuracy: geo.LocationAccuracy.high,
-            distanceFilter: 2, // Update every 2 metres
-          ),
-        ).listen((currentPos) async {
-          await updateLastLocation(currentPos);
-        });
+        _positionStreamSubscription =
+            geo.Geolocator.getPositionStream(
+              locationSettings: const geo.LocationSettings(
+                accuracy: geo.LocationAccuracy.high,
+                distanceFilter: 2, // Update every 2 metres
+              ),
+            ).listen((currentPos) async {
+              await updateLastLocation(currentPos);
+            });
       } on Exception catch (e) {
         debugPrint('Could not fetch location: $e');
       }
@@ -83,9 +86,11 @@ class UserLocationManager {
 
     try {
       if (_mapboxMap != null) {
-        await _mapboxMap!.location.updateSettings(LocationComponentSettings(
-          enabled: false,
-        ));
+        await _mapboxMap!.location.updateSettings(
+          LocationComponentSettings(
+            enabled: false,
+          ),
+        );
       }
     } on Exception catch (_) {}
 

@@ -32,8 +32,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final isAuth = ref.read(authControllerProvider).isAuthenticated;
       final goingToLogin = state.matchedLocation == RouteNames.login;
       final goingToRegister = state.matchedLocation == RouteNames.register;
-      final goingToOnboarding =
-          state.matchedLocation == RouteNames.onboarding;
+      final goingToOnboarding = state.matchedLocation == RouteNames.onboarding;
 
       if (!isAuth) {
         return (goingToLogin || goingToRegister) ? null : RouteNames.login;
@@ -132,12 +131,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RouteNames.productDetail,
             builder: (context, state) {
-              final args = state.extra
-                  as ({
-                    StoreProduct product,
-                    String storeId,
-                    String storeName,
-                  })?;
+              final args =
+                  state.extra
+                      as ({
+                        StoreProduct product,
+                        String storeId,
+                        String storeName,
+                      })?;
               if (args == null) {
                 return const Scaffold(
                   body: Center(child: Text('Error: No product provided')),
