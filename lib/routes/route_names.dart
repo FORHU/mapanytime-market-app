@@ -10,4 +10,7 @@ class RouteNames {
   static const String profile = '/profile';
   static const String login = '/login';
   static const String register = '/register';
+
+  /// Dev-only: design-system component gallery.
+  static const String gallery = '/gallery';
 }
