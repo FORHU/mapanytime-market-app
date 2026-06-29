@@ -8,6 +8,7 @@ class RouteNames {
   static const String recommendations = '/recommendations';
   static const String worldMap = '/worldMap';
   static const String cart = '/cart';
+  static const String checkout = '/checkout';
   static const String profile = '/profile';
   static const String login = '/login';
   static const String register = '/register';

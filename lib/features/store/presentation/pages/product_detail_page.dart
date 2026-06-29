@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
@@ -9,13 +11,20 @@ import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 /// Product Detail screen: hero image, info, description and a sticky CTA.
-class ProductDetailPage extends StatelessWidget {
-  const ProductDetailPage({required this.product, super.key});
+class ProductDetailPage extends ConsumerWidget {
+  const ProductDetailPage({
+    required this.product,
+    this.storeId = '',
+    this.storeName = 'Store',
+    super.key,
+  });
 
   final StoreProduct product;
+  final String storeId;
+  final String storeName;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -71,9 +80,16 @@ class ProductDetailPage extends StatelessWidget {
             ),
           ),
           _BottomCta(
-            onAdd: () => ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${product.name} added to cart (mock)')),
-            ),
+            onAdd: () {
+              ref.read(cartProvider.notifier).add(
+                    product: product,
+                    storeId: storeId,
+                    storeName: storeName,
+                  );
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('${product.name} added to cart')),
+              );
+            },
           ),
         ],
       ),

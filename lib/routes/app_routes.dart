@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/pages/login_page.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/pages/register_page.dart';
+import 'package:mapanytime_market_app/features/cart/presentation/pages/cart_page.dart';
+import 'package:mapanytime_market_app/features/cart/presentation/pages/checkout_page.dart';
 import 'package:mapanytime_market_app/features/landing/presentation/pages/landing_page.dart';
 import 'package:mapanytime_market_app/features/profile/presentation/pages/profile_page.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
@@ -78,8 +80,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: RouteNames.cart,
-            builder: (context, state) =>
-                const Scaffold(body: Center(child: Text('Cart'))),
+            builder: (context, state) => const CartPage(),
+          ),
+          GoRoute(
+            path: RouteNames.checkout,
+            builder: (context, state) => const CheckoutPage(),
           ),
           GoRoute(
             path: RouteNames.profile,
@@ -100,13 +105,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RouteNames.productDetail,
             builder: (context, state) {
-              final product = state.extra as StoreProduct?;
-              if (product == null) {
+              final args = state.extra
+                  as ({
+                    StoreProduct product,
+                    String storeId,
+                    String storeName,
+                  })?;
+              if (args == null) {
                 return const Scaffold(
                   body: Center(child: Text('Error: No product provided')),
                 );
               }
-              return ProductDetailPage(product: product);
+              return ProductDetailPage(
+                product: args.product,
+                storeId: args.storeId,
+                storeName: args.storeName,
+              );
             },
           ),
         ],

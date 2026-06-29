@@ -181,7 +181,11 @@ class _StoreBody extends StatelessWidget {
                 const Gap(AppSpacing.lg),
                 const SectionTitle(title: 'Products'),
                 const Gap(AppSpacing.md),
-                _ProductGrid(products: products),
+                _ProductGrid(
+                  products: products,
+                  storeId: store.id,
+                  storeName: store.name,
+                ),
               ],
             ),
           ),
@@ -192,9 +196,15 @@ class _StoreBody extends StatelessWidget {
 }
 
 class _ProductGrid extends StatelessWidget {
-  const _ProductGrid({required this.products});
+  const _ProductGrid({
+    required this.products,
+    required this.storeId,
+    required this.storeName,
+  });
 
   final List<StoreProduct> products;
+  final String storeId;
+  final String storeName;
 
   @override
   Widget build(BuildContext context) {
@@ -226,7 +236,7 @@ class _ProductGrid extends StatelessWidget {
                 width: itemWidth,
                 onTap: () => context.push(
                   RouteNames.productDetail,
-                  extra: p,
+                  extra: (product: p, storeId: storeId, storeName: storeName),
                 ),
               ),
           ],
