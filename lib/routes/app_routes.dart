@@ -7,6 +7,10 @@ import 'package:mapanytime_market_app/features/auth/presentation/pages/register_
 import 'package:mapanytime_market_app/features/cart/presentation/pages/cart_page.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/pages/checkout_page.dart';
 import 'package:mapanytime_market_app/features/landing/presentation/pages/landing_page.dart';
+import 'package:mapanytime_market_app/features/orders/domain/entities/buyer_order.dart';
+import 'package:mapanytime_market_app/features/orders/presentation/pages/order_history_page.dart';
+import 'package:mapanytime_market_app/features/orders/presentation/pages/order_tracking_page.dart';
+import 'package:mapanytime_market_app/features/orders/presentation/pages/pickup_pass_page.dart';
 import 'package:mapanytime_market_app/features/profile/presentation/pages/profile_page.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
 import 'package:mapanytime_market_app/features/store/presentation/pages/product_detail_page.dart';
@@ -85,6 +89,34 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RouteNames.checkout,
             builder: (context, state) => const CheckoutPage(),
+          ),
+          GoRoute(
+            path: RouteNames.orders,
+            builder: (context, state) => const OrderHistoryPage(),
+          ),
+          GoRoute(
+            path: RouteNames.orderTracking,
+            builder: (context, state) {
+              final order = state.extra as BuyerOrder?;
+              if (order == null) {
+                return const Scaffold(
+                  body: Center(child: Text('Error: No order provided')),
+                );
+              }
+              return OrderTrackingPage(order: order);
+            },
+          ),
+          GoRoute(
+            path: RouteNames.pickupPass,
+            builder: (context, state) {
+              final order = state.extra as BuyerOrder?;
+              if (order == null) {
+                return const Scaffold(
+                  body: Center(child: Text('Error: No order provided')),
+                );
+              }
+              return PickupPassPage(order: order);
+            },
           ),
           GoRoute(
             path: RouteNames.profile,

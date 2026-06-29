@@ -36,6 +36,13 @@ class ProfilePage extends ConsumerWidget {
               const SizedBox(height: 4),
               Text(user?.email ?? '-'),
               const SizedBox(height: 32),
+              ListTile(
+                leading: const Icon(Icons.receipt_long_rounded),
+                title: const Text('My Orders'),
+                subtitle: const Text('Track and view past orders'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => context.push(RouteNames.orders),
+              ),
               // TODO(revert): temporary dev entry to the component gallery.
               ListTile(
                 leading: const Icon(Icons.palette_outlined),
