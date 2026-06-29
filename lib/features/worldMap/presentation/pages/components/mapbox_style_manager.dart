@@ -1,193 +1,88 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
-import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_marker.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
+/// Renders store markers using a [CircleAnnotationManager]. We use annotations
+/// (not a GeoJSON source + CircleLayer) because the annotation render path is
+/// reliable across style reloads and avoids the source-update timing issues we
+/// hit with style layers.
 class MapboxStyleManager {
-  MapboxStyleManager(this.mapboxMap);
+  MapboxStyleManager(this.mapboxMap, {this.onStoreTap});
+
   final MapboxMap mapboxMap;
 
-  Future<void> initializeClusters() async {
-    // Always tear down and rebuild. Mapbox fires onStyleLoaded multiple times
-    // (e.g. when remote glyph/tile data resolves) and a stale "source exists"
-    // guard would skip layer registration, leaving the map blank.
-    await _removeLayers();
+  /// Called with a store id when its marker is tapped.
+  final void Function(String storeId)? onStoreTap;
 
-    final sourceJson = jsonEncode({
-      'type': 'geojson',
-      'data': {
-        'type': 'FeatureCollection',
-        'features': <Map<String, dynamic>>[],
-      },
-      'cluster': true,
-      'clusterMaxZoom': 14,
-      'clusterRadius': 50,
-    });
+  CircleAnnotationManager? _circleManager;
 
-    await mapboxMap.style.addStyleSource('stores_source', sourceJson);
+  // annotation id -> store id, to resolve taps back to a store.
+  final Map<String, String> _annotationToStore = {};
 
-    // Register native ribbon image (wrap in try-catch to prevent Pigeon 
-    // channel errors from crashing init)
-    try {
-      final imageBytes = await StoreMarkerUtils.getCustomMarkerBytes();
-      final image = MbxImage(width: 64, height: 64, data: imageBytes);
-      
-      try {
-        await mapboxMap.style.removeStyleImage('store-ribbon');
-      } on Exception catch (_) {} // Ignore if it doesn't exist
+  // Cached so selection highlighting can re-render without a new fetch.
+  List<StoreEntity> _stores = [];
+  String? _selectedStoreId;
 
-      await mapboxMap.style.addStyleImage(
-        'store-ribbon',
-        2, // scale
-        image,
-        false, // sdf
-        [], // stretchX
-        [], // stretchY
-        null, // content
-      );
-    } on Exception catch (e) {
-      debugPrint(
-        'MapboxStyleManager: Warning: Failed to add store-ribbon image: $e',
+  static const int _redDot = 0xFFFF0000;
+  static const int _selectedDot = 0xFF2196F3; // blue for the selected store
+  static const int _white = 0xFFFFFFFF;
+
+  /// Creates the annotation manager (once) and registers tap handling.
+  /// Safe to call on every style load — the manager persists across reloads,
+  /// and we simply re-render the current markers.
+  Future<void> initializeStoreLayers() async {
+    if (_circleManager == null) {
+      _circleManager =
+          await mapboxMap.annotations.createCircleAnnotationManager();
+      _circleManager!.tapEvents(
+        onTap: (annotation) {
+          final storeId = _annotationToStore[annotation.id];
+          if (storeId != null) onStoreTap?.call(storeId);
+        },
       );
     }
-
-    // Add cluster circles layer
-    final clusterLayerJson = jsonEncode({
-      'id': 'clusters',
-      'type': 'circle',
-      'source': 'stores_source',
-      'filter': ['has', 'point_count'],
-      'paint': {
-        'circle-color': [
-          'step',
-          ['get', 'point_count'],
-          'rgba(81, 187, 214, 1)', // #51bbd6
-          10,
-          'rgba(241, 240, 117, 1)', // #f1f075
-          50,
-          'rgba(242, 140, 177, 1)', // #f28cb1
-        ],
-        'circle-radius': ['step', ['get', 'point_count'], 20, 10, 30, 50, 40],
-      },
-    });
-    await mapboxMap.style.addStyleLayer(clusterLayerJson, null);
-
-    // Add cluster count text layer
-    final clusterCountLayerJson = jsonEncode({
-      'id': 'cluster-count',
-      'type': 'symbol',
-      'source': 'stores_source',
-      'filter': ['has', 'point_count'],
-      'layout': {
-        'text-field': ['get', 'point_count_abbreviated'],
-        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-        'text-size': 12,
-      },
-    });
-    await mapboxMap.style.addStyleLayer(clusterCountLayerJson, null);
-
-    // Add red dot layer (visible for unclustered, non-selected points)
-    final redDotLayerJson = jsonEncode({
-      'id': 'unclustered-point',
-      'type': 'circle',
-      'source': 'stores_source',
-      'filter': [
-        'all',
-        ['!', ['has', 'point_count']],
-      ],
-      'paint': {
-        'circle-color': 'rgba(255, 0, 0, 1)',
-        'circle-radius': 8,
-        'circle-stroke-width': 2,
-        'circle-stroke-color': 'rgba(255, 255, 255, 1)',
-      },
-    });
-    await mapboxMap.style.addStyleLayer(redDotLayerJson, null);
-
-    // Add native ribbon layer (visible only for the selected store)
-    final ribbonLayerJson = jsonEncode({
-      'id': 'unclustered-ribbon',
-      'type': 'symbol',
-      'source': 'stores_source',
-      'filter': [
-        'all',
-        ['!', ['has', 'point_count']],
-        // Hidden by default until a store is selected
-        ['==', ['get', 'storeId'], 'NONE'],
-      ],
-      'layout': {
-        'icon-image': 'store-ribbon',
-        'icon-text-fit': 'both',
-        'icon-text-fit-padding': [8, 12, 8, 12],
-        'text-field': ['get', 'name'],
-        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-        'text-size': 14,
-        'text-anchor': 'bottom',
-        'icon-anchor': 'bottom',
-      },
-      'paint': {
-        'text-color': '#ffffff',
-      },
-    });
-    await mapboxMap.style.addStyleLayer(ribbonLayerJson, null);
-
-    debugPrint('MapboxStyleManager: Clusters initialized.');
+    await _render();
   }
 
-  /// Removes all custom layers and the GeoJSON source, ignoring errors if
-  /// they don't exist (e.g. on first load or after a style wipe).
-  Future<void> _removeLayers() async {
-    for (final layerId in [
-      'unclustered-ribbon',
-      'unclustered-point',
-      'cluster-count',
-      'clusters',
-    ]) {
-      try {
-        if (await mapboxMap.style.styleLayerExists(layerId)) {
-          await mapboxMap.style.removeStyleLayer(layerId);
-        }
-      } on Exception catch (_) {}
-    }
-    try {
-      if (await mapboxMap.style.styleSourceExists('stores_source')) {
-        await mapboxMap.style.removeStyleSource('stores_source');
-      }
-    } on Exception catch (_) {}
+  /// Replaces all markers with one per store.
+  Future<void> updateGeoJsonSource(List<StoreEntity> stores) async {
+    _stores = stores;
+    await _render();
   }
 
-
+  /// Highlights the selected store (and de-highlights the rest).
   Future<void> updateSelectedStore(String? selectedStoreId) async {
+    _selectedStoreId = selectedStoreId;
+    await _render();
+  }
+
+  Future<void> _render() async {
+    final manager = _circleManager;
+    if (manager == null) return;
     try {
-      // Ribbon shows only for the selected store
-      final ribbonFilter = [
-        'all',
-        ['!', ['has', 'point_count']],
-        ['==', ['get', 'storeId'], selectedStoreId ?? 'NONE'],
-      ];
+      await manager.deleteAll();
+      _annotationToStore.clear();
 
-      // Red dot shows for all unclustered, non-selected stores
-      final dotFilter = [
-        'all',
-        ['!', ['has', 'point_count']],
-        ['!=', ['get', 'storeId'], selectedStoreId ?? 'NONE'],
-      ];
+      if (_stores.isEmpty) return;
 
-      await mapboxMap.style.setStyleLayerProperty(
-        'unclustered-ribbon',
-        'filter',
-        jsonEncode(ribbonFilter),
-      );
+      final options = _stores.map((s) {
+        final selected = s.id == _selectedStoreId;
+        return CircleAnnotationOptions(
+          geometry: Point(coordinates: Position(s.lng, s.lat)),
+          circleColor: selected ? _selectedDot : _redDot,
+          circleRadius: selected ? 11 : 8,
+          circleStrokeWidth: 2,
+          circleStrokeColor: _white,
+        );
+      }).toList();
 
-      await mapboxMap.style.setStyleLayerProperty(
-        'unclustered-point',
-        'filter',
-        jsonEncode(dotFilter),
-      );
-    } on Exception catch (e) {
-      debugPrint('Failed to update selected store filter: $e');
+      final created = await manager.createMulti(options);
+      for (var i = 0; i < created.length && i < _stores.length; i++) {
+        final ann = created[i];
+        if (ann != null) _annotationToStore[ann.id] = _stores[i].id;
+      }
+    } on Exception catch (e, stack) {
+      debugPrint('Failed to render store markers: $e\n$stack');
     }
   }
 
@@ -208,45 +103,6 @@ class MapboxStyleManager {
       }
     } on Exception catch (e) {
       debugPrint('Note: Some POI layers could not be hidden: $e');
-    }
-  }
-
-  Future<void> updateGeoJsonSource(List<StoreEntity> stores) async {
-
-    final features = stores.map((s) {
-      return {
-        'type': 'Feature',
-        'properties': {
-          'storeId': s.id,
-          'name': s.name,
-        },
-        'geometry': {
-          'type': 'Point',
-          'coordinates': [s.lng, s.lat],
-        },
-      };
-    }).toList();
-
-    final geoJson = {
-      'type': 'FeatureCollection',
-      'features': features,
-    };
-
-    try {
-      final sourceExists =
-          await mapboxMap.style.styleSourceExists('stores_source');
-      if (sourceExists) {
-        await mapboxMap.style.setStyleSourceProperty(
-          'stores_source',
-          'data',
-          jsonEncode(geoJson),
-        );
-        debugPrint(
-          'Updated Mapbox GeoJSON source with ${stores.length} stores.',
-        );
-      }
-    } on Exception catch (e, stack) {
-      debugPrint('Failed to update geojson source: $e\n$stack');
     }
   }
 }

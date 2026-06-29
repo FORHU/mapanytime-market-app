@@ -71,7 +71,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
   Future<void> _onMapCreated(MapboxMap mapboxMap) async {
     this.mapboxMap = mapboxMap;
-    _styleManager = MapboxStyleManager(mapboxMap);
+    _styleManager = MapboxStyleManager(mapboxMap, onStoreTap: _selectStore);
 
     try {
       if (!mounted) return;
@@ -103,11 +103,9 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
           await mapboxMap!.annotations.createPolylineAnnotationManager();
       
       await _locationManager.initialize(mapboxMap!);
-      await _styleManager!.initializeClusters();
-      debugPrint('_onStyleLoaded: initializeClusters done');
+      await _styleManager!.initializeStoreLayers();
       await _styleManager!.hidePoiLayers();
       await _renderMarkers();
-      debugPrint('_onStyleLoaded: renderMarkers done');
 
       // Trigger an initial store fetch for the current camera position.
       // This ensures stores appear without the user needing to pan.
@@ -123,6 +121,8 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
           south: lat - span,
           east: lng + span,
           west: lng - span,
+          centerLat: lat,
+          centerLng: lng,
         ),
       );
 
@@ -137,7 +137,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
         },
       ));
     } on Exception catch (e) {
-      debugPrint('Error handling style loaded: $e\n$e');
+      debugPrint('Error handling style loaded: $e');
     }
   }
 
@@ -162,129 +162,6 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     }
   }
 
-  void _onMapTap(MapContentGestureContext tapContext) {
-    unawaited(_handleMapTap(tapContext));
-  }
-
-  Future<void> _handleMapTap(MapContentGestureContext tapContext) async {
-    if (mapboxMap == null) return;
-
-    final point = tapContext.point;
-    final screenPoint = tapContext.touchPosition;
-
-    final screenBox = ScreenBox(
-      min: ScreenCoordinate(x: screenPoint.x - 20, y: screenPoint.y - 20),
-      max: ScreenCoordinate(x: screenPoint.x + 20, y: screenPoint.y + 20),
-    );
-
-    final features = await mapboxMap!.queryRenderedFeatures(
-      RenderedQueryGeometry.fromScreenBox(screenBox),
-      RenderedQueryOptions(
-        layerIds: ['clusters', 'unclustered-point', 'cluster-count'],
-      ),
-    );
-
-    if (features.isNotEmpty) {
-      final firstFeature = features.first;
-      if (firstFeature == null) return;
-
-      final geoJsonFeature = firstFeature.queriedFeature.feature;
-      final properties = geoJsonFeature['properties'] as Map?;
-
-      if (properties != null) {
-        final isCluster = properties['cluster'] == true ||
-            properties.containsKey('cluster_id') ||
-            properties.containsKey('point_count');
-        if (isCluster) {
-          await _expandCluster(geoJsonFeature, fallbackCenter: point);
-        } else {
-          final storeId = properties['storeId'] as String?;
-          if (storeId != null) {
-            _selectStore(storeId);
-          }
-        }
-      }
-    }
-  }
-
-  /// Tapped a cluster (the circle with a number). Pull the cluster's actual
-  /// member stores out of Mapbox and frame the camera so every one of them is
-  /// on screen — then the user can tap an individual pin. A fixed "+2" zoom
-  /// often left dense clusters unbroken (you'd tap forever and never reach a
-  /// store), and zooming on the centroid could land on an empty gap between
-  /// spread-out members. Framing the leaves avoids both. Falls back to a
-  /// simple zoom-in if the cluster APIs are unavailable.
-  Future<void> _expandCluster(
-    Map<String?, Object?> clusterFeature, {
-    required Point fallbackCenter,
-  }) async {
-    if (mapboxMap == null) return;
-
-    final pointCount = (clusterFeature['properties'] as Map?)?['point_count'];
-    final limit = pointCount is num ? pointCount.toInt() : 100;
-
-    try {
-      final leaves = await mapboxMap!.getGeoJsonClusterLeaves(
-        'stores_source',
-        clusterFeature,
-        limit,
-        0,
-      );
-
-      final coords = <Point>[];
-      final leafFeatures =
-          leaves.featureCollection ?? <Map<String?, Object?>?>[];
-      for (final leaf in leafFeatures) {
-        final geometry = leaf?['geometry'];
-        if (geometry is Map) {
-          final c = geometry['coordinates'];
-          if (c is List && c.length >= 2) {
-            coords.add(
-              Point(
-                coordinates: Position(
-                  (c[0] as num).toDouble(),
-                  (c[1] as num).toDouble(),
-                ),
-              ),
-            );
-          }
-        }
-      }
-
-      debugPrint(
-        'Cluster tapped: point_count=$limit, resolved ${coords.length} '
-        'member coordinates',
-      );
-
-      if (coords.length >= 2) {
-        // Frame all member stores. Extra bottom padding keeps pins clear of
-        // the floating controls / bottom sheet area.
-        final camera = await mapboxMap!.cameraForCoordinates(
-          coords,
-          MbxEdgeInsets(top: 120, left: 60, bottom: 220, right: 60),
-          null,
-          null,
-        );
-        await mapboxMap!.flyTo(camera, MapAnimationOptions(duration: 600));
-        return;
-      }
-      if (coords.length == 1) {
-        await mapboxMap!.flyTo(
-          CameraOptions(center: coords.first, zoom: 16),
-          MapAnimationOptions(duration: 600),
-        );
-        return;
-      }
-    } on Exception catch (e) {
-      debugPrint('Cluster leaves failed, falling back to zoom-in: $e');
-    }
-
-    // Fallback: zoom in on the cluster.
-    final currentCamera = await mapboxMap!.getCameraState();
-    await mapboxMap!.setCamera(
-      CameraOptions(center: fallbackCenter, zoom: currentCamera.zoom + 2),
-    );
-  }
 
   void _selectStore(String storeId) {
     if (mounted) {
@@ -350,6 +227,8 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
               south: lat - span,
               east: lng + span,
               west: lng - span,
+              centerLat: lat,
+              centerLng: lng,
             ),
       );
     });
@@ -436,17 +315,15 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                   key: const ValueKey('mapWidget'),
                   styleUri: _mapStyle,
                   onMapCreated: _onMapCreated,
-                  onTapListener: _onMapTap,
                   onStyleLoadedListener: _onStyleLoaded,
                   onCameraChangeListener: (_) {
                     unawaited(_onCameraIdle());
                   },
                 ),
 
-                const Positioned(
-                  top: 16,
-                  left: 0,
-                  right: 0,
+                // Fills the map so the overlay's internal Stack has bounded
+                // constraints (centered spinner, bottom-anchored error card).
+                const Positioned.fill(
                   child: WorldMapStatusOverlay(),
                 ),
 
@@ -458,7 +335,6 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                   child: GestureDetector(
                     onTap: () {
                       // TODO(Phase2): Open full search screen
-                      debugPrint('Search tapped');
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(

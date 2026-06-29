@@ -58,6 +58,8 @@ class WorldMapController extends AsyncNotifier<List<StoreEntity>> {
         south: lat - 0.05,
         east: lng + 0.05,
         west: lng - 0.05,
+        centerLat: lat,
+        centerLng: lng,
       );
       return result.fold(
         (failure) => <StoreEntity>[],
@@ -77,12 +79,16 @@ class WorldMapController extends AsyncNotifier<List<StoreEntity>> {
     required double south,
     required double east,
     required double west,
+    double? centerLat,
+    double? centerLng,
   }) async {
     final result = await ref.read(getNearbyStoresUseCaseProvider)(
       north: north,
       south: south,
       east: east,
       west: west,
+      centerLat: centerLat,
+      centerLng: centerLng,
     );
 
     state = result.fold(
