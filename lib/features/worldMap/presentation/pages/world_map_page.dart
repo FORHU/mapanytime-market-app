@@ -71,7 +71,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
   Future<void> _onMapCreated(MapboxMap mapboxMap) async {
     this.mapboxMap = mapboxMap;
-    _styleManager = MapboxStyleManager(mapboxMap);
+    _styleManager = MapboxStyleManager(mapboxMap, onStoreTap: _selectStore);
 
     try {
       if (!mounted) return;
@@ -164,40 +164,6 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     }
   }
 
-  void _onMapTap(MapContentGestureContext tapContext) {
-    unawaited(_handleMapTap(tapContext));
-  }
-
-  Future<void> _handleMapTap(MapContentGestureContext tapContext) async {
-    if (mapboxMap == null) return;
-
-    final screenPoint = tapContext.touchPosition;
-
-    final screenBox = ScreenBox(
-      min: ScreenCoordinate(x: screenPoint.x - 20, y: screenPoint.y - 20),
-      max: ScreenCoordinate(x: screenPoint.x + 20, y: screenPoint.y + 20),
-    );
-
-    final features = await mapboxMap!.queryRenderedFeatures(
-      RenderedQueryGeometry.fromScreenBox(screenBox),
-      RenderedQueryOptions(
-        layerIds: ['store-point'],
-      ),
-    );
-
-    if (features.isNotEmpty) {
-      final firstFeature = features.first;
-      if (firstFeature == null) return;
-
-      final geoJsonFeature = firstFeature.queriedFeature.feature;
-      final properties = geoJsonFeature['properties'] as Map?;
-
-      final storeId = properties?['storeId'] as String?;
-      if (storeId != null) {
-        _selectStore(storeId);
-      }
-    }
-  }
 
   void _selectStore(String storeId) {
     if (mounted) {
@@ -351,7 +317,6 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                   key: const ValueKey('mapWidget'),
                   styleUri: _mapStyle,
                   onMapCreated: _onMapCreated,
-                  onTapListener: _onMapTap,
                   onStyleLoadedListener: _onStyleLoaded,
                   onCameraChangeListener: (_) {
                     unawaited(_onCameraIdle());
