@@ -5,8 +5,9 @@ import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/core/utils/validators.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
-import 'package:mapanytime_market_app/shared/widgets/app_button.dart';
-import 'package:mapanytime_market_app/shared/widgets/app_input.dart';
+import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
+import 'package:mapanytime_market_app/shared/widgets/modern_text_field.dart';
+import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 class RegisterForm extends ConsumerStatefulWidget {
@@ -59,7 +60,7 @@ class _RegisterFormState extends ConsumerState<RegisterForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AppInput(
+          ModernTextField(
             label: context.l10n.email,
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
@@ -67,13 +68,13 @@ class _RegisterFormState extends ConsumerState<RegisterForm> {
             validator: Validators.email,
           ),
           AppSpacing.md.v,
-          AppInput(
+          ModernTextField(
             label: 'Full name (optional)',
             controller: _nameController,
             prefixIcon: Icons.person_outline,
           ),
           AppSpacing.md.v,
-          AppInput(
+          ModernTextField(
             label: context.l10n.password,
             controller: _passwordController,
             obscureText: true,
@@ -84,11 +85,11 @@ class _RegisterFormState extends ConsumerState<RegisterForm> {
             AppSpacing.sm.v,
             Text(
               state.error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+              style: TextStyle(color: AppColors.status.error),
             ),
           ],
           AppSpacing.lg.v,
-          AppButton(
+          GradientButton(
             label: 'Create account',
             isLoading: state.isLoading,
             onPressed: _submit,

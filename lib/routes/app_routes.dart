@@ -14,6 +14,7 @@ import 'package:mapanytime_market_app/features/orders/presentation/pages/order_h
 import 'package:mapanytime_market_app/features/orders/presentation/pages/order_tracking_page.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/pages/pickup_pass_page.dart';
 import 'package:mapanytime_market_app/features/profile/presentation/pages/profile_page.dart';
+import 'package:mapanytime_market_app/features/recommendations/presentation/pages/recommendations_page.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
 import 'package:mapanytime_market_app/features/store/presentation/pages/product_detail_page.dart';
 import 'package:mapanytime_market_app/features/store/presentation/pages/storefront_page.dart';
@@ -68,22 +69,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: RouteNames.home,
             builder: (context, state) => const LandingPage(),
           ),
-          // Example of a route with children
           GoRoute(
             path: RouteNames.recommendations,
-            // Assuming you'd have a RecommendationsPage here
-            builder: (context, state) =>
-                const Scaffold(body: Center(child: Text('Recommendations'))),
-            routes: [
-              // Child route: /recommendations/details
-              // Note: Do not start child paths with a slash '/'
-              GoRoute(
-                path: 'details',
-                // Assuming you'd have a DetailsPage here
-                builder: (context, state) =>
-                    const Scaffold(body: Center(child: Text('Details'))),
-              ),
-            ],
+            builder: (context, state) => const RecommendationsPage(),
           ),
           GoRoute(
             path: RouteNames.worldMap,

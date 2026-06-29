@@ -16,6 +16,7 @@ import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widge
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/world_map_status_overlay.dart';
 import 'package:mapanytime_market_app/shared/widgets/category_chip.dart';
 import 'package:mapanytime_market_app/shared/widgets/floating_search_bar.dart';
+import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
@@ -282,7 +283,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     _currentRoute = await polylineAnnotationManager!.create(
       PolylineAnnotationOptions(
         geometry: LineString(coordinates: routeCoords),
-        lineColor: Colors.blue.toARGB32(),
+        lineColor: AppColors.brand.primary.toARGB32(),
         lineWidth: 5,
       ),
     );

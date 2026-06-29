@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
+import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
+import 'package:mapanytime_market_app/theme/tokens/radius.dart';
+import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 class WorldMapFloatingControls extends StatelessWidget {
   const WorldMapFloatingControls({
@@ -10,46 +15,71 @@ class WorldMapFloatingControls extends StatelessWidget {
   final ValueChanged<String> onStyleSelected;
   final VoidCallback onLocateMe;
 
+  static const _styles = <(String, String)>[
+    ('Streets', 'mapbox://styles/mapbox/streets-v12'),
+    ('Satellite', 'mapbox://styles/mapbox/satellite-streets-v12'),
+    ('Dark', 'mapbox://styles/mapbox/dark-v11'),
+    ('Light', 'mapbox://styles/mapbox/light-v11'),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-          CircleAvatar(
-            backgroundColor: Colors.white,
-            child: IconButton(
-              icon: const Icon(Icons.my_location, color: Colors.black87),
-              onPressed: onLocateMe,
-              tooltip: 'Locate Me',
-            ),
-          ),
-          const SizedBox(height: 8),
-          PopupMenuButton<String>(
-            icon: const CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Icon(Icons.layers, color: Colors.black87),
-            ),
-            onSelected: onStyleSelected,
-            itemBuilder: (context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'mapbox://styles/mapbox/streets-v12',
-                child: Text('Streets'),
+        _CircleControl(
+          icon: Icons.my_location_rounded,
+          tooltip: 'Locate me',
+          onTap: onLocateMe,
+        ),
+        const Gap(AppSpacing.sm),
+        PopupMenuButton<String>(
+          tooltip: 'Map style',
+          color: AppColors.ui.surfaceElevatedDark,
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.brMd),
+          onSelected: onStyleSelected,
+          itemBuilder: (context) => [
+            for (final style in _styles)
+              PopupMenuItem<String>(
+                value: style.$2,
+                child: Text(
+                  style.$1,
+                  style: TextStyle(color: AppColors.text.primaryDark),
+                ),
               ),
-              const PopupMenuItem<String>(
-                value: 'mapbox://styles/mapbox/satellite-streets-v12',
-                child: Text('Satellite Streets'),
-              ),
-              const PopupMenuItem<String>(
-                value: 'mapbox://styles/mapbox/dark-v11',
-                child: Text('Dark Mode'),
-              ),
-              const PopupMenuItem<String>(
-                value: 'mapbox://styles/mapbox/light-v11',
-                child: Text('Light Mode'),
-              ),
-            ],
-          ),
+          ],
+          child: const _CircleControl(icon: Icons.layers_rounded),
+        ),
       ],
     );
+  }
+}
+
+class _CircleControl extends StatelessWidget {
+  const _CircleControl({required this.icon, this.tooltip, this.onTap});
+
+  final IconData icon;
+  final String? tooltip;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final button = GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: AppColors.ui.surfaceDark.withValues(alpha: 0.92),
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.ui.borderDark),
+          boxShadow: AppEffects.cardShadow,
+        ),
+        child: Icon(icon, color: AppColors.text.primaryDark, size: 22),
+      ),
+    );
+
+    if (tooltip == null) return button;
+    return Tooltip(message: tooltip, child: button);
   }
 }
