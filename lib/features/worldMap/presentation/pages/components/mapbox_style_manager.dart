@@ -42,7 +42,6 @@ class MapboxStyleManager {
       );
     }
     await _render();
-    debugPrint('MapboxStyleManager: store annotation manager ready.');
   }
 
   /// Replaces all markers with one per store.
@@ -59,18 +58,12 @@ class MapboxStyleManager {
 
   Future<void> _render() async {
     final manager = _circleManager;
-    if (manager == null) {
-      debugPrint('updateGeoJsonSource: annotation manager not ready yet.');
-      return;
-    }
+    if (manager == null) return;
     try {
       await manager.deleteAll();
       _annotationToStore.clear();
 
-      if (_stores.isEmpty) {
-        debugPrint('Rendered 0 store markers.');
-        return;
-      }
+      if (_stores.isEmpty) return;
 
       final options = _stores.map((s) {
         final selected = s.id == _selectedStoreId;
@@ -88,7 +81,6 @@ class MapboxStyleManager {
         final ann = created[i];
         if (ann != null) _annotationToStore[ann.id] = _stores[i].id;
       }
-      debugPrint('Rendered ${created.length} store markers.');
     } on Exception catch (e, stack) {
       debugPrint('Failed to render store markers: $e\n$stack');
     }
