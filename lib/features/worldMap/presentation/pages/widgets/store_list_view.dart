@@ -2,9 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gap/gap.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/controllers/world_map_controller.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_bottom_sheet.dart';
+import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
+import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/radius.dart';
+import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 class StoreListView extends ConsumerWidget {
   const StoreListView({
@@ -19,68 +24,92 @@ class StoreListView extends ConsumerWidget {
     final storesState = ref.watch(worldMapControllerProvider);
 
     return ColoredBox(
-      color: Theme.of(context).scaffoldBackgroundColor,
+      color: AppColors.ui.backgroundDark,
       child: storesState.maybeWhen(
         data: (stores) {
           if (stores.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
                 'No stores found near you.',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: AppColors.text.tertiaryDark,
+                ),
               ),
             );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.only(
-              top: 16,
-              bottom: 100,
-            ), // Padding for fab
+          return ListView.separated(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+              100, // room for the FAB
+            ),
             itemCount: stores.length,
+            separatorBuilder: (_, _) => const Gap(AppSpacing.sm),
             itemBuilder: (context, index) {
               final store = stores[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+              return GlassCard(
+                onTap: () => unawaited(
+                  StoreBottomSheet.show(
+                    context,
+                    store,
+                    onNavigate: () => onNavigate(store),
+                  ),
                 ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(16),
-                  leading: CircleAvatar(
-                    radius: 24,
-                    backgroundColor: Colors.red.shade100,
-                    child: const Icon(Icons.storefront, color: Colors.red),
-                  ),
-                  title: Text(
-                    store.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  subtitle: Text(
-                    '${store.distance.toStringAsFixed(2)} km away',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    unawaited(
-                      StoreBottomSheet.show(
-                        context,
-                        store,
-                        onNavigate: () => onNavigate(store),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: AppColors.brand.primary.withValues(alpha: 0.15),
+                        borderRadius: AppRadius.brMd,
                       ),
-                    );
-                  },
+                      child: Icon(
+                        Icons.storefront_rounded,
+                        color: AppColors.brand.primary,
+                      ),
+                    ),
+                    const Gap(AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            store.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const Gap(2),
+                          Text(
+                            '${store.distance.toStringAsFixed(1)} km away',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.brand.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.text.tertiaryDark,
+                    ),
+                  ],
                 ),
               );
             },
           );
         },
-        orElse: () =>
-            const SizedBox.shrink(), // Status overlay handles loading/error
+        orElse: SizedBox.shrink,
       ),
     );
   }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
+import 'package:mapanytime_market_app/features/auth/presentation/widgets/auth_logo.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/widgets/register_form.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
+import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
+import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
+import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 class RegisterPage extends StatelessWidget {
@@ -11,10 +14,9 @@ class RegisterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: BackButton(onPressed: () => context.go(RouteNames.login)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+      extendBodyBehindAppBar: true,
+      appBar: ModernAppBar(
+        onBack: () => context.go(RouteNames.login),
       ),
       body: SafeArea(
         child: Center(
@@ -24,34 +26,57 @@ class RegisterPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.storefront_outlined, size: AppSpacing.xxxl),
+                const Center(child: AuthLogo()),
                 AppSpacing.lg.v,
                 Text(
                   'Create your account',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineMedium,
+                  style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 AppSpacing.sm.v,
                 Text(
                   'Join MapAnytime Market as a buyer',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: TextStyle(color: AppColors.text.secondaryDark),
                 ),
                 AppSpacing.xl.v,
-                const RegisterForm(),
+                const GlassCard(child: RegisterForm()),
                 AppSpacing.md.v,
-                TextButton(
-                  onPressed: () => context.go(RouteNames.login),
-                  child: Text(
-                    context.l10n.loginHint,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ),
+                _LoginLink(onTap: () => context.go(RouteNames.login)),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _LoginLink extends StatelessWidget {
+  const _LoginLink({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Text.rich(
+        TextSpan(
+          text: 'Already have an account? ',
+          style: TextStyle(color: AppColors.text.secondaryDark),
+          children: [
+            TextSpan(
+              text: 'Log in',
+              style: TextStyle(
+                color: AppColors.brand.primary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+        textAlign: TextAlign.center,
       ),
     );
   }

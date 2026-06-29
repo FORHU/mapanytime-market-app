@@ -14,6 +14,7 @@ class ModernTextField extends StatelessWidget {
     this.obscureText = false,
     this.keyboardType,
     this.onChanged,
+    this.validator,
     super.key,
   });
 
@@ -25,6 +26,7 @@ class ModernTextField extends StatelessWidget {
   final bool obscureText;
   final TextInputType? keyboardType;
   final ValueChanged<String>? onChanged;
+  final String? Function(String?)? validator;
 
   @override
   Widget build(BuildContext context) {
@@ -42,11 +44,12 @@ class ModernTextField extends StatelessWidget {
           ),
           const Gap(8),
         ],
-        TextField(
+        TextFormField(
           controller: controller,
           obscureText: obscureText,
           keyboardType: keyboardType,
           onChanged: onChanged,
+          validator: validator,
           style: TextStyle(color: AppColors.text.primaryDark, fontSize: 15),
           cursorColor: AppColors.brand.primary,
           decoration: InputDecoration(

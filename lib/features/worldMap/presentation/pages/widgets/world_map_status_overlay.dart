@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gap/gap.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/controllers/world_map_controller.dart';
+import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
+import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 class WorldMapStatusOverlay extends ConsumerWidget {
   const WorldMapStatusOverlay({super.key});
@@ -16,33 +20,40 @@ class WorldMapStatusOverlay extends ConsumerWidget {
         if (storesState.hasError && !storesState.isLoading)
           Positioned(
             bottom: 24,
-            left: 24,
-            right: 24,
-            child: Card(
-              color: Colors.white.withValues(alpha: 0.9),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    const Icon(Icons.error_outline, color: Colors.red),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        storesState.error is StoreLoadException
-                            ? (storesState.error! as StoreLoadException)
-                                  .failure
-                                  .message
-                            : storesState.error.toString(),
+            left: AppSpacing.md,
+            right: AppSpacing.md,
+            child: GlassCard(
+              blur: true,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.error_outline_rounded,
+                    color: AppColors.status.error,
+                  ),
+                  const Gap(AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      storesState.error is StoreLoadException
+                          ? (storesState.error! as StoreLoadException)
+                                .failure
+                                .message
+                          : storesState.error.toString(),
+                      style: TextStyle(color: AppColors.text.secondaryDark),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => ref
+                        .read(worldMapControllerProvider.notifier)
+                        .refresh(),
+                    child: Text(
+                      'Retry',
+                      style: TextStyle(
+                        color: AppColors.brand.primary,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    TextButton(
-                      onPressed: () => ref
-                          .read(worldMapControllerProvider.notifier)
-                          .refresh(),
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),

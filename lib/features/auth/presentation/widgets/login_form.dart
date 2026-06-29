@@ -5,8 +5,9 @@ import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/core/utils/validators.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
-import 'package:mapanytime_market_app/shared/widgets/app_button.dart';
-import 'package:mapanytime_market_app/shared/widgets/app_input.dart';
+import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
+import 'package:mapanytime_market_app/shared/widgets/modern_text_field.dart';
+import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 class LoginForm extends ConsumerStatefulWidget {
@@ -48,7 +49,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AppInput(
+          ModernTextField(
             label: context.l10n.email,
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
@@ -56,7 +57,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             validator: Validators.email,
           ),
           AppSpacing.md.v,
-          AppInput(
+          ModernTextField(
             label: context.l10n.password,
             controller: _passwordController,
             obscureText: true,
@@ -67,11 +68,11 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             AppSpacing.sm.v,
             Text(
               state.error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+              style: TextStyle(color: AppColors.status.error),
             ),
           ],
           AppSpacing.lg.v,
-          AppButton(
+          GradientButton(
             label: context.l10n.login,
             isLoading: state.isLoading,
             onPressed: _submit,
