@@ -6,6 +6,8 @@ import 'package:mapanytime_market_app/features/auth/presentation/pages/login_pag
 import 'package:mapanytime_market_app/features/auth/presentation/pages/register_page.dart';
 import 'package:mapanytime_market_app/features/landing/presentation/pages/landing_page.dart';
 import 'package:mapanytime_market_app/features/profile/presentation/pages/profile_page.dart';
+import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
+import 'package:mapanytime_market_app/features/store/presentation/pages/product_detail_page.dart';
 import 'package:mapanytime_market_app/features/store/presentation/pages/storefront_page.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/world_map_page.dart';
@@ -93,6 +95,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 );
               }
               return StorefrontPage(store: store);
+            },
+          ),
+          GoRoute(
+            path: RouteNames.productDetail,
+            builder: (context, state) {
+              final product = state.extra as StoreProduct?;
+              if (product == null) {
+                return const Scaffold(
+                  body: Center(child: Text('Error: No product provided')),
+                );
+              }
+              return ProductDetailPage(product: product);
             },
           ),
         ],

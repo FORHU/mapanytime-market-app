@@ -1,152 +1,333 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mapanytime_market_app/features/store/domain/entities/store_details.dart';
+import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
+import 'package:mapanytime_market_app/features/store/presentation/controllers/store_controller.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
+import 'package:mapanytime_market_app/routes/route_names.dart';
+import 'package:mapanytime_market_app/shared/widgets/category_chip.dart';
+import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
+import 'package:mapanytime_market_app/shared/widgets/product_card.dart';
+import 'package:mapanytime_market_app/shared/widgets/section_title.dart';
+import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/radius.dart';
+import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
-class StorefrontPage extends StatelessWidget {
+/// Store Details: hero image, store info, category filters and a product grid.
+/// Display data is mock-backed via [storeDetailsProvider]; the lean
+/// [StoreEntity] (name/distance) comes from the real map API.
+class StorefrontPage extends ConsumerStatefulWidget {
   const StorefrontPage({required this.store, super.key});
 
   final StoreEntity store;
 
   @override
+  ConsumerState<StorefrontPage> createState() => _StorefrontPageState();
+}
+
+class _StorefrontPageState extends ConsumerState<StorefrontPage> {
+  int _category = 0;
+
+  @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final detailsAsync = ref.watch(storeDetailsProvider(widget.store.id));
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        leading: BackButton(
-          onPressed: () => context.pop(),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leading: const _CircleButton(
+          icon: Icons.arrow_back_ios_new_rounded,
+          isBack: true,
         ),
-        title: Text(store.name),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Share functionality coming soon!'),
+        actions: const [
+          _CircleButton(icon: Icons.share_outlined),
+          Gap(AppSpacing.md),
+        ],
+      ),
+      body: detailsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, _) => Center(
+          child: Text(
+            'Could not load store',
+            style: TextStyle(color: AppColors.text.secondaryDark),
+          ),
+        ),
+        data: (details) => _StoreBody(
+          store: widget.store,
+          details: details,
+          selectedCategory: _category,
+          onCategory: (i) => setState(() => _category = i),
+        ),
+      ),
+    );
+  }
+}
+
+class _StoreBody extends StatelessWidget {
+  const _StoreBody({
+    required this.store,
+    required this.details,
+    required this.selectedCategory,
+    required this.onCategory,
+  });
+
+  final StoreEntity store;
+  final StoreDetails details;
+  final int selectedCategory;
+  final ValueChanged<int> onCategory;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final selectedLabel = details.productCategories[selectedCategory];
+    final products = selectedLabel == 'All'
+        ? details.products
+        : details.products
+            .where((p) => p.category == selectedLabel)
+            .toList();
+
+    return ListView(
+      padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
+      children: [
+        NetworkImageBox(url: details.heroImageUrl, height: 260),
+        Transform.translate(
+          offset: const Offset(0, -AppSpacing.lg),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.ui.backgroundDark,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppRadius.xl),
+              ),
+            ),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.lg,
+              AppSpacing.md,
+              0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        store.name,
+                        style: theme.textTheme.headlineSmall,
+                      ),
+                    ),
+                    _OpenBadge(isOpen: details.isOpen),
+                  ],
                 ),
-              );
-            },
+                const Gap(AppSpacing.sm),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.star_rounded,
+                      size: 18,
+                      color: Color(0xFFFBBF24),
+                    ),
+                    const Gap(4),
+                    Text(
+                      '${details.rating}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.text.primaryDark,
+                      ),
+                    ),
+                    Text(
+                      ' (${details.ratingCount})',
+                      style: TextStyle(color: AppColors.text.tertiaryDark),
+                    ),
+                    const Gap(AppSpacing.md),
+                    Icon(
+                      Icons.place_outlined,
+                      size: 16,
+                      color: AppColors.text.secondaryDark,
+                    ),
+                    const Gap(4),
+                    Text(
+                      '${store.distance.toStringAsFixed(1)} km',
+                      style: TextStyle(color: AppColors.text.secondaryDark),
+                    ),
+                  ],
+                ),
+                const Gap(AppSpacing.sm),
+                Text(
+                  details.category,
+                  style: TextStyle(color: AppColors.text.tertiaryDark),
+                ),
+                const Gap(AppSpacing.md),
+                _EtaPill(label: details.etaLabel),
+                const Gap(AppSpacing.lg),
+                SizedBox(
+                  height: 40,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: details.productCategories.length,
+                    separatorBuilder: (_, _) => const Gap(AppSpacing.sm),
+                    itemBuilder: (context, i) => CategoryChip(
+                      label: details.productCategories[i],
+                      selected: selectedCategory == i,
+                      onTap: () => onCategory(i),
+                    ),
+                  ),
+                ),
+                const Gap(AppSpacing.lg),
+                const SectionTitle(title: 'Products'),
+                const Gap(AppSpacing.md),
+                _ProductGrid(products: products),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ProductGrid extends StatelessWidget {
+  const _ProductGrid({required this.products});
+
+  final List<StoreProduct> products;
+
+  @override
+  Widget build(BuildContext context) {
+    if (products.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+        child: Center(
+          child: Text(
+            'No products in this category',
+            style: TextStyle(color: AppColors.text.tertiaryDark),
+          ),
+        ),
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final itemWidth = (constraints.maxWidth - AppSpacing.md) / 2;
+        return Wrap(
+          spacing: AppSpacing.md,
+          runSpacing: AppSpacing.md,
+          children: [
+            for (final p in products)
+              ProductCard(
+                name: p.name,
+                imageUrl: p.imageUrl,
+                price: p.price,
+                storeName: p.category,
+                width: itemWidth,
+                onTap: () => context.push(
+                  RouteNames.productDetail,
+                  extra: p,
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _EtaPill extends StatelessWidget {
+  const _EtaPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.status.success.withValues(alpha: 0.12),
+        borderRadius: AppRadius.brPill,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.access_time_rounded,
+            size: 15,
+            color: AppColors.status.success,
+          ),
+          const Gap(6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.status.success,
+            ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Placeholder Hero Image
-            Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: theme.primaryColor.withValues(alpha: 0.1),
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.storefront,
-                  size: 80,
-                  color: theme.primaryColor.withValues(alpha: 0.5),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    store.name,
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${store.distance.toStringAsFixed(1)} km away • '
-                    'Groceries & Essentials',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  
-                  // Placeholder Content
-                  Text(
-                    'Categories',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 100,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: 4,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(width: 16),
-                      itemBuilder: (context, index) {
-                        final categories = [
-                          'Produce', 'Bakery', 'Dairy', 'Snacks'
-                        ];
-                        final icons = [
-                          Icons.apple, Icons.bakery_dining, 
-                          Icons.egg, Icons.fastfood
-                        ];
-                        return Container(
-                          width: 100,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(icons[index], color: theme.primaryColor),
-                              const SizedBox(height: 8),
-                              Text(
-                                categories[index], 
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 32),
-                  Text(
-                    'Featured Items',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.inventory_2_outlined, 
-                            size: 48, 
-                            color: Colors.grey[400],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Products loading...',
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+    );
+  }
+}
+
+class _OpenBadge extends StatelessWidget {
+  const _OpenBadge({required this.isOpen});
+
+  final bool isOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final color =
+        isOpen ? AppColors.status.success : AppColors.text.tertiaryDark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: AppRadius.brPill,
+      ),
+      child: Text(
+        isOpen ? 'Open' : 'Closed',
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
+      ),
+    );
+  }
+}
+
+class _CircleButton extends StatelessWidget {
+  const _CircleButton({required this.icon, this.isBack = false});
+
+  final IconData icon;
+  final bool isBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: GestureDetector(
+        onTap: () {
+          if (isBack) {
+            context.pop();
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Share coming soon')),
+            );
+          }
+        },
+        child: Container(
+          width: 40,
+          height: 40,
+          margin: isBack ? const EdgeInsets.only(left: 12) : null,
+          decoration: BoxDecoration(
+            color: AppColors.ui.surfaceDark.withValues(alpha: 0.85),
+            borderRadius: AppRadius.brPill,
+            border: Border.all(color: AppColors.ui.borderDark),
+          ),
+          child: Icon(icon, size: 18, color: AppColors.text.primaryDark),
         ),
       ),
     );
