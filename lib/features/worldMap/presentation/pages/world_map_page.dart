@@ -1,10 +1,9 @@
-// The Mapbox plugin uses some deprecated interfaces.
-// ignore_for_file: deprecated_member_use
 import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gap/gap.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/worldMap/data/datasources/directions_datasource.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
@@ -15,7 +14,20 @@ import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widge
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_list_view.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/world_map_floating_controls.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/world_map_status_overlay.dart';
+import 'package:mapanytime_market_app/shared/widgets/category_chip.dart';
+import 'package:mapanytime_market_app/shared/widgets/floating_search_bar.dart';
+import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+
+/// Category filters shown over the map (visual overlay for now).
+const _mapCategories = <(String, IconData)>[
+  ('All', Icons.grid_view_rounded),
+  ('Food', Icons.restaurant_rounded),
+  ('Fashion', Icons.checkroom_rounded),
+  ('Tech', Icons.devices_rounded),
+  ('Home', Icons.chair_rounded),
+  ('Beauty', Icons.spa_rounded),
+];
 
 class WorldMapPage extends ConsumerStatefulWidget {
   const WorldMapPage({super.key});
@@ -34,6 +46,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   // Custom UI State
   String? _selectedStoreId;
   final bool _showListView = false;
+  int _selectedCategory = 0;
 
   // Route State
   PolylineAnnotationManager? polylineAnnotationManager;
@@ -327,45 +340,41 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                   child: WorldMapStatusOverlay(),
                 ),
 
-                // SEARCH BAR
+                // SEARCH BAR + CATEGORY FILTERS (glass overlay)
                 Positioned(
                   top: MediaQuery.of(context).padding.top + 16,
                   left: 16,
                   right: 16,
-                  child: GestureDetector(
-                    onTap: () {
-                      // TODO(Phase2): Open full search screen
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16, 
-                        vertical: 12,
+                  child: Column(
+                    children: [
+                      FloatingSearchBar(
+                        onTap: () {
+                          // TODO(Phase2): Open full search screen
+                        },
+                        onFilterTap: () {
+                          // TODO(Phase2): Open filter sheet
+                        },
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                      const Gap(AppSpacing.sm),
+                      SizedBox(
+                        height: 40,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: _mapCategories.length,
+                          separatorBuilder: (_, _) => const Gap(AppSpacing.sm),
+                          itemBuilder: (context, i) {
+                            final c = _mapCategories[i];
+                            return CategoryChip(
+                              label: c.$1,
+                              icon: c.$2,
+                              selected: _selectedCategory == i,
+                              onTap: () =>
+                                  setState(() => _selectedCategory = i),
+                            );
+                          },
+                        ),
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.search, color: Colors.black54),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Search stores or products...',
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    ],
                   ),
                 ),
 
