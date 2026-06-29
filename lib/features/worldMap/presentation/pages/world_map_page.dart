@@ -104,10 +104,8 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       
       await _locationManager.initialize(mapboxMap!);
       await _styleManager!.initializeStoreLayers();
-      debugPrint('_onStyleLoaded: initializeStoreLayers done');
       await _styleManager!.hidePoiLayers();
       await _renderMarkers();
-      debugPrint('_onStyleLoaded: renderMarkers done');
 
       // Trigger an initial store fetch for the current camera position.
       // This ensures stores appear without the user needing to pan.
@@ -139,7 +137,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
         },
       ));
     } on Exception catch (e) {
-      debugPrint('Error handling style loaded: $e\n$e');
+      debugPrint('Error handling style loaded: $e');
     }
   }
 
@@ -337,7 +335,6 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                   child: GestureDetector(
                     onTap: () {
                       // TODO(Phase2): Open full search screen
-                      debugPrint('Search tapped');
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
