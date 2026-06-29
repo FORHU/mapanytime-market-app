@@ -73,12 +73,6 @@ class MainLayout extends StatelessWidget {
 
     return Scaffold(
       body: child,
-      // TODO(revert): temporary dev button to open the component gallery.
-      floatingActionButton: FloatingActionButton.small(
-        heroTag: 'devGalleryButton',
-        onPressed: () => context.go(RouteNames.gallery),
-        child: const Icon(Icons.palette_outlined),
-      ),
       bottomNavigationBar: AnimatedBottomNavigation(
         items: [for (final d in destinations) d.item],
         currentIndex: currentIndex,

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/profile/presentation/controllers/profile_controller.dart';
+import 'package:mapanytime_market_app/routes/route_names.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -32,6 +34,15 @@ class ProfilePage extends ConsumerWidget {
               ),
               const SizedBox(height: 4),
               Text(user?.email ?? '-'),
+              const SizedBox(height: 32),
+              // TODO(revert): temporary dev entry to the component gallery.
+              ListTile(
+                leading: const Icon(Icons.palette_outlined),
+                title: const Text('Component Gallery'),
+                subtitle: const Text('Preview the design system'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => context.go(RouteNames.gallery),
+              ),
             ],
           ),
         ),
