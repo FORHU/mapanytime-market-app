@@ -9,37 +9,55 @@ class MapboxStyleManager {
   MapboxStyleManager(this.mapboxMap);
   final MapboxMap mapboxMap;
 
-  Future<void> initializeClusters() async {
+  // Kept so we can update its data later. addSource() binds the source to the
+  // style; the instance returned by getSource() is NOT bound, so its
+  // updateGeoJSON() silently no-ops — we must reuse this bound reference.
+  GeoJsonSource? _storesSource;
+
+  Future<void> initializeStoreLayers() async {
     // Always tear down and rebuild. Mapbox fires onStyleLoaded multiple times
     // (e.g. when remote glyph/tile data resolves) and a stale "source exists"
     // guard would skip layer registration, leaving the map blank.
     await _removeLayers();
 
-    final sourceJson = jsonEncode({
-      'type': 'geojson',
-      'data': {
+    // Plain (non-clustered) GeoJSON source via the typed API. Every store
+    // renders as its own point; Mapbox draws the whole set on the GPU.
+    _storesSource = GeoJsonSource(
+      id: 'stores_source',
+      data: jsonEncode({
         'type': 'FeatureCollection',
         'features': <Map<String, dynamic>>[],
-      },
-      'cluster': true,
-      'clusterMaxZoom': 14,
-      'clusterRadius': 50,
-    });
+      }),
+    );
+    await mapboxMap.style.addSource(_storesSource!);
 
-    await mapboxMap.style.addStyleSource('stores_source', sourceJson);
+    // Add the red dot layer FIRST — before any image/ribbon code that could
+    // throw — so the dots are guaranteed even if the ribbon setup fails.
+    // Colors are ARGB ints (0xAARRGGBB).
+    await mapboxMap.style.addLayer(
+      CircleLayer(
+        id: 'store-point',
+        sourceId: 'stores_source',
+        circleColor: 0xFFFF0000, // opaque red
+        circleRadius: 8,
+        circleStrokeWidth: 2,
+        circleStrokeColor: 0xFFFFFFFF, // white outline
+      ),
+    );
 
-    // Register native ribbon image (wrap in try-catch to prevent Pigeon 
-    // channel errors from crashing init)
+    // Register native ribbon image. Catch Error too (not just Exception):
+    // getCustomMarkerBytes() uses a null-check `!` that throws a TypeError —
+    // an Error — which `on Exception` would NOT catch, aborting init.
     try {
       final imageBytes = await StoreMarkerUtils.getCustomMarkerBytes();
       final image = MbxImage(width: 64, height: 64, data: imageBytes);
-      
+
       try {
-        await mapboxMap.style.removeStyleImage('store-ribbon');
+        await mapboxMap.style.removeStyleImage('store-ribbon-icon');
       } on Exception catch (_) {} // Ignore if it doesn't exist
 
       await mapboxMap.style.addStyleImage(
-        'store-ribbon',
+        'store-ribbon-icon',
         2, // scale
         image,
         false, // sdf
@@ -47,78 +65,28 @@ class MapboxStyleManager {
         [], // stretchY
         null, // content
       );
-    } on Exception catch (e) {
+      // Broad catch is deliberate: Mapbox can throw non-Exception Errors here
+      // (e.g. a TypeError) that must not abort the rest of layer init.
+      // ignore: avoid_catches_without_on_clauses
+    } catch (e) {
       debugPrint(
         'MapboxStyleManager: Warning: Failed to add store-ribbon image: $e',
       );
     }
 
-    // Add cluster circles layer
-    final clusterLayerJson = jsonEncode({
-      'id': 'clusters',
-      'type': 'circle',
-      'source': 'stores_source',
-      'filter': ['has', 'point_count'],
-      'paint': {
-        'circle-color': [
-          'step',
-          ['get', 'point_count'],
-          'rgba(81, 187, 214, 1)', // #51bbd6
-          10,
-          'rgba(241, 240, 117, 1)', // #f1f075
-          50,
-          'rgba(242, 140, 177, 1)', // #f28cb1
-        ],
-        'circle-radius': ['step', ['get', 'point_count'], 20, 10, 30, 50, 40],
-      },
-    });
-    await mapboxMap.style.addStyleLayer(clusterLayerJson, null);
-
-    // Add cluster count text layer
-    final clusterCountLayerJson = jsonEncode({
-      'id': 'cluster-count',
-      'type': 'symbol',
-      'source': 'stores_source',
-      'filter': ['has', 'point_count'],
-      'layout': {
-        'text-field': ['get', 'point_count_abbreviated'],
-        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-        'text-size': 12,
-      },
-    });
-    await mapboxMap.style.addStyleLayer(clusterCountLayerJson, null);
-
-    // Add red dot layer (visible for unclustered, non-selected points)
-    final redDotLayerJson = jsonEncode({
-      'id': 'unclustered-point',
-      'type': 'circle',
-      'source': 'stores_source',
-      'filter': [
-        'all',
-        ['!', ['has', 'point_count']],
-      ],
-      'paint': {
-        'circle-color': 'rgba(255, 0, 0, 1)',
-        'circle-radius': 8,
-        'circle-stroke-width': 2,
-        'circle-stroke-color': 'rgba(255, 255, 255, 1)',
-      },
-    });
-    await mapboxMap.style.addStyleLayer(redDotLayerJson, null);
-
     // Add native ribbon layer (visible only for the selected store)
     final ribbonLayerJson = jsonEncode({
-      'id': 'unclustered-ribbon',
+      'id': 'store-ribbon',
       'type': 'symbol',
       'source': 'stores_source',
+      // Hidden by default until a store is selected
       'filter': [
-        'all',
-        ['!', ['has', 'point_count']],
-        // Hidden by default until a store is selected
-        ['==', ['get', 'storeId'], 'NONE'],
+        '==',
+        ['get', 'storeId'],
+        'NONE',
       ],
       'layout': {
-        'icon-image': 'store-ribbon',
+        'icon-image': 'store-ribbon-icon',
         'icon-text-fit': 'both',
         'icon-text-fit-padding': [8, 12, 8, 12],
         'text-field': ['get', 'name'],
@@ -131,19 +99,24 @@ class MapboxStyleManager {
         'text-color': '#ffffff',
       },
     });
-    await mapboxMap.style.addStyleLayer(ribbonLayerJson, null);
+    try {
+      await mapboxMap.style.addStyleLayer(ribbonLayerJson, null);
+      // Broad catch is deliberate: Mapbox can throw non-Exception Errors here
+      // (e.g. a TypeError) that must not abort the rest of layer init.
+      // ignore: avoid_catches_without_on_clauses
+    } catch (e) {
+      debugPrint('MapboxStyleManager: Warning: ribbon layer failed: $e');
+    }
 
-    debugPrint('MapboxStyleManager: Clusters initialized.');
+    debugPrint('MapboxStyleManager: Store layers initialized.');
   }
 
   /// Removes all custom layers and the GeoJSON source, ignoring errors if
   /// they don't exist (e.g. on first load or after a style wipe).
   Future<void> _removeLayers() async {
     for (final layerId in [
-      'unclustered-ribbon',
-      'unclustered-point',
-      'cluster-count',
-      'clusters',
+      'store-ribbon',
+      'store-point',
     ]) {
       try {
         if (await mapboxMap.style.styleLayerExists(layerId)) {
@@ -158,31 +131,30 @@ class MapboxStyleManager {
     } on Exception catch (_) {}
   }
 
-
   Future<void> updateSelectedStore(String? selectedStoreId) async {
     try {
       // Ribbon shows only for the selected store
       final ribbonFilter = [
-        'all',
-        ['!', ['has', 'point_count']],
-        ['==', ['get', 'storeId'], selectedStoreId ?? 'NONE'],
+        '==',
+        ['get', 'storeId'],
+        selectedStoreId ?? 'NONE',
       ];
 
-      // Red dot shows for all unclustered, non-selected stores
+      // Red dot shows for every non-selected store
       final dotFilter = [
-        'all',
-        ['!', ['has', 'point_count']],
-        ['!=', ['get', 'storeId'], selectedStoreId ?? 'NONE'],
+        '!=',
+        ['get', 'storeId'],
+        selectedStoreId ?? 'NONE',
       ];
 
       await mapboxMap.style.setStyleLayerProperty(
-        'unclustered-ribbon',
+        'store-ribbon',
         'filter',
         jsonEncode(ribbonFilter),
       );
 
       await mapboxMap.style.setStyleLayerProperty(
-        'unclustered-point',
+        'store-point',
         'filter',
         jsonEncode(dotFilter),
       );
@@ -212,7 +184,6 @@ class MapboxStyleManager {
   }
 
   Future<void> updateGeoJsonSource(List<StoreEntity> stores) async {
-
     final features = stores.map((s) {
       return {
         'type': 'Feature',
@@ -232,19 +203,13 @@ class MapboxStyleManager {
       'features': features,
     };
 
+    final source = _storesSource;
+    if (source == null) return;
     try {
-      final sourceExists =
-          await mapboxMap.style.styleSourceExists('stores_source');
-      if (sourceExists) {
-        await mapboxMap.style.setStyleSourceProperty(
-          'stores_source',
-          'data',
-          jsonEncode(geoJson),
-        );
-        debugPrint(
-          'Updated Mapbox GeoJSON source with ${stores.length} stores.',
-        );
-      }
+      // Update through the BOUND source created in initializeStoreLayers.
+      // (getSource() returns an UNBOUND instance whose updateGeoJSON no-ops.)
+      await source.updateGeoJSON(jsonEncode(geoJson));
+      debugPrint('Updated stores_source with ${stores.length} stores.');
     } on Exception catch (e, stack) {
       debugPrint('Failed to update geojson source: $e\n$stack');
     }
