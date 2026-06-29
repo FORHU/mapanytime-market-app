@@ -18,12 +18,18 @@ class StorageService {
   static const String _tokenKey = 'auth_token';
   static const String _refreshTokenKey = 'refresh_token';
   static const String _userKey = 'user_data';
+  static const String _onboardingKey = 'onboarding_seen';
 
   // --- Plain key/value ---
   String? getString(String key) => _prefs.getString(key);
   Future<void> setString(String key, String value) =>
       _prefs.setString(key, value);
   Future<void> remove(String key) => _prefs.remove(key);
+
+  // --- Onboarding (local, front-end only) ---
+  /// Whether the user has completed the first-run onboarding on this device.
+  bool get onboardingSeen => _prefs.getBool(_onboardingKey) ?? false;
+  Future<void> setOnboardingSeen() => _prefs.setBool(_onboardingKey, true);
 
   // --- Secure (access token) ---
   Future<void> saveToken(String token) =>

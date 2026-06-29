@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mapanytime_market_app/core/services/storage_service.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/pages/login_page.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/pages/register_page.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/pages/cart_page.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/pages/checkout_page.dart';
 import 'package:mapanytime_market_app/features/landing/presentation/pages/landing_page.dart';
+import 'package:mapanytime_market_app/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:mapanytime_market_app/features/orders/domain/entities/buyer_order.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/pages/order_history_page.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/pages/order_tracking_page.dart';
@@ -29,10 +31,20 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final isAuth = ref.read(authControllerProvider).isAuthenticated;
       final goingToLogin = state.matchedLocation == RouteNames.login;
       final goingToRegister = state.matchedLocation == RouteNames.register;
+      final goingToOnboarding =
+          state.matchedLocation == RouteNames.onboarding;
 
       if (!isAuth) {
         return (goingToLogin || goingToRegister) ? null : RouteNames.login;
       }
+
+      // First-run onboarding gate: new users (local flag unset) see it once.
+      final seenOnboarding = ref.read(storageServiceProvider).onboardingSeen;
+      if (!seenOnboarding) {
+        return goingToOnboarding ? null : RouteNames.onboarding;
+      }
+      if (goingToOnboarding) return RouteNames.home;
+
       if (goingToLogin || goingToRegister) return RouteNames.home;
       return null;
     },
@@ -44,6 +56,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.register,
         builder: (context, state) => const RegisterPage(),
+      ),
+      GoRoute(
+        path: RouteNames.onboarding,
+        builder: (context, state) => const OnboardingPage(),
       ),
       ShellRoute(
         builder: (context, state, child) => MainLayout(child: child),
