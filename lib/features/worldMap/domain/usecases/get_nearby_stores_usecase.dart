@@ -14,12 +14,16 @@ class GetNearbyStoresUseCase {
     required double south,
     required double east,
     required double west,
+    double? centerLat,
+    double? centerLng,
   }) {
     return repository.getNearbyStores(
       north: north,
       south: south,
       east: east,
       west: west,
+      centerLat: centerLat,
+      centerLng: centerLng,
     );
   }
 }
