@@ -32,8 +32,8 @@ class MapboxStyleManager {
   /// and we simply re-render the current markers.
   Future<void> initializeStoreLayers() async {
     if (_circleManager == null) {
-      _circleManager =
-          await mapboxMap.annotations.createCircleAnnotationManager();
+      _circleManager = await mapboxMap.annotations
+          .createCircleAnnotationManager();
       _circleManager!.tapEvents(
         onTap: (annotation) {
           final storeId = _annotationToStore[annotation.id];

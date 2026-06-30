@@ -22,7 +22,8 @@ class AppConfig {
           dotenv.env['MAPBOX_PUBLIC_TOKEN'] ??
           'pk.eyJ1IjoianVuZ2t3YW5zaGluIiwiYSI6ImNtcW9xcGE2aDA1d2wycXF2cXFzdG14'
               'bWcifQ.HR1a5C0MxCY4M0f1yEt6-A',
-      enableLogging: (dotenv.env['ENABLE_LOGGING'] ??
+      enableLogging:
+          (dotenv.env['ENABLE_LOGGING'] ??
                   (envString != 'prod' ? 'true' : 'false'))
               .toLowerCase() ==
           'true',
@@ -32,20 +33,20 @@ class AppConfig {
   /// Explicit development config used by `main_dev.dart` — works without any
   /// `--dart-define`, with logging on and pointed at the real backend.
   const AppConfig.dev()
-      : environment = Environment.dev,
-        appName = 'MapAnytime Market (Dev)',
-        baseUrl = '',
-        mapboxPublicToken = '',
-        enableLogging = true;
+    : environment = Environment.dev,
+      appName = 'MapAnytime Market (Dev)',
+      baseUrl = '',
+      mapboxPublicToken = '',
+      enableLogging = true;
 
   /// Explicit production config used by `main_prod.dart` — logging off, real
   /// backend.
   const AppConfig.prod()
-      : environment = Environment.prod,
-        appName = 'MapAnytime Market',
-        baseUrl = '',
-        mapboxPublicToken = '',
-        enableLogging = false;
+    : environment = Environment.prod,
+      appName = 'MapAnytime Market',
+      baseUrl = '',
+      mapboxPublicToken = '',
+      enableLogging = false;
 
   final Environment environment;
   final String appName;

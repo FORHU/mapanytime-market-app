@@ -15,8 +15,9 @@ class CartNotifier extends Notifier<List<CartItem>> {
     final index = state.indexWhere((i) => i.product.id == product.id);
     if (index >= 0) {
       final updated = [...state];
-      updated[index] =
-          updated[index].copyWith(quantity: updated[index].quantity + 1);
+      updated[index] = updated[index].copyWith(
+        quantity: updated[index].quantity + 1,
+      );
       state = updated;
     } else {
       state = [
@@ -50,8 +51,9 @@ class CartNotifier extends Notifier<List<CartItem>> {
   void clear() => state = const [];
 }
 
-final cartProvider =
-    NotifierProvider<CartNotifier, List<CartItem>>(CartNotifier.new);
+final cartProvider = NotifierProvider<CartNotifier, List<CartItem>>(
+  CartNotifier.new,
+);
 
 /// Cart lines grouped by store, for the grouped cart view.
 final cartGroupsProvider = Provider<List<CartStoreGroup>>((ref) {

@@ -99,7 +99,7 @@ class WorldMapController extends AsyncNotifier<List<StoreEntity>> {
       (newStores) {
         // Always merge with existing stores (even if newStores is empty).
         // This replaces any error/loading state with a valid data state.
-        final currentStores = state.valueOrNull ?? [];
+        final currentStores = state.value ?? [];
         if (newStores.isEmpty) {
           return AsyncValue.data(currentStores);
         }

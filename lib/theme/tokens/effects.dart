@@ -16,28 +16,28 @@ class AppEffects {
 
   /// Soft, low-opacity shadow used by floating cards.
   static List<BoxShadow> get cardShadow => [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.35),
-          blurRadius: 24,
-          offset: const Offset(0, 12),
-        ),
-      ];
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.35),
+      blurRadius: 24,
+      offset: const Offset(0, 12),
+    ),
+  ];
 
   /// Tighter shadow for smaller raised elements (chips, FABs).
   static List<BoxShadow> get softShadow => [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.25),
-          blurRadius: 12,
-          offset: const Offset(0, 6),
-        ),
-      ];
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.25),
+      blurRadius: 12,
+      offset: const Offset(0, 6),
+    ),
+  ];
 
   /// Colored glow for primary CTAs / active markers.
   static List<BoxShadow> get primaryGlow => [
-        BoxShadow(
-          color: AppColors.brand.primary.withValues(alpha: 0.45),
-          blurRadius: 24,
-          offset: const Offset(0, 8),
-        ),
-      ];
+    BoxShadow(
+      color: AppColors.brand.primary.withValues(alpha: 0.45),
+      blurRadius: 24,
+      offset: const Offset(0, 8),
+    ),
+  ];
 }

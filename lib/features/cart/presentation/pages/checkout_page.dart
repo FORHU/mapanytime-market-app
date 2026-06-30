@@ -146,34 +146,36 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
 
   void _placeOrder(BuildContext context) {
     ref.read(cartProvider.notifier).clear();
-    unawaited(showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.ui.surfaceDark,
-        icon: Icon(
-          Icons.check_circle_rounded,
-          color: AppColors.status.success,
-          size: 48,
-        ),
-        title: const Text('Order placed!'),
-        content: const Text(
-          'Your order is confirmed. The store is preparing it for pickup.',
-          textAlign: TextAlign.center,
-        ),
-        actions: [
-          Center(
-            child: PrimaryButton(
-              label: 'Done',
-              expand: false,
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                context.go(RouteNames.home);
-              },
-            ),
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          backgroundColor: AppColors.ui.surfaceDark,
+          icon: Icon(
+            Icons.check_circle_rounded,
+            color: AppColors.status.success,
+            size: 48,
           ),
-        ],
+          title: const Text('Order placed!'),
+          content: const Text(
+            'Your order is confirmed. The store is preparing it for pickup.',
+            textAlign: TextAlign.center,
+          ),
+          actions: [
+            Center(
+              child: PrimaryButton(
+                label: 'Done',
+                expand: false,
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  context.go(RouteNames.home);
+                },
+              ),
+            ),
+          ],
+        ),
       ),
-    ));
+    );
   }
 }
 
@@ -247,7 +249,10 @@ class _Row extends StatelessWidget {
     );
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [Text(label, style: style), Text(value, style: style)],
+      children: [
+        Text(label, style: style),
+        Text(value, style: style),
+      ],
     );
   }
 }

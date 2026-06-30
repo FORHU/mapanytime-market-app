@@ -134,10 +134,8 @@ class _CartRow extends ConsumerWidget {
           ),
           _QtyStepper(
             quantity: item.quantity,
-            onMinus: () =>
-                cart.setQuantity(item.product.id, item.quantity - 1),
-            onPlus: () =>
-                cart.setQuantity(item.product.id, item.quantity + 1),
+            onMinus: () => cart.setQuantity(item.product.id, item.quantity - 1),
+            onPlus: () => cart.setQuantity(item.product.id, item.quantity + 1),
           ),
         ],
       ),
@@ -254,7 +252,10 @@ class _SummaryRow extends StatelessWidget {
     );
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [Text(label, style: style), Text(value, style: style)],
+      children: [
+        Text(label, style: style),
+        Text(value, style: style),
+      ],
     );
   }
 }

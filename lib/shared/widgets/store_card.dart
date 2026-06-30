@@ -73,10 +73,10 @@ class StoreCard extends StatelessWidget {
                   Row(
                     children: [
                       if (rating != null) ...[
-                        const Icon(
+                        Icon(
                           Icons.star_rounded,
                           size: 15,
-                          color: Color(0xFFFBBF24),
+                          color: AppColors.status.warning,
                         ),
                         const Gap(3),
                         Text(
@@ -131,8 +131,9 @@ class _OpenBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        isOpen ? AppColors.status.success : AppColors.text.tertiaryDark;
+    final color = isOpen
+        ? AppColors.status.success
+        : AppColors.text.tertiaryDark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(

@@ -41,6 +41,5 @@ class BuyerOrder {
 
   bool get isActive => status != OrderStatus.pickedUp;
 
-  int get itemCount =>
-      lines.fold<int>(0, (sum, line) => sum + line.quantity);
+  int get itemCount => lines.fold<int>(0, (sum, line) => sum + line.quantity);
 }

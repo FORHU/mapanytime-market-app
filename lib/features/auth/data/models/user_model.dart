@@ -30,8 +30,9 @@ class UserModel extends UserEntity {
   /// `{ data: { accessToken, user } }` shape or a flat map (for refresh).
   factory UserModel.fromJson(Map<String, dynamic> json) {
     // Unwrap the `data` envelope if present (login / register responses).
-    final payload =
-        json.containsKey('data') ? json['data'] as Map<String, dynamic> : json;
+    final payload = json.containsKey('data')
+        ? json['data'] as Map<String, dynamic>
+        : json;
 
     final userMap = payload.containsKey('user')
         ? payload['user'] as Map<String, dynamic>
@@ -46,7 +47,8 @@ class UserModel extends UserEntity {
       email: userMap['email'] as String,
       name: userMap['name'] as String? ?? (fullName.isEmpty ? null : fullName),
       avatarUrl: (userMap['avatarUrl'] ?? userMap['avatar']) as String?,
-      countryCode: (payload['location'] as Map?)?['country'] as String? ??
+      countryCode:
+          (payload['location'] as Map?)?['country'] as String? ??
           userMap['countryCode'] as String?,
       onboardingCompleted: userMap['onboardingCompleted'] as bool? ?? false,
       // login/register returns `accessToken`; refresh returns `accessToken` too.
@@ -62,15 +64,15 @@ class UserModel extends UserEntity {
   final String? refreshToken;
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'email': email,
-        'name': name,
-        'avatarUrl': avatarUrl,
-        'countryCode': countryCode,
-        'onboardingCompleted': onboardingCompleted,
-        'token': token,
-        'refreshToken': refreshToken,
-      };
+    'id': id,
+    'email': email,
+    'name': name,
+    'avatarUrl': avatarUrl,
+    'countryCode': countryCode,
+    'onboardingCompleted': onboardingCompleted,
+    'token': token,
+    'refreshToken': refreshToken,
+  };
 
   @override
   List<Object?> get props => [...super.props, token, refreshToken];

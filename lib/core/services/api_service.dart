@@ -13,17 +13,17 @@ import 'package:mapanytime_market_app/core/utils/logger.dart';
 /// Point it at your backend by setting `BASE_URL` (see `.env.*`).
 class ApiService {
   ApiService({required StorageService storage, Dio? dio})
-      : client =
-            dio ??
-            Dio(
-              BaseOptions(
-                baseUrl: AppConfig.instance.baseUrl,
-                connectTimeout: const Duration(seconds: 10),
-                receiveTimeout: const Duration(seconds: 10),
-                sendTimeout: const Duration(seconds: 10),
-                contentType: Headers.jsonContentType,
-              ),
-            ) {
+    : client =
+          dio ??
+          Dio(
+            BaseOptions(
+              baseUrl: AppConfig.instance.baseUrl,
+              connectTimeout: const Duration(seconds: 10),
+              receiveTimeout: const Duration(seconds: 10),
+              sendTimeout: const Duration(seconds: 10),
+              contentType: Headers.jsonContentType,
+            ),
+          ) {
     // 1. Attach the bearer token and transparently refresh it on a 401.
     client.interceptors.add(
       AuthInterceptor(storage, baseUrl: client.options.baseUrl),
@@ -88,6 +88,7 @@ class ApiService {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
+      case DioExceptionType.transformTimeout:
       case DioExceptionType.connectionError:
         return const NetworkException();
       case DioExceptionType.badResponse:

@@ -31,7 +31,8 @@ class GlassCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(radius);
-    final surface = color ??
+    final surface =
+        color ??
         (blur
             ? AppColors.ui.surfaceDark.withValues(alpha: 0.6)
             : AppColors.ui.surfaceDark);
@@ -40,8 +41,7 @@ class GlassCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: surface,
         borderRadius: borderRadius,
-        border:
-            border ? Border.all(color: AppColors.ui.borderDark) : null,
+        border: border ? Border.all(color: AppColors.ui.borderDark) : null,
         boxShadow: AppEffects.cardShadow,
       ),
       child: Padding(padding: padding, child: child),

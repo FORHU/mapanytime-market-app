@@ -91,13 +91,13 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       if (!mounted) return;
 
       final countryCode = ref.read(authControllerProvider).user?.countryCode;
-      
+
       // 1. Immediately set camera to fallback country (prevents map from
       // starting at 0,0)
       await mapboxMap.setCamera(
         CameraOptions(
           center: _getCountryCenter(countryCode),
-          zoom: 5, 
+          zoom: 5,
         ),
       );
 
@@ -113,9 +113,9 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
     try {
       // Recreate managers since styles wipe layers/annotations
-      polylineAnnotationManager =
-          await mapboxMap!.annotations.createPolylineAnnotationManager();
-      
+      polylineAnnotationManager = await mapboxMap!.annotations
+          .createPolylineAnnotationManager();
+
       await _locationManager.initialize(mapboxMap!);
       await _styleManager!.initializeStoreLayers();
       await _styleManager!.hidePoiLayers();
@@ -130,26 +130,32 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       final zoom = cameraState.zoom;
       final span = math.max(0.05, 360.0 / math.pow(2, zoom));
       unawaited(
-        ref.read(worldMapControllerProvider.notifier).fetchStoresAtLocation(
-          north: lat + span,
-          south: lat - span,
-          east: lng + span,
-          west: lng - span,
-          centerLat: lat,
-          centerLng: lng,
-        ),
+        ref
+            .read(worldMapControllerProvider.notifier)
+            .fetchStoresAtLocation(
+              north: lat + span,
+              south: lat - span,
+              east: lng + span,
+              west: lng - span,
+              centerLat: lat,
+              centerLng: lng,
+            ),
       );
 
       // Start/Resume tracking user location
-      unawaited(_locationManager.enableUserLocation(
-        onFirstFix: (point) {
-          if (mounted && mapboxMap != null) {
-            unawaited(mapboxMap!.setCamera(
-              CameraOptions(center: point, zoom: 14),
-            ));
-          }
-        },
-      ));
+      unawaited(
+        _locationManager.enableUserLocation(
+          onFirstFix: (point) {
+            if (mounted && mapboxMap != null) {
+              unawaited(
+                mapboxMap!.setCamera(
+                  CameraOptions(center: point, zoom: 14),
+                ),
+              );
+            }
+          },
+        ),
+      );
     } on Exception catch (e) {
       debugPrint('Error handling style loaded: $e');
     }
@@ -176,7 +182,6 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     }
   }
 
-
   void _selectStore(String storeId) {
     if (mounted) {
       setState(() {
@@ -185,7 +190,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       unawaited(_styleManager?.updateSelectedStore(_selectedStoreId));
     }
 
-    final stores = ref.read(worldMapControllerProvider).valueOrNull ?? [];
+    final stores = ref.read(worldMapControllerProvider).value ?? [];
     final store = stores.where((s) => s.id == storeId).firstOrNull;
     if (store != null) {
       unawaited(
@@ -208,7 +213,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   Future<void> _renderMarkers() async {
     if (_styleManager == null) return;
 
-    final stores = ref.read(worldMapControllerProvider).valueOrNull ?? [];
+    final stores = ref.read(worldMapControllerProvider).value ?? [];
     await _styleManager!.updateGeoJsonSource(stores);
   }
 
@@ -223,20 +228,22 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     // Wait 750ms after the camera stops moving before fetching new stores.
     _debounceTimer = Timer(const Duration(milliseconds: 750), () {
       if (!mounted) return;
-      
+
       final lat = center.coordinates.lat.toDouble();
       final lng = center.coordinates.lng.toDouble();
       final zoom = cameraState.zoom;
-      
+
       // Calculate dynamic bounds based on zoom level.
-      // At zoom 5 (country level), this will fetch a very large area 
+      // At zoom 5 (country level), this will fetch a very large area
       // (e.g. the whole Philippines)
-      // At zoom 14+ (street level), this will fetch a small radius 
+      // At zoom 14+ (street level), this will fetch a small radius
       // (0.05 degrees ~ 5km).
       final span = math.max(0.05, 360.0 / math.pow(2, zoom));
-      
+
       unawaited(
-        ref.read(worldMapControllerProvider.notifier).fetchStoresAtLocation(
+        ref
+            .read(worldMapControllerProvider.notifier)
+            .fetchStoresAtLocation(
               north: lat + span,
               south: lat - span,
               east: lng + span,
@@ -287,7 +294,6 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
         lineWidth: 5,
       ),
     );
-
 
     unawaited(
       mapboxMap?.setCamera(
@@ -386,10 +392,14 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                     onLocateMe: () {
                       final point = _locationManager.getUserLocation();
                       if (point != null && mapboxMap != null) {
-                        unawaited(mapboxMap!.setCamera(CameraOptions(
-                          center: point,
-                          zoom: 15,
-                        )));
+                        unawaited(
+                          mapboxMap!.setCamera(
+                            CameraOptions(
+                              center: point,
+                              zoom: 15,
+                            ),
+                          ),
+                        );
                       }
                     },
                     onStyleSelected: (style) async {

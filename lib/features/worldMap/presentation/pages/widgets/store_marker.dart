@@ -1,17 +1,18 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 
 class StoreMarkerUtils {
-  /// Generates a red rounded rectangle image dynamically using Flutter Canvas
-  /// to be used natively by Mapbox as a text background.
+  /// Generates a brand-colored rounded rectangle image dynamically using
+  /// Flutter Canvas to be used natively by Mapbox as a marker background.
   static Future<Uint8List> getCustomMarkerBytes() async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
     const width = 64.0;
     const height = 64.0;
     final paint = Paint()
-      ..color = const Color(0xFFE53935) // Red
+      ..color = AppColors.brand.primary
       ..style = PaintingStyle.fill;
 
     final rrect = RRect.fromRectAndRadius(

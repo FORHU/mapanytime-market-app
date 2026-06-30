@@ -53,6 +53,7 @@ void main() {
   setUpAll(() {
     // prod config => no mock interceptor, no verbose logging.
     AppConfig.instance = const AppConfig.prod();
+    // AppConfig.instance = const AppConfig.dev();
   });
 
   group('ApiService error mapping', () {
