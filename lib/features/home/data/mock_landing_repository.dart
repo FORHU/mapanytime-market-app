@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mapanytime_market_app/features/landing/domain/entities/landing_content.dart';
-import 'package:mapanytime_market_app/features/landing/domain/repositories/landing_repository.dart';
+import 'package:mapanytime_market_app/features/home/domain/entities/landing_content.dart';
+import 'package:mapanytime_market_app/features/home/domain/repositories/landing_repository.dart';
 
 /// Static mock content for the Landing screen. Replace with an API-backed
 /// implementation later — the presentation layer depends only on the interface.

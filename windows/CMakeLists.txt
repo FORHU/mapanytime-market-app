@@ -32,6 +32,12 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 
+# Silence the STL1011 hard error from <experimental/coroutine>, which is pulled
+# in by permission_handler_windows (0.2.1, latest) via C++/WinRT. Recent MSVC
+# toolsets (14.51+) promote the deprecation to an error. Applied globally so it
+# reaches the plugin targets added via generated_plugins.cmake below.
+add_definitions(-D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by

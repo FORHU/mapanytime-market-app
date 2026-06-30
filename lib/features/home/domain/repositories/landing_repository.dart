@@ -1,4 +1,4 @@
-import 'package:mapanytime_market_app/features/landing/domain/entities/landing_content.dart';
+import 'package:mapanytime_market_app/features/home/domain/entities/landing_content.dart';
 
 /// Source of Landing screen content. Swap the implementation (mock → API)
 /// without touching the presentation layer.

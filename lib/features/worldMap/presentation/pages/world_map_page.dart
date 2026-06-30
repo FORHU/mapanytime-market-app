@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:mapanytime_market_app/core/utils/platform_support.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/worldMap/data/datasources/directions_datasource.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
@@ -14,6 +15,7 @@ import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widge
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_list_view.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/world_map_floating_controls.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/world_map_status_overlay.dart';
+import 'package:mapanytime_market_app/shared/widgets/app_state_view.dart';
 import 'package:mapanytime_market_app/shared/widgets/category_chip.dart';
 import 'package:mapanytime_market_app/shared/widgets/floating_search_bar.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
@@ -324,6 +326,26 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
   @override
   Widget build(BuildContext context) {
+    // mapbox_maps_flutter only supports Android/iOS; rendering MapWidget or any
+    // map overlay elsewhere (web, Windows, desktop) throws. Short-circuit to a
+    // standalone message so the rest of the app stays testable there.
+    if (!isMapboxSupported) {
+      return const Scaffold(
+        body: DecoratedBox(
+          decoration: BoxDecoration(gradient: AppColors.surfaceGradient),
+          child: SizedBox.expand(
+            child: AppStateView(
+              icon: Icons.map_outlined,
+              title: 'Map unavailable',
+              message:
+                  'The interactive map runs on Android and iOS only.\n'
+                  'Open the app on a mobile device or emulator to view it.',
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       body: Stack(
         children: [

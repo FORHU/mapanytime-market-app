@@ -4,6 +4,7 @@ import 'package:mapanytime_market_app/app.dart';
 import 'package:mapanytime_market_app/core/config/app_config.dart';
 import 'package:mapanytime_market_app/core/services/storage_service.dart';
 import 'package:mapanytime_market_app/core/utils/logger.dart';
+import 'package:mapanytime_market_app/core/utils/platform_support.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,7 +15,12 @@ Future<void> bootstrap(AppConfig config) async {
   AppConfig.instance = config;
 
   WidgetsFlutterBinding.ensureInitialized();
-  MapboxOptions.setAccessToken(config.mapboxPublicToken);
+  // mapbox_maps_flutter is mobile-only (Android/iOS). On web this plugin call
+  // throws (MissingPluginException) before runApp(), causing a blank white
+  // screen. Skip it so non-map features can still be developed/tested on web.
+  if (isMapboxSupported) {
+    MapboxOptions.setAccessToken(config.mapboxPublicToken);
+  }
 
   final prefs = await SharedPreferences.getInstance();
 
