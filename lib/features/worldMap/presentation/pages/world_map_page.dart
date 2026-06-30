@@ -190,7 +190,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       unawaited(_styleManager?.updateSelectedStore(_selectedStoreId));
     }
 
-    final stores = ref.read(worldMapControllerProvider).valueOrNull ?? [];
+    final stores = ref.read(worldMapControllerProvider).value ?? [];
     final store = stores.where((s) => s.id == storeId).firstOrNull;
     if (store != null) {
       unawaited(
@@ -213,7 +213,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   Future<void> _renderMarkers() async {
     if (_styleManager == null) return;
 
-    final stores = ref.read(worldMapControllerProvider).valueOrNull ?? [];
+    final stores = ref.read(worldMapControllerProvider).value ?? [];
     await _styleManager!.updateGeoJsonSource(stores);
   }
 

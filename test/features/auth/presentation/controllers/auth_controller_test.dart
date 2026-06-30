@@ -2,10 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mapanytime_market_app/core/errors/failure.dart';
+import 'package:mapanytime_market_app/core/services/storage_service.dart';
 import 'package:mapanytime_market_app/features/auth/data/repositories/auth_repository.dart';
 import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
 
@@ -13,10 +15,16 @@ void main() {
   late ProviderContainer container;
   late MockAuthRepository mockRepository;
 
-  setUp(() {
+  setUp(() async {
+    // AuthController.build() reads storage, so prefs must be overridden.
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
     mockRepository = MockAuthRepository();
     container = ProviderContainer(
-      overrides: [authRepositoryProvider.overrideWithValue(mockRepository)],
+      overrides: [
+        authRepositoryProvider.overrideWithValue(mockRepository),
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
     );
   });
 

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:mapanytime_market_app/features/store/data/mock_store_repository.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_details.dart';
 import 'package:mapanytime_market_app/features/store/domain/repositories/store_repository.dart';
@@ -10,6 +11,7 @@ final storeRepositoryProvider = Provider<StoreRepository>(
 
 /// Loads storefront details for a given store id (mock for now).
 final FutureProviderFamily<StoreDetails, String> storeDetailsProvider =
-    FutureProvider.family<StoreDetails, String>((ref, storeId) {
-      return ref.watch(storeRepositoryProvider).getStoreDetails(storeId);
-    });
+    FutureProvider.family<StoreDetails, String>(
+      (ref, storeId) =>
+          ref.watch(storeRepositoryProvider).getStoreDetails(storeId),
+    );

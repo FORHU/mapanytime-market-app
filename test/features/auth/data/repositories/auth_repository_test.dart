@@ -40,6 +40,7 @@ void main() {
       ).thenAnswer((_) async => tUser);
       when(() => mockStorage.saveToken(any())).thenAnswer((_) async {});
       when(() => mockStorage.saveRefreshToken(any())).thenAnswer((_) async {});
+      when(() => mockStorage.saveUserModel(tUser)).thenAnswer((_) async {});
 
       // Act
       final result = await repository.login(tEmail, tPassword);

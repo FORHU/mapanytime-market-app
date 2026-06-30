@@ -1,5 +1,6 @@
 // Smoke test: the app boots and shows the login page when unauthenticated.
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mapanytime_market_app/app.dart';
@@ -9,7 +10,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets('shows the login page when unauthenticated', (tester) async {
-    // Tests don't run bootstrap(), so set the active config manually.
+    // Tests don't run bootstrap(), so initialize dotenv (empty → AppConfig
+    // uses its built-in defaults) and set the active config manually.
+    dotenv.loadFromString(isOptional: true);
     AppConfig.instance = AppConfig.fromEnvironment();
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
