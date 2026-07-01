@@ -121,11 +121,18 @@ class AuthController extends Notifier<AuthState> {
     );
   }
 
-  Future<void> logout() async {
+  Future<bool> logout() async {
     final result = await ref.read(authRepositoryProvider).logout();
-    result.fold(
-      (failure) => state = AuthState(error: failure.message),
-      (_) => state = const AuthState(),
+    return result.fold(
+      // Keep the user signed in on failure — server session was not revoked.
+      (failure) {
+        state = state.copyWith(error: failure.message);
+        return false;
+      },
+      (_) {
+        state = const AuthState();
+        return true;
+      },
     );
   }
 }

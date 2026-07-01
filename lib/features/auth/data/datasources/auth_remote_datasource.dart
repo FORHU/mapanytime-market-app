@@ -10,8 +10,13 @@ abstract class AuthRemoteDataSource {
     String password, {
     String? name,
     String? countryCode,
+    String roleName,
   });
   Future<UserModel> checkAuth(String token);
+
+  /// Revokes the session server-side. Sends the refresh token so the API can
+  /// delete the matching session row.
+  Future<void> logout(String? refreshToken);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -34,10 +39,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     String password, {
     String? name,
     String? countryCode,
+    String roleName = 'BUYER',
   }) async {
     await _api.post(ApiEndpoints.register, {
       'email': email,
       'password': password,
+      'roleName': roleName,
       if (name != null && name.isNotEmpty) 'name': name,
       if (countryCode != null && countryCode.isNotEmpty)
         'countryCode': countryCode,
@@ -56,5 +63,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       json['accessToken'] = token;
     }
     return UserModel.fromJson(json);
+  }
+
+  @override
+  Future<void> logout(String? refreshToken) async {
+    await _api.post(ApiEndpoints.logout, {
+      if (refreshToken != null && refreshToken.isNotEmpty)
+        'refreshToken': refreshToken,
+    });
   }
 }

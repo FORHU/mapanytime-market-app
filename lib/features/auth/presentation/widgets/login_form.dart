@@ -7,7 +7,7 @@ import 'package:mapanytime_market_app/features/auth/presentation/controllers/aut
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_text_field.dart';
-import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 class LoginForm extends ConsumerStatefulWidget {
@@ -37,7 +37,12 @@ class _LoginFormState extends ConsumerState<LoginForm> {
         .login(_emailController.text, _passwordController.text);
 
     if (!mounted) return;
-    if (success) context.go(RouteNames.home);
+    if (success) {
+      context.go(RouteNames.home);
+    } else {
+      final error = ref.read(authControllerProvider).error;
+      showTopToast(context, error ?? 'Login failed. Please try again.');
+    }
   }
 
   @override
@@ -64,13 +69,6 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             prefixIcon: Icons.lock_outline,
             validator: Validators.password,
           ),
-          if (state.error != null) ...[
-            AppSpacing.sm.v,
-            Text(
-              state.error!,
-              style: TextStyle(color: AppColors.status.error),
-            ),
-          ],
           AppSpacing.lg.v,
           GradientButton(
             label: context.l10n.login,
