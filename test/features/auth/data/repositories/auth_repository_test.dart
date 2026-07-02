@@ -126,6 +126,8 @@ void main() {
 
       // Assert
       expect(result.isRight(), isTrue);
+      // Revokes server-side with the stored refresh token, then clears local.
+      verify(() => mockRemote.logout('refresh-token')).called(1);
       verify(() => mockStorage.clearSession()).called(1);
     });
 
