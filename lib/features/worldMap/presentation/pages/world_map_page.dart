@@ -4,8 +4,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:mapanytime_market_app/core/utils/platform_support.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/worldMap/data/datasources/directions_datasource.dart';
+import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_category.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/controllers/world_map_controller.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/components/mapbox_style_manager.dart';
@@ -14,21 +16,47 @@ import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widge
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_list_view.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/world_map_floating_controls.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/world_map_status_overlay.dart';
+import 'package:mapanytime_market_app/shared/widgets/app_state_view.dart';
 import 'package:mapanytime_market_app/shared/widgets/category_chip.dart';
 import 'package:mapanytime_market_app/shared/widgets/floating_search_bar.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
-/// Category filters shown over the map (visual overlay for now).
-const _mapCategories = <(String, IconData)>[
-  ('All', Icons.grid_view_rounded),
-  ('Food', Icons.restaurant_rounded),
-  ('Fashion', Icons.checkroom_rounded),
-  ('Tech', Icons.devices_rounded),
-  ('Home', Icons.chair_rounded),
-  ('Beauty', Icons.spa_rounded),
-];
+/// Maps a (backend-driven) category name to a chip icon. Falls back to a
+/// generic storefront icon for names we don't have a specific glyph for.
+IconData _iconForCategory(String name) {
+  switch (name) {
+    case 'Food & Beverage':
+      return Icons.restaurant_rounded;
+    case 'Shopping & Retail':
+      return Icons.checkroom_rounded;
+    case 'Electronics':
+      return Icons.devices_rounded;
+    case 'Home & Living':
+      return Icons.chair_rounded;
+    case 'Health & Wellness':
+      return Icons.spa_rounded;
+    case 'Automotive':
+      return Icons.directions_car_rounded;
+    case 'Pets':
+      return Icons.pets_rounded;
+    case 'Sports & Outdoors':
+      return Icons.sports_basketball_rounded;
+    case 'Entertainment':
+      return Icons.movie_rounded;
+    case 'Baby & Kids':
+      return Icons.child_care_rounded;
+    case 'Services':
+      return Icons.handyman_rounded;
+    case 'Agriculture':
+      return Icons.agriculture_rounded;
+    case 'Industrial & Business':
+      return Icons.factory_rounded;
+    default:
+      return Icons.storefront_rounded;
+  }
+}
 
 class WorldMapPage extends ConsumerStatefulWidget {
   const WorldMapPage({super.key});
@@ -57,8 +85,14 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   Timer? _debounceTimer;
   String _mapStyle = 'mapbox://styles/mapbox/streets-v12';
 
+  // Full-screen loader shown only on the very first render, until the map has
+  // centered on the user's location (or a fallback timeout elapses). Never
+  // shown again for later camera moves / store fetches.
+  bool _initializing = true;
+  Timer? _initTimer;
+
   // Riverpod listener — registered once in initState, cancelled in dispose
-  ProviderSubscription<AsyncValue<List<StoreEntity>>>? _storesSubscription;
+  ProviderSubscription<AsyncValue<WorldMapData>>? _storesSubscription;
 
   @override
   void initState() {
@@ -139,6 +173,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
               west: lng - span,
               centerLat: lat,
               centerLng: lng,
+              categoryId: _categoryIdForIndex(_selectedCategory),
             ),
       );
 
@@ -153,11 +188,28 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                 ),
               );
             }
+            // We've centered on the user — dismiss the initial loader.
+            _finishInitializing();
           },
         ),
       );
+
+      // Fallback: if GPS is slow, denied, or unavailable, don't let the
+      // initial loader hang — reveal the map (at the fallback country view)
+      // after a few seconds.
+      _initTimer = Timer(const Duration(seconds: 8), _finishInitializing);
     } on Exception catch (e) {
       debugPrint('Error handling style loaded: $e');
+      _finishInitializing();
+    }
+  }
+
+  /// Hides the one-time initial loader. Idempotent — safe to call from the
+  /// first GPS fix, the fallback timer, or an init error.
+  void _finishInitializing() {
+    _initTimer?.cancel();
+    if (mounted && _initializing) {
+      setState(() => _initializing = false);
     }
   }
 
@@ -190,7 +242,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       unawaited(_styleManager?.updateSelectedStore(_selectedStoreId));
     }
 
-    final stores = ref.read(worldMapControllerProvider).value ?? [];
+    final stores = ref.read(worldMapControllerProvider).value?.stores ?? [];
     final store = stores.where((s) => s.id == storeId).firstOrNull;
     if (store != null) {
       unawaited(
@@ -213,8 +265,42 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   Future<void> _renderMarkers() async {
     if (_styleManager == null) return;
 
-    final stores = ref.read(worldMapControllerProvider).value ?? [];
+    final stores = ref.read(worldMapControllerProvider).value?.stores ?? [];
     await _styleManager!.updateGeoJsonSource(stores);
+  }
+
+  /// Resolves the selected chip index to a category id. Index 0 is "All"
+  /// (no filter); the rest map into the fetched parent categories.
+  String? _categoryIdForIndex(int index) {
+    if (index <= 0) return null;
+    final cats =
+        ref.read(mapCategoriesProvider).value ?? const <StoreCategory>[];
+    final i = index - 1;
+    return (i >= 0 && i < cats.length) ? cats[i].id : null;
+  }
+
+  Future<void> _applyCategoryFilter(int index) async {
+    if (mapboxMap == null || !mounted) return;
+    final cameraState = await mapboxMap!.getCameraState();
+    final center = cameraState.center;
+    final lat = center.coordinates.lat.toDouble();
+    final lng = center.coordinates.lng.toDouble();
+    final zoom = cameraState.zoom;
+    final span = math.max(0.05, 360.0 / math.pow(2, zoom));
+
+    unawaited(
+      ref
+          .read(worldMapControllerProvider.notifier)
+          .fetchStoresAtLocation(
+            north: lat + span,
+            south: lat - span,
+            east: lng + span,
+            west: lng - span,
+            centerLat: lat,
+            centerLng: lng,
+            categoryId: _categoryIdForIndex(index),
+          ),
+    );
   }
 
   Future<void> _onCameraIdle() async {
@@ -250,6 +336,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
               west: lng - span,
               centerLat: lat,
               centerLng: lng,
+              categoryId: _categoryIdForIndex(_selectedCategory),
             ),
       );
     });
@@ -310,6 +397,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   @override
   void dispose() {
     _debounceTimer?.cancel();
+    _initTimer?.cancel();
     _storesSubscription?.close();
 
     final cancelRoute = polylineAnnotationManager?.deleteAll();
@@ -324,6 +412,26 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
   @override
   Widget build(BuildContext context) {
+    // mapbox_maps_flutter only supports Android/iOS; rendering MapWidget or any
+    // map overlay elsewhere (web, Windows, desktop) throws. Short-circuit to a
+    // standalone message so the rest of the app stays testable there.
+    if (!isMapboxSupported) {
+      return const Scaffold(
+        body: DecoratedBox(
+          decoration: BoxDecoration(gradient: AppColors.surfaceGradient),
+          child: SizedBox.expand(
+            child: AppStateView(
+              icon: Icons.map_outlined,
+              title: 'Map unavailable',
+              message:
+                  'The interactive map runs on Android and iOS only.\n'
+                  'Open the app on a mobile device or emulator to view it.',
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       body: Stack(
         children: [
@@ -365,18 +473,34 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                       const Gap(AppSpacing.sm),
                       SizedBox(
                         height: 40,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _mapCategories.length,
-                          separatorBuilder: (_, _) => const Gap(AppSpacing.sm),
-                          itemBuilder: (context, i) {
-                            final c = _mapCategories[i];
-                            return CategoryChip(
-                              label: c.$1,
-                              icon: c.$2,
-                              selected: _selectedCategory == i,
-                              onTap: () =>
-                                  setState(() => _selectedCategory = i),
+                        child: Consumer(
+                          builder: (context, ref, _) {
+                            // Chips: "All" + parent categories from the API.
+                            final cats =
+                                ref.watch(mapCategoriesProvider).value ??
+                                const <StoreCategory>[];
+                            return ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: cats.length + 1,
+                              separatorBuilder: (_, _) =>
+                                  const Gap(AppSpacing.sm),
+                              itemBuilder: (context, i) {
+                                final isAll = i == 0;
+                                final label = isAll ? 'All' : cats[i - 1].name;
+                                final icon = isAll
+                                    ? Icons.grid_view_rounded
+                                    : _iconForCategory(cats[i - 1].name);
+                                return CategoryChip(
+                                  label: label,
+                                  icon: icon,
+                                  selected: _selectedCategory == i,
+                                  onTap: () {
+                                    setState(() => _selectedCategory = i);
+                                    if (mapboxMap == null) return;
+                                    unawaited(_applyCategoryFilter(i));
+                                  },
+                                );
+                              },
                             );
                           },
                         ),
@@ -385,6 +509,9 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                   ),
                 ),
 
+                // Manual "Load more" removed — controller auto-loads remaining
+                // pages in background so the map is progressively populated
+                // without user interaction.
                 Positioned(
                   bottom: 16,
                   right: 16,
@@ -416,7 +543,41 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
             ),
           ),
           if (_showListView) StoreListView(onNavigate: _startNavigationTo),
+
+          // One-time initial loader while we locate the user and center the
+          // map. Sits above everything; dismissed on first GPS fix / timeout.
+          if (_initializing) const Positioned.fill(child: _InitialMapLoader()),
         ],
+      ),
+    );
+  }
+}
+
+/// Full-screen branded loader shown only on the map's first render.
+class _InitialMapLoader extends StatelessWidget {
+  const _InitialMapLoader();
+
+  @override
+  Widget build(BuildContext context) {
+    return const DecoratedBox(
+      decoration: BoxDecoration(gradient: AppColors.surfaceGradient),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            Gap(AppSpacing.lg),
+            Text(
+              'Finding your location…',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            ),
+            Gap(AppSpacing.xs),
+            Text(
+              'Loading nearby stores',
+              style: TextStyle(fontSize: 13, color: Colors.white70),
+            ),
+          ],
+        ),
       ),
     );
   }

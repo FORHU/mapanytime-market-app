@@ -20,6 +20,7 @@ class RegisterUseCase {
       password,
       name: name,
       countryCode: countryCode,
+      roleName: 'BUYER',
     );
   }
 }

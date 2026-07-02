@@ -7,7 +7,7 @@ import 'package:mapanytime_market_app/features/auth/presentation/pages/login_pag
 import 'package:mapanytime_market_app/features/auth/presentation/pages/register_page.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/pages/cart_page.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/pages/checkout_page.dart';
-import 'package:mapanytime_market_app/features/landing/presentation/pages/landing_page.dart';
+import 'package:mapanytime_market_app/features/home/presentation/pages/home_page.dart';
 import 'package:mapanytime_market_app/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:mapanytime_market_app/features/orders/domain/entities/buyer_order.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/pages/order_history_page.dart';
@@ -66,7 +66,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: RouteNames.home,
-            builder: (context, state) => const LandingPage(),
+            builder: (context, state) => const HomePage(),
           ),
           GoRoute(
             path: RouteNames.recommendations,

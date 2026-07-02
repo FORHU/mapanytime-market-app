@@ -11,7 +11,7 @@ import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
-class StoreListView extends ConsumerWidget {
+class StoreListView extends ConsumerStatefulWidget {
   const StoreListView({
     required this.onNavigate,
     super.key,
@@ -20,13 +20,43 @@ class StoreListView extends ConsumerWidget {
   final void Function(StoreEntity store) onNavigate;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StoreListView> createState() => _StoreListViewState();
+}
+
+class _StoreListViewState extends ConsumerState<StoreListView> {
+  final _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    // Load the next page as we approach the bottom of the list.
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 300) {
+      unawaited(ref.read(worldMapControllerProvider.notifier).loadMore());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final storesState = ref.watch(worldMapControllerProvider);
 
     return ColoredBox(
       color: AppColors.ui.backgroundDark,
       child: storesState.maybeWhen(
-        data: (stores) {
+        data: (data) {
+          final stores = data.stores;
           if (stores.isEmpty) {
             return Center(
               child: Text(
@@ -40,22 +70,31 @@ class StoreListView extends ConsumerWidget {
           }
 
           return ListView.separated(
+            controller: _scrollController,
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.md,
               AppSpacing.md,
               AppSpacing.md,
               100, // room for the FAB
             ),
-            itemCount: stores.length,
+            // One extra row for the trailing "loading more" indicator.
+            itemCount: stores.length + (data.hasMore ? 1 : 0),
             separatorBuilder: (_, _) => const Gap(AppSpacing.sm),
             itemBuilder: (context, index) {
+              if (index >= stores.length) {
+                return const Padding(
+                  padding: EdgeInsets.all(AppSpacing.md),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
               final store = stores[index];
               return GlassCard(
                 onTap: () => unawaited(
                   StoreBottomSheet.show(
                     context,
                     store,
-                    onNavigate: () => onNavigate(store),
+                    onNavigate: () => widget.onNavigate(store),
                   ),
                 ),
                 child: Row(

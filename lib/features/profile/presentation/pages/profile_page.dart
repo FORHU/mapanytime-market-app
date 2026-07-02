@@ -8,6 +8,7 @@ import 'package:mapanytime_market_app/features/auth/presentation/controllers/aut
 import 'package:mapanytime_market_app/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
+import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
@@ -99,8 +100,19 @@ class ProfilePage extends ConsumerWidget {
                 label: context.l10n.logout,
                 danger: true,
                 onTap: () async {
-                  await ref.read(authControllerProvider.notifier).logout();
-                  if (context.mounted) context.go(RouteNames.login);
+                  final ok = await ref
+                      .read(authControllerProvider.notifier)
+                      .logout();
+                  if (!context.mounted) return;
+                  if (ok) {
+                    context.go(RouteNames.login);
+                  } else {
+                    final error = ref.read(authControllerProvider).error;
+                    showTopToast(
+                      context,
+                      error ?? 'Logout failed. Please try again.',
+                    );
+                  }
                 },
               ),
             ],

@@ -15,4 +15,8 @@ class ApiEndpoints {
 
   /// Stores near a `lat`/`lng` query origin (used by the world map).
   static const String storesNearby = '/stores/nearby';
+
+  /// Global categories. With no `parentId` query it returns the root (parent)
+  /// categories — used for the map filter chips.
+  static const String categories = '/categories';
 }

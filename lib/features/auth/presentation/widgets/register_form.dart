@@ -7,6 +7,7 @@ import 'package:mapanytime_market_app/features/auth/presentation/controllers/aut
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_text_field.dart';
+import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
@@ -48,7 +49,10 @@ class _RegisterFormState extends ConsumerState<RegisterForm> {
         );
 
     if (!mounted) return;
-    if (success) context.go(RouteNames.home);
+    if (success) {
+      showTopToast(context, 'Account created. Please log in.');
+      context.go(RouteNames.login);
+    }
   }
 
   @override
