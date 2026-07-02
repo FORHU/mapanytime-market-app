@@ -2,18 +2,21 @@ import 'package:fpdart/fpdart.dart';
 import 'package:mapanytime_market_app/core/errors/exceptions.dart';
 import 'package:mapanytime_market_app/core/errors/failure.dart';
 import 'package:mapanytime_market_app/features/worldMap/data/datasources/store_remote_datasource.dart';
-import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
+import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_page.dart';
 
 /// Repository contract (the abstraction the domain layer depends on).
 // ignore: one_member_abstracts
 abstract class StoreRepository {
-  Future<Either<Failure, List<StoreEntity>>> getNearbyStores({
+  Future<Either<Failure, StorePage>> getNearbyStores({
     required double north,
     required double south,
     required double east,
     required double west,
     double? centerLat,
     double? centerLng,
+    String? categoryId,
+    int limit,
+    int offset,
   });
 }
 
@@ -26,24 +29,30 @@ class StoreRepositoryImpl implements StoreRepository {
   final StoreRemoteDataSource _remote;
 
   @override
-  Future<Either<Failure, List<StoreEntity>>> getNearbyStores({
+  Future<Either<Failure, StorePage>> getNearbyStores({
     required double north,
     required double south,
     required double east,
     required double west,
     double? centerLat,
     double? centerLng,
+    String? categoryId,
+    int limit = 100,
+    int offset = 0,
   }) async {
     try {
-      final stores = await _remote.getNearbyStores(
+      final page = await _remote.getNearbyStores(
         north: north,
         south: south,
         east: east,
         west: west,
         centerLat: centerLat,
         centerLng: centerLng,
+        categoryId: categoryId,
+        limit: limit,
+        offset: offset,
       );
-      return Right(stores);
+      return Right(page);
     } on UnauthorizedException catch (e) {
       return Left(UnauthorizedFailure(e.message));
     } on NetworkException catch (e) {

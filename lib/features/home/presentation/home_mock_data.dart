@@ -22,65 +22,21 @@ class HomeCategory {
   final Color color;
 }
 
-/// A merchant shown in the horizontal "Nearby Merchants" rail.
-class NearbyMerchant {
-  const NearbyMerchant({
+/// A product shown in the Home search grid.
+class HomeProduct {
+  const HomeProduct({
     required this.name,
-    required this.category,
     required this.imageUrl,
-    required this.logoUrl,
-    required this.rating,
-    required this.distanceKm,
-    required this.travelTime,
-    required this.isOpen,
-  });
-
-  final String name;
-  final String category;
-  final String imageUrl;
-  final String logoUrl;
-  final double rating;
-  final double distanceKm;
-  final String travelTime;
-  final bool isOpen;
-}
-
-/// A promotional deal card.
-class HomeDeal {
-  const HomeDeal({
-    required this.merchant,
-    required this.imageUrl,
-    required this.discountLabel,
     required this.price,
-    required this.oldPrice,
+    required this.storeName,
     required this.distanceKm,
-  });
-
-  final String merchant;
-  final String imageUrl;
-  final String discountLabel;
-  final double price;
-  final double oldPrice;
-  final double distanceKm;
-}
-
-/// A store in the vertical "Recommended" list.
-class RecommendedStore {
-  const RecommendedStore({
-    required this.name,
-    required this.category,
-    required this.imageUrl,
-    required this.rating,
-    required this.distanceKm,
-    required this.isOpen,
   });
 
   final String name;
-  final String category;
   final String imageUrl;
-  final double rating;
+  final double price;
+  final String storeName;
   final double distanceKm;
-  final bool isOpen;
 }
 
 /// Static sample content for the Home page.
@@ -136,82 +92,62 @@ abstract final class HomeMock {
     ),
   ];
 
-  static const nearby = <NearbyMerchant>[
-    NearbyMerchant(
-      name: 'Greenhouse Bistro',
-      category: 'Italian · Healthy · Organic',
-      imageUrl: '$_seed/greenhouse/600/400',
-      logoUrl: '$_seed/greenhouselogo/100/100',
-      rating: 4.8,
-      distanceKm: 0.4,
-      travelTime: '6 min',
-      isOpen: true,
-    ),
-    NearbyMerchant(
-      name: 'Luxe Atelier',
-      category: 'Fashion · Boutique',
-      imageUrl: '$_seed/luxe/600/400',
-      logoUrl: '$_seed/luxelogo/100/100',
-      rating: 4.6,
+  static const products = <HomeProduct>[
+    HomeProduct(
+      name: 'Japanese Matcha Kit',
+      imageUrl: '$_seed/matcha/400/400',
+      price: 24.5,
+      storeName: 'ZenMarket',
       distanceKm: 1.2,
-      travelTime: '11 min',
-      isOpen: true,
     ),
-    NearbyMerchant(
-      name: 'Pulse Electronics',
-      category: 'Tech · Gadgets',
-      imageUrl: '$_seed/pulse/600/400',
-      logoUrl: '$_seed/pulselogo/100/100',
-      rating: 4.4,
-      distanceKm: 2,
-      travelTime: '18 min',
-      isOpen: false,
+    HomeProduct(
+      name: 'Studio Desk Lamp',
+      imageUrl: '$_seed/desklamp/400/400',
+      price: 39.99,
+      storeName: 'Nova Home',
+      distanceKm: 3.4,
     ),
-  ];
-
-  static const deals = <HomeDeal>[
-    HomeDeal(
-      merchant: 'Café Nero',
-      imageUrl: '$_seed/cafenero/600/400',
-      discountLabel: '30% OFF',
-      price: 4.5,
-      oldPrice: 6.5,
+    HomeProduct(
+      name: 'Cold Brew Tower',
+      imageUrl: '$_seed/coldbrew/400/400',
+      price: 58,
+      storeName: 'Daily Grind',
+      distanceKm: 0.8,
+    ),
+    HomeProduct(
+      name: 'Linen Throw Blanket',
+      imageUrl: '$_seed/linen/400/400',
+      price: 28,
+      storeName: 'Nova Home',
+      distanceKm: 3.4,
+    ),
+    HomeProduct(
+      name: 'Artisan Sourdough',
+      imageUrl: '$_seed/sourdough/400/400',
+      price: 6.5,
+      storeName: 'Café Nero',
       distanceKm: 0.6,
     ),
-    HomeDeal(
-      merchant: 'Glow Theory',
-      imageUrl: '$_seed/glow/600/400',
-      discountLabel: 'BOGO',
-      price: 18,
-      oldPrice: 36,
+    HomeProduct(
+      name: 'Wireless Earbuds',
+      imageUrl: '$_seed/earbuds/400/400',
+      price: 79,
+      storeName: 'Pulse Electronics',
+      distanceKm: 2,
+    ),
+    HomeProduct(
+      name: 'Vitamin C Serum',
+      imageUrl: '$_seed/serum/400/400',
+      price: 32,
+      storeName: 'Glow Theory',
       distanceKm: 1.1,
     ),
-  ];
-
-  static const recommended = <RecommendedStore>[
-    RecommendedStore(
-      name: 'Harbor Market',
-      category: 'Grocery · Local',
-      imageUrl: '$_seed/harbor/300/300',
-      rating: 4.7,
-      distanceKm: 0.9,
-      isOpen: true,
-    ),
-    RecommendedStore(
-      name: 'Stitch & Co.',
-      category: 'Tailoring · Services',
-      imageUrl: '$_seed/stitch/300/300',
-      rating: 4.5,
-      distanceKm: 1.5,
-      isOpen: true,
-    ),
-    RecommendedStore(
-      name: 'Bloom Florals',
-      category: 'Florist · Gifts',
-      imageUrl: '$_seed/bloom/300/300',
-      rating: 4.9,
-      distanceKm: 2.3,
-      isOpen: false,
+    HomeProduct(
+      name: 'Ceramic Pour-Over',
+      imageUrl: '$_seed/pourover/400/400',
+      price: 21,
+      storeName: 'Daily Grind',
+      distanceKm: 0.8,
     ),
   ];
 }

@@ -1,20 +1,23 @@
 import 'package:mapanytime_market_app/core/constants/api_endpoints.dart';
 import 'package:mapanytime_market_app/core/services/api_service.dart';
 import 'package:mapanytime_market_app/features/worldMap/data/models/store_model.dart';
-import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
+import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_page.dart';
 
 /// Talks to the remote API. Knows nothing about storage or UI. Any transport
 /// failure surfaces as an AppException thrown by ApiService and is
 /// translated into a typed Failure by StoreRepositoryImpl.
 // ignore: one_member_abstracts
 abstract class StoreRemoteDataSource {
-  Future<List<StoreEntity>> getNearbyStores({
+  Future<StorePage> getNearbyStores({
     required double north,
     required double south,
     required double east,
     required double west,
     double? centerLat,
     double? centerLng,
+    String? categoryId,
+    int limit,
+    int offset,
   });
 }
 
@@ -24,23 +27,27 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
   final ApiService _apiService;
 
   @override
-  Future<List<StoreEntity>> getNearbyStores({
+  Future<StorePage> getNearbyStores({
     required double north,
     required double south,
     required double east,
     required double west,
     double? centerLat,
     double? centerLng,
+    String? categoryId,
+    int limit = 100,
+    int offset = 0,
   }) async {
     final query = <String, dynamic>{
       'north': north,
       'south': south,
       'east': east,
       'west': west,
-      // Pass the center point so the API computes precise distances.
-      // Falls back to bounding-box midpoint server-side if omitted.
+      'limit': limit,
+      'offset': offset,
       'lat': ?centerLat,
       'lng': ?centerLng,
+      if (categoryId != null && categoryId.isNotEmpty) 'categoryId': categoryId,
     };
 
     final responseData = await _apiService.get(
@@ -48,12 +55,26 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
       query: query,
     );
 
-    final rawList = responseData is Map && responseData['data'] is List
-        ? responseData['data'] as List
-        : const <dynamic>[];
+    // Response envelope:
+    // { data: { items: [...], total, limit, offset, hasMore } }.
+    final data = responseData is Map ? responseData['data'] : null;
+    final map = data is Map
+        ? data.cast<String, dynamic>()
+        : const <String, dynamic>{};
 
-    return rawList
+    final rawList = map['items'] is List
+        ? map['items'] as List
+        : const <dynamic>[];
+    final stores = rawList
         .map((e) => StoreModel.fromJson((e as Map).cast<String, dynamic>()))
         .toList();
+
+    return StorePage(
+      stores: stores,
+      total: (map['total'] as num?)?.toInt() ?? stores.length,
+      hasMore: map['hasMore'] as bool? ?? false,
+      limit: (map['limit'] as num?)?.toInt() ?? limit,
+      offset: (map['offset'] as num?)?.toInt() ?? offset,
+    );
   }
 }

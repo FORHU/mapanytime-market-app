@@ -57,6 +57,19 @@ class AppConfig {
   bool get isDev => environment == Environment.dev;
   bool get isProd => environment == Environment.prod;
 
+  /// Origin for the realtime socket — the server host without the REST path
+  /// (e.g. `http://192.168.1.20:3002` from `.../api/v1`). Socket.IO mounts at
+  /// the root, so the `/api/v1` suffix must be stripped.
+  String get socketUrl {
+    final uri = Uri.tryParse(baseUrl);
+    if (uri == null || uri.host.isEmpty) return baseUrl;
+    return Uri(
+      scheme: uri.scheme,
+      host: uri.host,
+      port: uri.hasPort ? uri.port : null,
+    ).toString();
+  }
+
   /// Set once by `bootstrap()` before `runApp`. Reading it before then throws.
   static late AppConfig instance;
 }
