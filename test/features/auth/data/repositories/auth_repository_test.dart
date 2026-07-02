@@ -115,6 +115,10 @@ void main() {
   group('AuthRepositoryImpl.logout', () {
     test('clears the session and returns Right(null)', () async {
       // Arrange
+      when(
+        () => mockStorage.readRefreshToken(),
+      ).thenAnswer((_) async => 'refresh-token');
+      when(() => mockRemote.logout(any())).thenAnswer((_) async {});
       when(() => mockStorage.clearSession()).thenAnswer((_) async {});
 
       // Act
@@ -122,6 +126,8 @@ void main() {
 
       // Assert
       expect(result.isRight(), isTrue);
+      // Revokes server-side with the stored refresh token, then clears local.
+      verify(() => mockRemote.logout('refresh-token')).called(1);
       verify(() => mockStorage.clearSession()).called(1);
     });
 
@@ -129,6 +135,10 @@ void main() {
       'returns Left(CacheFailure) when clearing the session throws',
       () async {
         // Arrange
+        when(
+          () => mockStorage.readRefreshToken(),
+        ).thenAnswer((_) async => 'refresh-token');
+        when(() => mockRemote.logout(any())).thenAnswer((_) async {});
         when(
           () => mockStorage.clearSession(),
         ).thenThrow(Exception('disk error'));
