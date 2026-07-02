@@ -115,6 +115,10 @@ void main() {
   group('AuthRepositoryImpl.logout', () {
     test('clears the session and returns Right(null)', () async {
       // Arrange
+      when(
+        () => mockStorage.readRefreshToken(),
+      ).thenAnswer((_) async => 'refresh-token');
+      when(() => mockRemote.logout(any())).thenAnswer((_) async {});
       when(() => mockStorage.clearSession()).thenAnswer((_) async {});
 
       // Act
@@ -129,6 +133,10 @@ void main() {
       'returns Left(CacheFailure) when clearing the session throws',
       () async {
         // Arrange
+        when(
+          () => mockStorage.readRefreshToken(),
+        ).thenAnswer((_) async => 'refresh-token');
+        when(() => mockRemote.logout(any())).thenAnswer((_) async {});
         when(
           () => mockStorage.clearSession(),
         ).thenThrow(Exception('disk error'));

@@ -10,10 +10,12 @@ import 'package:mapanytime_market_app/features/auth/presentation/controllers/aut
 import 'package:mapanytime_market_app/features/worldMap/data/datasources/category_remote_datasource.dart';
 import 'package:mapanytime_market_app/features/worldMap/data/datasources/store_remote_datasource.dart';
 import 'package:mapanytime_market_app/features/worldMap/data/datasources/store_socket_datasource.dart';
+import 'package:mapanytime_market_app/features/worldMap/data/repositories/category_repository.dart';
 import 'package:mapanytime_market_app/features/worldMap/data/repositories/store_repository.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_category.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/usecases/get_nearby_stores_usecase.dart';
+import 'package:mapanytime_market_app/features/worldMap/domain/usecases/get_parent_categories_usecase.dart';
 
 // --- Dependency wiring (Riverpod providers) ---
 
@@ -33,11 +35,25 @@ final storeSocketProvider = Provider<StoreSocketDataSource>((ref) {
   return socket;
 });
 
+final categoryRepositoryProvider = Provider<CategoryRepository>((ref) {
+  final remote = CategoryRemoteDataSource(ref.watch(apiServiceProvider));
+  return CategoryRepositoryImpl(remote);
+});
+
+final getParentCategoriesUseCaseProvider = Provider<GetParentCategoriesUseCase>(
+  (ref) => GetParentCategoriesUseCase(ref.watch(categoryRepositoryProvider)),
+);
+
 /// Parent categories for the map filter chips, fetched from the API so they
-/// always match the backend's seeded categories.
-final mapCategoriesProvider = FutureProvider<List<StoreCategory>>((ref) {
-  final ds = CategoryRemoteDataSource(ref.watch(apiServiceProvider));
-  return ds.getParentCategories();
+/// always match the backend's seeded categories. A [Failure] is surfaced via
+/// the async error channel (wrapped as [StoreLoadException]); the UI falls back
+/// to an empty chip list.
+final mapCategoriesProvider = FutureProvider<List<StoreCategory>>((ref) async {
+  final result = await ref.watch(getParentCategoriesUseCaseProvider)();
+  return result.fold(
+    (failure) => throw StoreLoadException(failure),
+    (categories) => categories,
+  );
 });
 
 /// Bridges a domain [Failure] into the async error channel. [AsyncNotifier]
