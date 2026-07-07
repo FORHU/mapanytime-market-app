@@ -12,8 +12,10 @@ import 'package:mapanytime_market_app/features/worldMap/data/datasources/store_r
 import 'package:mapanytime_market_app/features/worldMap/data/datasources/store_socket_datasource.dart';
 import 'package:mapanytime_market_app/features/worldMap/data/repositories/category_repository.dart';
 import 'package:mapanytime_market_app/features/worldMap/data/repositories/store_repository.dart';
+import 'package:mapanytime_market_app/features/worldMap/domain/entities/category_tree.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_category.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
+import 'package:mapanytime_market_app/features/worldMap/domain/usecases/get_category_tree_usecase.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/usecases/get_nearby_stores_usecase.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/usecases/get_parent_categories_usecase.dart';
 
@@ -53,6 +55,21 @@ final mapCategoriesProvider = FutureProvider<List<StoreCategory>>((ref) async {
   return result.fold(
     (failure) => throw StoreLoadException(failure),
     (categories) => categories,
+  );
+});
+
+final getCategoryTreeUseCaseProvider = Provider<GetCategoryTreeUseCase>(
+  (ref) => GetCategoryTreeUseCase(ref.watch(categoryRepositoryProvider)),
+);
+
+/// Root categories with their nested children, for the Home drill-down filter.
+/// On failure the async error channel surfaces a [StoreLoadException]; the UI
+/// falls back to an empty list.
+final categoryTreeProvider = FutureProvider<List<CategoryTree>>((ref) async {
+  final result = await ref.watch(getCategoryTreeUseCaseProvider)();
+  return result.fold(
+    (failure) => throw StoreLoadException(failure),
+    (tree) => tree,
   );
 });
 

@@ -8,6 +8,7 @@ class QuickCategoryItem extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.color,
+    this.selected = false,
     this.onTap,
     super.key,
   });
@@ -15,6 +16,10 @@ class QuickCategoryItem extends StatelessWidget {
   final String label;
   final IconData icon;
   final Color color;
+
+  /// Whether this category is the active filter — draws a stronger fill,
+  /// a solid ring, and a bolder, brighter label.
+  final bool selected;
   final VoidCallback? onTap;
 
   @override
@@ -24,9 +29,12 @@ class QuickCategoryItem extends StatelessWidget {
       child: Column(
         children: [
           Material(
-            color: color.withValues(alpha: 0.16),
+            color: color.withValues(alpha: selected ? 0.32 : 0.16),
             shape: CircleBorder(
-              side: BorderSide(color: color.withValues(alpha: 0.30)),
+              side: BorderSide(
+                color: color.withValues(alpha: selected ? 1 : 0.30),
+                width: selected ? 2 : 1,
+              ),
             ),
             child: InkWell(
               onTap: onTap,
@@ -46,7 +54,10 @@ class QuickCategoryItem extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,
-              color: AppColors.text.secondaryDark,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+              color: selected
+                  ? AppColors.text.primaryDark
+                  : AppColors.text.secondaryDark,
             ),
           ),
         ],

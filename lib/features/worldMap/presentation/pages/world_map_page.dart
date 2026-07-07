@@ -16,47 +16,13 @@ import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widge
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_list_view.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/world_map_floating_controls.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/world_map_status_overlay.dart';
+import 'package:mapanytime_market_app/shared/utils/category_visuals.dart';
 import 'package:mapanytime_market_app/shared/widgets/app_state_view.dart';
 import 'package:mapanytime_market_app/shared/widgets/category_chip.dart';
 import 'package:mapanytime_market_app/shared/widgets/floating_search_bar.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-
-/// Maps a (backend-driven) category name to a chip icon. Falls back to a
-/// generic storefront icon for names we don't have a specific glyph for.
-IconData _iconForCategory(String name) {
-  switch (name) {
-    case 'Food & Beverage':
-      return Icons.restaurant_rounded;
-    case 'Shopping & Retail':
-      return Icons.checkroom_rounded;
-    case 'Electronics':
-      return Icons.devices_rounded;
-    case 'Home & Living':
-      return Icons.chair_rounded;
-    case 'Health & Wellness':
-      return Icons.spa_rounded;
-    case 'Automotive':
-      return Icons.directions_car_rounded;
-    case 'Pets':
-      return Icons.pets_rounded;
-    case 'Sports & Outdoors':
-      return Icons.sports_basketball_rounded;
-    case 'Entertainment':
-      return Icons.movie_rounded;
-    case 'Baby & Kids':
-      return Icons.child_care_rounded;
-    case 'Services':
-      return Icons.handyman_rounded;
-    case 'Agriculture':
-      return Icons.agriculture_rounded;
-    case 'Industrial & Business':
-      return Icons.factory_rounded;
-    default:
-      return Icons.storefront_rounded;
-  }
-}
 
 class WorldMapPage extends ConsumerStatefulWidget {
   const WorldMapPage({super.key});
@@ -489,7 +455,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                                 final label = isAll ? 'All' : cats[i - 1].name;
                                 final icon = isAll
                                     ? Icons.grid_view_rounded
-                                    : _iconForCategory(cats[i - 1].name);
+                                    : iconForCategory(cats[i - 1].name);
                                 return CategoryChip(
                                   label: label,
                                   icon: icon,
