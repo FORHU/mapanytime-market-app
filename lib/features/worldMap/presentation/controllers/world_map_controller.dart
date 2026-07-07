@@ -288,6 +288,10 @@ class WorldMapController extends AsyncNotifier<WorldMapData> {
   /// pagination to this viewport. Does NOT set a loading state.
   String? _selectedCategoryId;
 
+  /// Active free-text store filter; null = no search. Retained so
+  /// [loadMore] and the background auto-pager keep the same filter.
+  String? _searchTerm;
+
   Future<void> fetchStoresAtLocation({
     required double north,
     required double south,
@@ -296,10 +300,12 @@ class WorldMapController extends AsyncNotifier<WorldMapData> {
     double? centerLat,
     double? centerLng,
     String? categoryId,
+    String? search,
   }) async {
-    // A changed category means a different result set — replace the markers
-    // rather than merging, so the previous category's pins don't linger.
-    final categoryChanged = categoryId != _selectedCategoryId;
+    // A changed category or search means a different result set — replace the
+    // markers rather than merging, so the previous filter's pins don't linger.
+    final filterChanged =
+        categoryId != _selectedCategoryId || search != _searchTerm;
 
     final viewport = _Viewport(
       north: north,
@@ -312,6 +318,7 @@ class WorldMapController extends AsyncNotifier<WorldMapData> {
     _viewport = viewport;
     _loadedOffset = 0;
     _selectedCategoryId = categoryId;
+    _searchTerm = search;
     _subscribeSocket(viewport);
 
     final result = await ref.read(getNearbyStoresUseCaseProvider)(
@@ -322,6 +329,7 @@ class WorldMapController extends AsyncNotifier<WorldMapData> {
       centerLat: centerLat,
       centerLng: centerLng,
       categoryId: categoryId,
+      search: search,
     );
 
     state = result.fold(
@@ -331,7 +339,7 @@ class WorldMapController extends AsyncNotifier<WorldMapData> {
       ),
       (page) {
         _loadedOffset = page.stores.length;
-        final merged = categoryChanged
+        final merged = filterChanged
             ? page.stores
             : _merge(state.value?.stores ?? const [], page.stores);
         if (page.hasMore) unawaited(_autoLoadRemaining());
@@ -365,6 +373,7 @@ class WorldMapController extends AsyncNotifier<WorldMapData> {
         centerLat: viewport.centerLat,
         centerLng: viewport.centerLng,
         categoryId: _selectedCategoryId,
+        search: _searchTerm,
         offset: _loadedOffset,
       );
 

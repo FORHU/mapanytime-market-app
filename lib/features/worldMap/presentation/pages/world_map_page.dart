@@ -51,6 +51,11 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   Timer? _debounceTimer;
   String _mapStyle = 'mapbox://styles/mapbox/streets-v12';
 
+  // Store search: text field + its own debounce (independent of the
+  // camera-idle debounce above).
+  final _searchController = TextEditingController();
+  Timer? _searchDebounce;
+
   // Full-screen loader shown only on the very first render, until the map has
   // centered on the user's location (or a fallback timeout elapses). Never
   // shown again for later camera moves / store fetches.
@@ -245,7 +250,16 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     return (i >= 0 && i < cats.length) ? cats[i].id : null;
   }
 
-  Future<void> _applyCategoryFilter(int index) async {
+  /// Current search term, or null when the box is empty.
+  String? get _searchOrNull {
+    final term = _searchController.text.trim();
+    return term.isEmpty ? null : term;
+  }
+
+  /// Refetches stores for the current camera viewport, always applying both the
+  /// active category chip and the search term so the two filters travel
+  /// together. Shared by the chip row, the search box, and camera-idle.
+  Future<void> _refetchForCurrentCamera() async {
     if (mapboxMap == null || !mounted) return;
     final cameraState = await mapboxMap!.getCameraState();
     final center = cameraState.center;
@@ -264,9 +278,19 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
             west: lng - span,
             centerLat: lat,
             centerLng: lng,
-            categoryId: _categoryIdForIndex(index),
+            categoryId: _categoryIdForIndex(_selectedCategory),
+            search: _searchOrNull,
           ),
     );
+  }
+
+  /// Debounced store search: re-queries the current viewport for the term.
+  void _onSearchChanged(String _) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 350), () {
+      if (!mounted) return;
+      unawaited(_refetchForCurrentCamera());
+    });
   }
 
   Future<void> _onCameraIdle() async {
@@ -303,6 +327,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
               centerLat: lat,
               centerLng: lng,
               categoryId: _categoryIdForIndex(_selectedCategory),
+              search: _searchOrNull,
             ),
       );
     });
@@ -363,6 +388,8 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   @override
   void dispose() {
     _debounceTimer?.cancel();
+    _searchDebounce?.cancel();
+    _searchController.dispose();
     _initTimer?.cancel();
     _storesSubscription?.close();
 
@@ -429,9 +456,8 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                   child: Column(
                     children: [
                       FloatingSearchBar(
-                        onTap: () {
-                          // TODO(Phase2): Open full search screen
-                        },
+                        controller: _searchController,
+                        onChanged: _onSearchChanged,
                         onFilterTap: () {
                           // TODO(Phase2): Open filter sheet
                         },
@@ -463,7 +489,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                                   onTap: () {
                                     setState(() => _selectedCategory = i);
                                     if (mapboxMap == null) return;
-                                    unawaited(_applyCategoryFilter(i));
+                                    unawaited(_refetchForCurrentCamera());
                                   },
                                 );
                               },

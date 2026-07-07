@@ -8,6 +8,7 @@ import 'package:mapanytime_market_app/features/auth/presentation/pages/register_
 import 'package:mapanytime_market_app/features/cart/presentation/pages/cart_page.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/pages/checkout_page.dart';
 import 'package:mapanytime_market_app/features/home/presentation/pages/home_page.dart';
+import 'package:mapanytime_market_app/features/notifications/presentation/pages/notification_feed_page.dart';
 import 'package:mapanytime_market_app/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:mapanytime_market_app/features/orders/domain/entities/buyer_order.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/pages/order_history_page.dart';
@@ -111,6 +112,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               }
               return PickupPassPage(order: order);
             },
+          ),
+          GoRoute(
+            path: RouteNames.notifications,
+            builder: (context, state) => const NotificationFeedPage(),
           ),
           GoRoute(
             path: RouteNames.profile,

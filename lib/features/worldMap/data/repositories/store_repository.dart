@@ -15,6 +15,7 @@ abstract class StoreRepository {
     double? centerLat,
     double? centerLng,
     String? categoryId,
+    String? search,
     int limit,
     int offset,
   });
@@ -37,6 +38,7 @@ class StoreRepositoryImpl implements StoreRepository {
     double? centerLat,
     double? centerLng,
     String? categoryId,
+    String? search,
     int limit = 100,
     int offset = 0,
   }) async {
@@ -49,6 +51,7 @@ class StoreRepositoryImpl implements StoreRepository {
         centerLat: centerLat,
         centerLng: centerLng,
         categoryId: categoryId,
+        search: search,
         limit: limit,
         offset: offset,
       );

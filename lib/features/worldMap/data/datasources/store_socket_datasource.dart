@@ -29,32 +29,32 @@ class StoreSocketDataSource {
 
     _socket =
         io.io(
-          _socketUrl,
-          io.OptionBuilder()
-              .setTransports(['websocket'])
-              .enableReconnection()
-              .build(),
-        )
-        ..on('store:upserted', (data) {
-          if (data is! Map) return;
-          final map = data.cast<String, dynamic>();
-          final isActive = map['isActive'] as bool? ?? false;
-          final id = map['id'] as String?;
+            _socketUrl,
+            io.OptionBuilder()
+                .setTransports(['websocket'])
+                .enableReconnection()
+                .build(),
+          )
+          ..on('store:upserted', (data) {
+            if (data is! Map) return;
+            final map = data.cast<String, dynamic>();
+            final isActive = map['isActive'] as bool? ?? false;
+            final id = map['id'] as String?;
 
-          if (isActive) {
-            _upserted.add(StoreModel.fromJson(map));
-          } else if (id != null) {
-            // Only active stores render, so an inactive/unapproved store is
-            // treated as a removal.
-            _removed.add(id);
-          }
-        })
-        ..on('store:removed', (data) {
-          if (data is Map && data['id'] is String) {
-            _removed.add(data['id'] as String);
-          }
-        })
-        ..connect();
+            if (isActive) {
+              _upserted.add(StoreModel.fromJson(map));
+            } else if (id != null) {
+              // Only active stores render, so an inactive/unapproved store is
+              // treated as a removal.
+              _removed.add(id);
+            }
+          })
+          ..on('store:removed', (data) {
+            if (data is Map && data['id'] is String) {
+              _removed.add(data['id'] as String);
+            }
+          })
+          ..connect();
   }
 
   /// Tell the server which region to stream updates for. Safe to call whenever

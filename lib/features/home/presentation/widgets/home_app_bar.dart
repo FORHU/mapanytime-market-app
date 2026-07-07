@@ -12,6 +12,7 @@ class HomeAppBar extends StatelessWidget {
     required this.location,
     this.onNotifications,
     this.onProfile,
+    this.unreadCount = 0,
     super.key,
   });
 
@@ -20,6 +21,7 @@ class HomeAppBar extends StatelessWidget {
   final String location;
   final VoidCallback? onNotifications;
   final VoidCallback? onProfile;
+  final int unreadCount;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +81,7 @@ class HomeAppBar extends StatelessWidget {
         _IconButton(
           icon: Icons.notifications_none_rounded,
           onTap: onNotifications,
-          showDot: true,
+          badgeCount: unreadCount,
         ),
         const Gap(AppSpacing.sm),
         _Avatar(name: name, onTap: onProfile),
@@ -92,12 +94,14 @@ class _IconButton extends StatelessWidget {
   const _IconButton({
     required this.icon,
     this.onTap,
-    this.showDot = false,
+    this.badgeCount = 0,
   });
 
   final IconData icon;
   final VoidCallback? onTap;
-  final bool showDot;
+
+  /// Unread count shown as a badge; 0 hides the badge.
+  final int badgeCount;
 
   @override
   Widget build(BuildContext context) {
@@ -114,21 +118,35 @@ class _IconButton extends StatelessWidget {
           height: 44,
           child: Stack(
             alignment: Alignment.center,
+            clipBehavior: Clip.none,
             children: [
               Icon(icon, size: 22, color: AppColors.text.primaryDark),
-              if (showDot)
+              if (badgeCount > 0)
                 Positioned(
-                  top: 12,
-                  right: 12,
+                  top: 8,
+                  right: 6,
                   child: Container(
-                    width: 8,
-                    height: 8,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.status.error,
-                      shape: BoxShape.circle,
+                      borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: AppColors.ui.surfaceDark,
                         width: 1.5,
+                      ),
+                    ),
+                    child: Text(
+                      badgeCount > 9 ? '9+' : '$badgeCount',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        height: 1.2,
                       ),
                     ),
                   ),

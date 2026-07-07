@@ -16,6 +16,7 @@ abstract class StoreRemoteDataSource {
     double? centerLat,
     double? centerLng,
     String? categoryId,
+    String? search,
     int limit,
     int offset,
   });
@@ -35,6 +36,7 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
     double? centerLat,
     double? centerLng,
     String? categoryId,
+    String? search,
     int limit = 100,
     int offset = 0,
   }) async {
@@ -48,6 +50,7 @@ class StoreRemoteDataSourceImpl implements StoreRemoteDataSource {
       'lat': ?centerLat,
       'lng': ?centerLng,
       if (categoryId != null && categoryId.isNotEmpty) 'categoryId': categoryId,
+      if (search != null && search.isNotEmpty) 'search': search,
     };
 
     final responseData = await _apiService.get(
