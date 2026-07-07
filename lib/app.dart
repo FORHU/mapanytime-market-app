@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mapanytime_market_app/core/config/app_config.dart';
+import 'package:mapanytime_market_app/features/notifications/presentation/widgets/notification_toast_host.dart';
 import 'package:mapanytime_market_app/l10n/generated/app_localizations.dart';
 import 'package:mapanytime_market_app/routes/app_routes.dart';
 import 'package:mapanytime_market_app/theme/app_theme.dart';
@@ -21,6 +22,9 @@ class MyApp extends ConsumerWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
+      // Wrap every route so realtime notifications can toast from anywhere.
+      builder: (context, child) =>
+          NotificationToastHost(child: child ?? const SizedBox.shrink()),
     );
   }
 }

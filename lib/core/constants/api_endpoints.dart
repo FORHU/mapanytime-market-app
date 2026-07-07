@@ -19,4 +19,12 @@ class ApiEndpoints {
   /// Global categories. With no `parentId` query it returns the root (parent)
   /// categories — used for the map filter chips.
   static const String categories = '/categories';
+
+  /// Root categories with their nested children — used for the Home filter's
+  /// root → children drill-down.
+  static const String categoryTrees = '/categories/trees';
+
+  /// Buyer catalog: all active products across stores, filterable by
+  /// `categoryId` / `storeId` / price. Powers the Home product grid.
+  static const String allProducts = '/products/all';
 }

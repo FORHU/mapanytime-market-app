@@ -17,6 +17,7 @@ class GetNearbyStoresUseCase {
     double? centerLat,
     double? centerLng,
     String? categoryId,
+    String? search,
     int limit = 100,
     int offset = 0,
   }) {
@@ -28,6 +29,7 @@ class GetNearbyStoresUseCase {
       centerLat: centerLat,
       centerLng: centerLng,
       categoryId: categoryId,
+      search: search,
       limit: limit,
       offset: offset,
     );
