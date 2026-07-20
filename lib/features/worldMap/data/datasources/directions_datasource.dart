@@ -2,7 +2,19 @@ import 'package:dio/dio.dart';
 import 'package:mapanytime_market_app/core/config/app_config.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
-/// Calls the Mapbox Directions v5 REST API to get a driving route between two
+/// Travel mode for the Mapbox Directions v5 API.
+enum TravelMode {
+  driving('driving'),
+  walking('walking'),
+  cycling('cycling');
+
+  const TravelMode(this.profile);
+
+  /// Mapbox Directions API profile path segment.
+  final String profile;
+}
+
+/// Calls the Mapbox Directions v5 REST API to get a route between two
 /// geographic points. Returns a list of Positions that follow the actual
 /// road network, ready to be fed into a LineString for map rendering.
 ///
@@ -20,13 +32,14 @@ class DirectionsDatasource {
 
   final Dio _dio;
 
-  /// Fetches a driving route from [origin] to [destination].
+  /// Fetches a route from [origin] to [destination] using [mode].
   ///
   /// Returns an ordered list of [Position]s along the route, or an empty list
   /// if the API returns no route (e.g. origin == destination, unreachable).
   Future<List<Position>> getRoute({
     required Position origin,
     required Position destination,
+    TravelMode mode = TravelMode.driving,
   }) async {
     final token = AppConfig.instance.mapboxPublicToken;
 
@@ -37,7 +50,7 @@ class DirectionsDatasource {
 
     try {
       final response = await _dio.get<Map<String, dynamic>>(
-        '/directions/v5/mapbox/driving/$coordinates',
+        '/directions/v5/mapbox/${mode.profile}/$coordinates',
         queryParameters: {
           'geometries': 'geojson',
           'overview': 'full',

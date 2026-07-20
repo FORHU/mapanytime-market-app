@@ -12,6 +12,7 @@ import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_en
 import 'package:mapanytime_market_app/features/worldMap/presentation/controllers/world_map_controller.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/components/mapbox_style_manager.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/components/user_location_manager.dart';
+import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/navigation_mode_pill.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_bottom_sheet.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_list_view.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/world_map_floating_controls.dart';
@@ -47,6 +48,10 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   PolylineAnnotationManager? polylineAnnotationManager;
   PolylineAnnotation? _currentRoute;
   final _directionsDatasource = DirectionsDatasource();
+
+  // Navigation state — non-null while a route is drawn on the map.
+  StoreEntity? _navigatingTo;
+  TravelMode _activeMode = TravelMode.driving;
 
   Timer? _debounceTimer;
   String _mapStyle = 'mapbox://styles/mapbox/streets-v12';
@@ -333,9 +338,18 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     });
   }
 
-  Future<void> _startNavigationTo(StoreEntity store) async {
+  Future<void> _startNavigationTo(
+    StoreEntity store, [
+    TravelMode mode = TravelMode.driving,
+  ]) async {
     final userPoint = _locationManager.getUserLocation();
     if (userPoint == null || polylineAnnotationManager == null) return;
+
+    // Update navigation state.
+    setState(() {
+      _navigatingTo = store;
+      _activeMode = mode;
+    });
 
     if (_currentRoute != null) {
       await polylineAnnotationManager!.delete(_currentRoute!);
@@ -349,6 +363,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       routeCoords = await _directionsDatasource.getRoute(
         origin: userPoint.coordinates,
         destination: Position(store.lng, store.lat),
+        mode: mode,
       );
     } on Exception catch (e) {
       debugPrint('Directions API failed, using straight line: $e');
@@ -373,16 +388,29 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       ),
     );
 
+    // Camera pitch varies by mode: driving = 3D (60°), others = overhead (45°).
+    final pitch = mode == TravelMode.driving ? 60.0 : 45.0;
     unawaited(
       mapboxMap?.setCamera(
         CameraOptions(
           center: userPoint,
           zoom: 16,
-          pitch: 60,
+          pitch: pitch,
           bearing: 0,
         ),
       ),
     );
+  }
+
+  void _cancelNavigation() {
+    unawaited(polylineAnnotationManager?.deleteAll());
+    _currentRoute = null;
+    setState(() {
+      _navigatingTo = null;
+      _activeMode = TravelMode.driving;
+    });
+    // Reset camera pitch back to flat.
+    unawaited(mapboxMap?.setCamera(CameraOptions(pitch: 0)));
   }
 
   @override
@@ -504,6 +532,23 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                 // Manual "Load more" removed — controller auto-loads remaining
                 // pages in background so the map is progressively populated
                 // without user interaction.
+                // Navigation mode pill — shown while a route is active.
+                if (_navigatingTo != null)
+                  Positioned(
+                    bottom: 88,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: NavigationModePill(
+                        selectedMode: _activeMode,
+                        storeName: _navigatingTo!.name,
+                        onModeChanged: (mode) =>
+                            unawaited(_startNavigationTo(_navigatingTo!, mode)),
+                        onCancel: _cancelNavigation,
+                      ),
+                    ),
+                  ),
+
                 Positioned(
                   bottom: 16,
                   right: 16,
@@ -534,7 +579,10 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
               ],
             ),
           ),
-          if (_showListView) StoreListView(onNavigate: _startNavigationTo),
+          if (_showListView)
+            StoreListView(
+              onNavigate: (store) => unawaited(_startNavigationTo(store)),
+            ),
 
           // One-time initial loader while we locate the user and center the
           // map. Sits above everything; dismissed on first GPS fix / timeout.

@@ -35,7 +35,7 @@ class AppConfig {
   const AppConfig.dev()
     : environment = Environment.dev,
       appName = 'MapAnytime Market (Dev)',
-      baseUrl = '',
+      baseUrl = 'http://192.168.1.20:4002/api/v1',
       mapboxPublicToken = '',
       enableLogging = true;
 

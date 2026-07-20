@@ -81,9 +81,45 @@ class ProductDetailPage extends ConsumerWidget {
           ),
           _BottomCta(
             onAdd: () {
-              ref
-                  .read(cartProvider.notifier)
-                  .add(
+              final cart = ref.read(cartProvider);
+              if (cart.isNotEmpty && cart.first.storeId != storeId) {
+                showDialog<void>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Clear cart?'),
+                    content: const Text(
+                      'You already have items from another store in your cart. '
+                      'Adding this item will clear your current cart. Do you want to proceed?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          ref.read(cartProvider.notifier).clear();
+                          ref.read(cartProvider.notifier).add(
+                                product: product,
+                                storeId: storeId,
+                                storeName: storeName,
+                              );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('${product.name} added to cart'),
+                            ),
+                          );
+                        },
+                        child: const Text('Clear & Add'),
+                      ),
+                    ],
+                  ),
+                );
+                return;
+              }
+
+              ref.read(cartProvider.notifier).add(
                     product: product,
                     storeId: storeId,
                     storeName: storeName,

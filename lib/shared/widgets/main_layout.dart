@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
+import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/animated_bottom_navigation.dart';
 
 /// App shell: hosts the routed [child] and the premium glass bottom navigation.
-class MainLayout extends StatelessWidget {
+class MainLayout extends ConsumerWidget {
   const MainLayout({
     required this.child,
     super.key,
@@ -14,7 +16,9 @@ class MainLayout extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Unseen cart items surface as a notification dot on the Cart tab.
+    final cartHasUnseen = ref.watch(cartHasUnseenProvider);
     // Tab destinations paired with their routes (order = tab order).
     final destinations = <_Destination>[
       _Destination(
@@ -41,11 +45,12 @@ class MainLayout extends StatelessWidget {
         ),
         route: RouteNames.worldMap,
       ),
-      const _Destination(
+      _Destination(
         item: NavBarItem(
           label: 'Cart',
           icon: Icons.shopping_bag_outlined,
           activeIcon: Icons.shopping_bag_rounded,
+          showBadge: cartHasUnseen,
         ),
         route: RouteNames.cart,
       ),
