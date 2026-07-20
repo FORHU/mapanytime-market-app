@@ -9,6 +9,7 @@ class RouteNames {
   static const String worldMap = '/worldMap';
   static const String cart = '/cart';
   static const String checkout = '/checkout';
+  static const String orderConfirmation = '/order-confirmation';
   static const String orders = '/orders';
   static const String orderTracking = '/orders/track';
   static const String pickupPass = '/orders/pass';

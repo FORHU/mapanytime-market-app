@@ -11,11 +11,15 @@ class NavBarItem {
     required this.label,
     required this.icon,
     required this.activeIcon,
+    this.showBadge = false,
   });
 
   final String label;
   final IconData icon;
   final IconData activeIcon;
+
+  /// Shows a small notification dot on the icon (e.g. unseen cart items).
+  final bool showBadge;
 }
 
 /// Premium floating glass bottom navigation with a smooth animated active
@@ -92,24 +96,46 @@ class _NavItem extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutCubic,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: 6,
-            ),
-            decoration: BoxDecoration(
-              color: selected
-                  ? primary.withValues(alpha: 0.16)
-                  : Colors.transparent,
-              borderRadius: AppRadius.brPill,
-            ),
-            child: Icon(
-              selected ? item.activeIcon : item.icon,
-              size: 22,
-              color: selected ? primary : muted,
-            ),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? primary.withValues(alpha: 0.16)
+                      : Colors.transparent,
+                  borderRadius: AppRadius.brPill,
+                ),
+                child: Icon(
+                  selected ? item.activeIcon : item.icon,
+                  size: 22,
+                  color: selected ? primary : muted,
+                ),
+              ),
+              if (item.showBadge)
+                Positioned(
+                  right: 6,
+                  top: 0,
+                  child: Container(
+                    width: 9,
+                    height: 9,
+                    decoration: BoxDecoration(
+                      color: AppColors.status.error,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.ui.surfaceDark,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
           const Gap(4),
           AnimatedDefaultTextStyle(

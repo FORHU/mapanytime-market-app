@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/utils/currency.dart';
+import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart' show apiServiceProvider;
 import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart';
+import 'package:mapanytime_market_app/features/orders/data/order_remote_datasource.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
@@ -25,20 +27,33 @@ class CheckoutPage extends ConsumerStatefulWidget {
 
 class _CheckoutPageState extends ConsumerState<CheckoutPage> {
   static const _serviceFee = 25;
-  static const _methods = <(String, IconData)>[
-    ('Credit / Debit Card', Icons.credit_card_rounded),
-    ('GCash', Icons.account_balance_wallet_rounded),
-    ('Cash on pickup', Icons.payments_rounded),
+  static const _methods = <(String, IconData, String)>[
+    ('Payment on pickup', Icons.payments_rounded, 'CASH_ON_DELIVERY'),
+    ('GCash', Icons.account_balance_wallet_rounded, 'GCASH'),
   ];
 
   int _method = 0;
+  TimeOfDay? _pickupTime;
+
+  Future<void> _pickTime() async {
+    final now = TimeOfDay.now();
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _pickupTime ?? now.replacing(hour: (now.hour + 1) % 24),
+      helpText: 'Select pickup time',
+    );
+    if (picked != null) setState(() => _pickupTime = picked);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final subtotal = ref.watch(cartSubtotalProvider);
-    final groups = ref.watch(cartGroupsProvider);
+    final subtotal = ref.watch(cartSelectedSubtotalProvider);
+    final groups = ref.watch(cartSelectedGroupsProvider);
     final total = subtotal + _serviceFee;
     final storeName = groups.isNotEmpty ? groups.first.storeName : 'Store';
+    final pickupLabel = _pickupTime == null
+        ? 'Select a time'
+        : MaterialLocalizations.of(context).formatTimeOfDay(_pickupTime!);
 
     return Scaffold(
       appBar: const ModernAppBar(title: 'Checkout'),
@@ -85,7 +100,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                             ),
                             const Gap(2),
                             Text(
-                              'Ready for pickup in ~15 min',
+                              'Pick up your order at this store',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: AppColors.text.tertiaryDark,
@@ -95,6 +110,57 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                         ),
                       ),
                     ],
+                  ),
+                ),
+                const Gap(AppSpacing.sm),
+                GestureDetector(
+                  onTap: _pickTime,
+                  behavior: HitTestBehavior.opaque,
+                  child: GlassCard(
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: AppColors.brand.primary.withValues(
+                              alpha: 0.15,
+                            ),
+                            borderRadius: AppRadius.brMd,
+                          ),
+                          child: Icon(
+                            Icons.schedule_rounded,
+                            color: AppColors.brand.primary,
+                          ),
+                        ),
+                        const Gap(AppSpacing.sm),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Pickup time',
+                                style: TextStyle(fontWeight: FontWeight.w700),
+                              ),
+                              const Gap(2),
+                              Text(
+                                pickupLabel,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: _pickupTime == null
+                                      ? AppColors.text.tertiaryDark
+                                      : AppColors.brand.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppColors.text.tertiaryDark,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const Gap(AppSpacing.lg),
@@ -137,45 +203,71 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
           ),
           _PlaceOrderBar(
             total: total,
-            onPlaceOrder: () => _placeOrder(context),
+            onPlaceOrder: () => unawaited(_placeOrder(context)),
           ),
         ],
       ),
     );
   }
 
-  void _placeOrder(BuildContext context) {
-    ref.read(cartProvider.notifier).clear();
-    unawaited(
-      showDialog<void>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          backgroundColor: AppColors.ui.surfaceDark,
-          icon: Icon(
-            Icons.check_circle_rounded,
-            color: AppColors.status.success,
-            size: 48,
-          ),
-          title: const Text('Order placed!'),
-          content: const Text(
-            'Your order is confirmed. The store is preparing it for pickup.',
-            textAlign: TextAlign.center,
-          ),
-          actions: [
-            Center(
-              child: PrimaryButton(
-                label: 'Done',
-                expand: false,
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                  context.go(RouteNames.home);
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+  Future<void> _placeOrder(BuildContext context) async {
+    if (_pickupTime == null) {
+      await _pickTime();
+      if (_pickupTime == null) return;
+    }
+    if (!context.mounted) return;
+
+    final now = DateTime.now();
+    final pickupDateTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      _pickupTime!.hour,
+      _pickupTime!.minute,
     );
+
+    // If picked time is before now, assume it's for tomorrow.
+    final finalPickup = pickupDateTime.isBefore(now)
+        ? pickupDateTime.add(const Duration(days: 1))
+        : pickupDateTime;
+    final isoPickup = finalPickup.toUtc().toIso8601String();
+    
+    final paymentMethodEnum = _methods[_method].$3;
+
+    try {
+      final api = ref.read(apiServiceProvider);
+      final remote = OrderRemoteDataSource(api);
+      
+      final orderId = await remote.createOrder(
+        type: 'PICKUP',
+        paymentMethod: paymentMethodEnum,
+        pickupAt: isoPickup,
+      );
+
+      // Only the selected items are ordered
+      final orderedIds = [
+        for (final item in ref.read(cartSelectedItemsProvider)) item.product.id,
+      ];
+      ref.read(cartProvider.notifier).removeMany(orderedIds);
+      
+      // Temporary: Since backend CartService.clearCart is called on success,
+      // let's clear local cart state or rely on removeMany.
+      // Actually backend clears the whole cart, so we should clear local cart:
+      ref.read(cartProvider.notifier).clear();
+
+      if (!context.mounted) return;
+      
+      context.go(RouteNames.orderConfirmation, extra: orderId);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Order placed successfully!')),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to place order: $e')),
+      );
+    }
   }
 }
 

@@ -11,6 +11,7 @@ import 'package:mapanytime_market_app/features/home/presentation/pages/home_page
 import 'package:mapanytime_market_app/features/notifications/presentation/pages/notification_feed_page.dart';
 import 'package:mapanytime_market_app/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:mapanytime_market_app/features/orders/domain/entities/buyer_order.dart';
+import 'package:mapanytime_market_app/features/orders/presentation/pages/order_confirmation_page.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/pages/order_history_page.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/pages/order_tracking_page.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/pages/pickup_pass_page.dart';
@@ -84,6 +85,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RouteNames.checkout,
             builder: (context, state) => const CheckoutPage(),
+          ),
+          GoRoute(
+            path: RouteNames.orderConfirmation,
+            builder: (context, state) {
+              final orderId = state.extra as String?;
+              if (orderId == null) {
+                return const Scaffold(
+                  body: Center(child: Text('Error: No order ID provided')),
+                );
+              }
+              return OrderConfirmationPage(orderId: orderId);
+            },
           ),
           GoRoute(
             path: RouteNames.orders,

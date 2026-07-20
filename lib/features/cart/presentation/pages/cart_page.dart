@@ -14,13 +14,29 @@ import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 /// Cart tab: items grouped by store, a totals summary and a checkout CTA.
-class CartPage extends ConsumerWidget {
+class CartPage extends ConsumerStatefulWidget {
   const CartPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CartPage> createState() => _CartPageState();
+}
+
+class _CartPageState extends ConsumerState<CartPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Opening the cart clears the unseen badge on the nav. Deferred so we don't
+    // mutate providers during the build/mount phase.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(cartSeenProvider.notifier).markSeen();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final groups = ref.watch(cartGroupsProvider);
-    final subtotal = ref.watch(cartSubtotalProvider);
+    final subtotal = ref.watch(cartSelectedSubtotalProvider);
+    final selectedCount = ref.watch(cartSelectedCountProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -50,6 +66,7 @@ class CartPage extends ConsumerWidget {
                 ),
                 _CheckoutBar(
                   subtotal: subtotal,
+                  enabled: selectedCount > 0,
                   onCheckout: () => context.push(RouteNames.checkout),
                 ),
               ],
@@ -58,13 +75,17 @@ class CartPage extends ConsumerWidget {
   }
 }
 
-class _StoreGroup extends StatelessWidget {
+class _StoreGroup extends ConsumerWidget {
   const _StoreGroup({required this.group});
 
   final CartStoreGroup group;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final deselected = ref.watch(cartDeselectedProvider);
+    final ids = [for (final item in group.items) item.product.id];
+    final allSelected = ids.every((id) => !deselected.contains(id));
+
     return GlassCard(
       padding: const EdgeInsets.all(AppSpacing.sm + 4),
       child: Column(
@@ -78,9 +99,21 @@ class _StoreGroup extends StatelessWidget {
                 color: AppColors.brand.primary,
               ),
               const Gap(AppSpacing.sm),
-              Text(
-                group.storeName,
-                style: const TextStyle(fontWeight: FontWeight.w700),
+              Expanded(
+                child: Text(
+                  group.storeName,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+              Checkbox(
+                value: allSelected,
+                onChanged: (value) => ref
+                    .read(cartDeselectedProvider.notifier)
+                    .setManySelected(ids, selected: value ?? false),
+                activeColor: AppColors.brand.primary,
+                side: BorderSide(color: AppColors.ui.borderDark),
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ],
           ),
@@ -100,10 +133,24 @@ class _CartRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cart = ref.read(cartProvider.notifier);
+    final selected = !ref
+        .watch(cartDeselectedProvider)
+        .contains(item.product.id);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Row(
         children: [
+          Checkbox(
+            value: selected,
+            onChanged: (value) => ref
+                .read(cartDeselectedProvider.notifier)
+                .setSelected(item.product.id, selected: value ?? false),
+            activeColor: AppColors.brand.primary,
+            side: BorderSide(color: AppColors.ui.borderDark),
+            visualDensity: VisualDensity.compact,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          const Gap(AppSpacing.xs),
           NetworkImageBox(
             url: item.product.imageUrl,
             width: 56,
@@ -261,9 +308,14 @@ class _SummaryRow extends StatelessWidget {
 }
 
 class _CheckoutBar extends StatelessWidget {
-  const _CheckoutBar({required this.subtotal, required this.onCheckout});
+  const _CheckoutBar({
+    required this.subtotal,
+    required this.enabled,
+    required this.onCheckout,
+  });
 
   final num subtotal;
+  final bool enabled;
   final VoidCallback onCheckout;
 
   @override
@@ -282,9 +334,11 @@ class _CheckoutBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: GradientButton(
-          label: 'Checkout • ${Money.peso(subtotal + 25)}',
+          label: enabled
+              ? 'Checkout • ${Money.peso(subtotal + 25)}'
+              : 'Select items to checkout',
           icon: Icons.arrow_forward_rounded,
-          onPressed: onCheckout,
+          onPressed: enabled ? onCheckout : null,
         ),
       ),
     );
