@@ -28,13 +28,13 @@ class ApiEndpoints {
   /// `categoryId` / `storeId` / price. Powers the Home product grid.
   static const String allProducts = '/products/all';
 
-  // ── Storefront ──────────────────────────────────────────────────────────────
+  // ── Storefront ────────────────────────────────────────────────────────────
 
   /// Single store detail + hours + categories for the storefront page.
   /// Append `/<storeId>` → `GET /stores/<id>`.
   static const String storeById = '/stores';
 
-  // ── Cart ────────────────────────────────────────────────────────────────────
+  // ── Cart ──────────────────────────────────────────────────────────────────
 
   /// Get the current user's cart from Redis.  `GET /cart`.
   static const String cart = '/cart';
@@ -42,7 +42,7 @@ class ApiEndpoints {
   /// Add / update an item in the cart.  `POST /cart/add`.
   static const String cartAdd = '/cart/add';
 
-  // ── Orders ──────────────────────────────────────────────────────────────────
+  // ── Orders ────────────────────────────────────────────────────────────────
 
   /// Create a new order from the Redis cart.  `POST /orders`.
   static const String ordersCreate = '/orders';
@@ -50,7 +50,7 @@ class ApiEndpoints {
   /// Cancel an existing order.  `PATCH /orders/cancel`.
   static const String ordersCancel = '/orders/cancel';
 
-  // ── Payments ─────────────────────────────────────────────────────────────────
+  // ── Payments ──────────────────────────────────────────────────────────────
 
   /// Fetch QR payload for GCash/Bank payment.  Append `/<orderId>`.
   static const String paymentQr = '/payments/qr-payload';

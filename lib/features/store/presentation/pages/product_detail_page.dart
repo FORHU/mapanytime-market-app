@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
@@ -64,7 +65,10 @@ class ProductDetailPage extends ConsumerWidget {
                       const Gap(AppSpacing.sm),
                       PriceTag(amount: product.price, fontSize: 24),
                       const Gap(AppSpacing.lg),
-                      Text('Description', style: theme.textTheme.titleMedium),
+                      Text(
+                        context.l10n.description,
+                        style: theme.textTheme.titleMedium,
+                      ),
                       const Gap(AppSpacing.sm),
                       Text(
                         product.description,
@@ -80,38 +84,43 @@ class ProductDetailPage extends ConsumerWidget {
             ),
           ),
           _BottomCta(
-            onAdd: () {
+            onAdd: () async {
               final cart = ref.read(cartProvider);
               if (cart.isNotEmpty && cart.first.storeId != storeId) {
-                showDialog<void>(
+                await showDialog<void>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text('Clear cart?'),
+                    title: Text(context.l10n.clearCartPrompt),
                     content: const Text(
                       'You already have items from another store in your cart. '
-                      'Adding this item will clear your current cart. Do you want to proceed?',
+                      'Adding this item will clear your current cart. '
+                      'Do you want to proceed?',
                     ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancel'),
+                        child: Text(context.l10n.cancel),
                       ),
                       TextButton(
                         onPressed: () {
                           Navigator.pop(context);
                           ref.read(cartProvider.notifier).clear();
-                          ref.read(cartProvider.notifier).add(
+                          ref
+                              .read(cartProvider.notifier)
+                              .add(
                                 product: product,
                                 storeId: storeId,
                                 storeName: storeName,
                               );
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('${product.name} added to cart'),
+                              content: Text(
+                                context.l10n.productAddedToCart(product.name),
+                              ),
                             ),
                           );
                         },
-                        child: const Text('Clear & Add'),
+                        child: Text(context.l10n.clearAndAdd),
                       ),
                     ],
                   ),
@@ -119,13 +128,17 @@ class ProductDetailPage extends ConsumerWidget {
                 return;
               }
 
-              ref.read(cartProvider.notifier).add(
+              ref
+                  .read(cartProvider.notifier)
+                  .add(
                     product: product,
                     storeId: storeId,
                     storeName: storeName,
                   );
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${product.name} added to cart')),
+                SnackBar(
+                  content: Text(context.l10n.productAddedToCart(product.name)),
+                ),
               );
             },
           ),

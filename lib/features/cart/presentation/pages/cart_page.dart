@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/core/utils/currency.dart';
 import 'package:mapanytime_market_app/features/cart/domain/entities/cart_item.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart';
@@ -40,7 +41,7 @@ class _CartPageState extends ConsumerState<CartPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cart'),
+        title: Text(context.l10n.cart),
         automaticallyImplyLeading: false,
       ),
       body: groups.isEmpty

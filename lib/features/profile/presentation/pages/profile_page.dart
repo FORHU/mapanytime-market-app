@@ -124,7 +124,7 @@ class ProfilePage extends ConsumerWidget {
 
   static void _soon(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Coming soon')),
+      SnackBar(content: Text(context.l10n.comingSoon)),
     );
   }
 }

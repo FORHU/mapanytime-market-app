@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/notifications/domain/entities/app_notification.dart';
 import 'package:mapanytime_market_app/features/notifications/presentation/controllers/notification_feed_controller.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
@@ -34,7 +35,7 @@ class _NotificationFeedPageState extends ConsumerState<NotificationFeedPage> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Notifications')),
+      appBar: AppBar(title: Text(context.l10n.notifications)),
       body: items.isEmpty
           ? const _EmptyFeed()
           : ListView.separated(

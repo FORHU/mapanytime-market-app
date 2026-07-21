@@ -10,5 +10,35 @@
   "loginHint": "Hint: any email + password of 6+ chars",
   "home": "Home",
   "profile": "Profile",
-  "worldMap": "World Map"
+  "worldMap": "World Map",
+  "errorNoOrderId": "Error: No order ID provided",
+  "errorNoOrder": "Error: No order provided",
+  "errorNoStore": "Error: No store provided",
+  "errorNoProduct": "Error: No product provided",
+  "description": "Description",
+  "clearCartPrompt": "Clear cart?",
+  "cancel": "Cancel",
+  "productAddedToCart": "{productName} added to cart",
+  "@productAddedToCart": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "clearAndAdd": "Clear & Add",
+  "shareComingSoon": "Share coming soon",
+  "comingSoon": "Coming soon",
+  "notifications": "Notifications",
+  "retry": "Retry",
+  "cart": "Cart",
+  "orderPlacedSuccess": "Order placed successfully!",
+  "orderPlacedFailed": "Failed to place order: {error}",
+  "@orderPlacedFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

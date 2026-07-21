@@ -40,4 +40,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldMap => 'World Map';
+
+  @override
+  String get errorNoOrderId => 'Error: No order ID provided';
+
+  @override
+  String get errorNoOrder => 'Error: No order provided';
+
+  @override
+  String get errorNoStore => 'Error: No store provided';
+
+  @override
+  String get errorNoProduct => 'Error: No product provided';
+
+  @override
+  String get description => 'Description';
+
+  @override
+  String get clearCartPrompt => 'Clear cart?';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String productAddedToCart(String productName) {
+    return '$productName added to cart';
+  }
+
+  @override
+  String get clearAndAdd => 'Clear & Add';
+
+  @override
+  String get shareComingSoon => 'Share coming soon';
+
+  @override
+  String get comingSoon => 'Coming soon';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get cart => 'Cart';
+
+  @override
+  String get orderPlacedSuccess => 'Order placed successfully!';
+
+  @override
+  String orderPlacedFailed(String error) {
+    return 'Failed to place order: $error';
+  }
 }

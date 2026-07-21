@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_details.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
 import 'package:mapanytime_market_app/features/store/presentation/controllers/store_controller.dart';
@@ -323,7 +324,7 @@ class _CircleButton extends StatelessWidget {
             context.pop();
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Share coming soon')),
+              SnackBar(content: Text(context.l10n.shareComingSoon)),
             );
           }
         },

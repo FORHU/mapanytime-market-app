@@ -17,7 +17,9 @@ class StoreRemoteDataSource {
     // ── 1. Store metadata ──────────────────────────────────────────────────
     final storeResponse = await _api.get('${ApiEndpoints.storeById}/$storeId');
     final storeData =
-        (storeResponse is Map ? storeResponse['data'] : null) as Map<dynamic, dynamic>? ?? {};
+        (storeResponse is Map ? storeResponse['data'] : null)
+            as Map<dynamic, dynamic>? ??
+        {};
 
     // ── 2. Products ────────────────────────────────────────────────────────
     final productsResponse = await _api.get(
@@ -27,8 +29,9 @@ class StoreRemoteDataSource {
     final productsData =
         (productsResponse is Map ? productsResponse['data'] : null) as Map? ??
         {};
-    final rawProducts =
-        (productsData['items'] is List ? productsData['items'] as List<dynamic> : <dynamic>[]);
+    final rawProducts = (productsData['items'] is List
+        ? productsData['items'] as List<dynamic>
+        : <dynamic>[]);
 
     final products = rawProducts
         .map(
@@ -39,7 +42,8 @@ class StoreRemoteDataSource {
     // Derive category chip labels from unique product categories.
     final categoryNames = {
       'All',
-      for (final p in products) if (p.category.isNotEmpty) p.category,
+      for (final p in products)
+        if (p.category.isNotEmpty) p.category,
     }.toList();
 
     // ── 3. Build StoreDetails ─────────────────────────────────────────────
@@ -50,7 +54,7 @@ class StoreRemoteDataSource {
       // No hero image in the API yet — use a placeholder seeded by storeId.
       heroImageUrl: 'https://picsum.photos/seed/$storeId/800/400',
       // Reviews/ratings not yet in the API; use neutral defaults.
-      rating: 0.0,
+      rating: 0,
       ratingCount: 0,
       category: _categoryLabel(storeData),
       isOpen: _isOpenNow(hours),

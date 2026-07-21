@@ -18,31 +18,30 @@ class OrderRemoteDataSource {
       'paymentMethod': paymentMethod,
       'pickupAt': pickupAt,
     });
-    
+
     final data = response is Map ? response['data'] : null;
     return (data as Map)['id'] as String;
   }
 
   Future<List<BuyerOrder>> fetchMyOrders() async {
     final response = await _api.get(ApiEndpoints.ordersCreate);
-    final data = response is Map ? response['data'] as List<dynamic> : <dynamic>[];
-    
+    final data = response is Map
+        ? response['data'] as List<dynamic>
+        : <dynamic>[];
+
     return data.map((json) {
       final map = json as Map<String, dynamic>;
       final statusStr = map['status'] as String? ?? 'PENDING';
-      
+
       OrderStatus status;
       switch (statusStr) {
         case 'PROCESSING':
           status = OrderStatus.preparing;
-          break;
         case 'COMPLETED':
           status = OrderStatus.pickedUp;
-          break;
         case 'CANCELLED':
         case 'FAILED':
           status = OrderStatus.cancelled;
-          break;
         case 'PENDING':
         default:
           status = OrderStatus.confirmed;
@@ -59,20 +58,26 @@ class OrderRemoteDataSource {
       }).toList();
 
       final createdAt = DateTime.tryParse(map['createdAt'] as String? ?? '');
-      final completedAt = DateTime.tryParse(map['completedAt'] as String? ?? '');
+      final completedAt = DateTime.tryParse(
+        map['completedAt'] as String? ?? '',
+      );
 
       return BuyerOrder(
         id: map['id'] as String,
         code: (map['id'] as String).substring(0, 8).toUpperCase(),
-        storeName: (map['store'] as Map?)?['storeName'] as String? ?? 'Unknown Store',
+        storeName:
+            (map['store'] as Map?)?['storeName'] as String? ?? 'Unknown Store',
         status: status,
-        placedLabel: createdAt != null ? '${createdAt.month}/${createdAt.day}' : '',
+        placedLabel: createdAt != null
+            ? '${createdAt.month}/${createdAt.day}'
+            : '',
         etaLabel: '', // We don't have ETA from backend yet
         lines: items,
         total: map['totalAmount'] as num? ?? 0,
         timestamps: {
           OrderStatus.confirmed: createdAt?.toIso8601String() ?? '',
-          if (completedAt != null) OrderStatus.pickedUp: completedAt.toIso8601String(),
+          if (completedAt != null)
+            OrderStatus.pickedUp: completedAt.toIso8601String(),
         },
       );
     }).toList();
