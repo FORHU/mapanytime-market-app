@@ -1,4 +1,4 @@
-﻿import 'package:mapanytime_market_app/core/constants/api_endpoints.dart';
+import 'package:mapanytime_market_app/core/constants/api_endpoints.dart';
 import 'package:mapanytime_market_app/core/services/api_service.dart';
 
 /// Thin wrapper around the cart API endpoints.

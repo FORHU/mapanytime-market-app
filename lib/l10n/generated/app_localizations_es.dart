@@ -24,14 +24,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get password => 'Contraseña';
 
   @override
-  String get welcomeBack => 'Bienvenido de nuevo';
+  String get welcomeBack => '¡Bienvenido de nuevo!';
 
   @override
   String get signInToContinue => 'Inicia sesión para continuar';
 
   @override
   String get loginHint =>
-      'Pista: cualquier correo y una contraseña de 6+ caracteres';
+      'Pista: usa cualquier correo electrónico y una contraseña de al menos 6 caracteres.';
 
   @override
   String get home => 'Inicio';
@@ -41,4 +41,56 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get worldMap => 'Mapa del mundo';
+
+  @override
+  String get errorNoOrderId => 'Error: no se proporcionó ID de pedido';
+
+  @override
+  String get errorNoOrder => 'Error: no se proporcionó pedido';
+
+  @override
+  String get errorNoStore => 'Error: no se proporcionó tienda';
+
+  @override
+  String get errorNoProduct => 'Error: no se proporcionó producto';
+
+  @override
+  String get description => 'Descripción';
+
+  @override
+  String get clearCartPrompt => '¿Deseas vaciar el carrito?';
+
+  @override
+  String get cancel => 'Cancelar';
+
+  @override
+  String productAddedToCart(String productName) {
+    return '$productName se añadió al carrito.';
+  }
+
+  @override
+  String get clearAndAdd => 'Vaciar y añadir';
+
+  @override
+  String get shareComingSoon => 'Compartir (próximamente)';
+
+  @override
+  String get comingSoon => 'Próximamente';
+
+  @override
+  String get notifications => 'Notificaciones';
+
+  @override
+  String get retry => 'Reintentar';
+
+  @override
+  String get cart => 'Carrito';
+
+  @override
+  String get orderPlacedSuccess => '¡Pedido realizado con éxito!';
+
+  @override
+  String orderPlacedFailed(String error) {
+    return 'Error al realizar el pedido: $error';
+  }
 }

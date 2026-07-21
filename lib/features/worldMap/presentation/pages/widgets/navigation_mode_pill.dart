@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mapanytime_market_app/features/worldMap/data/datasources/directions_datasource.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
@@ -119,8 +119,9 @@ class _ModeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        selected ? AppColors.brand.primary : AppColors.text.secondaryDark;
+    final color = selected
+        ? AppColors.brand.primary
+        : AppColors.text.secondaryDark;
 
     return GestureDetector(
       onTap: onTap,

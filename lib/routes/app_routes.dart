@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/services/storage_service.dart';
+import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/pages/login_page.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/pages/register_page.dart';
@@ -91,8 +92,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) {
               final orderId = state.extra as String?;
               if (orderId == null) {
-                return const Scaffold(
-                  body: Center(child: Text('Error: No order ID provided')),
+                return Scaffold(
+                  body: Center(child: Text(context.l10n.errorNoOrderId)),
                 );
               }
               return OrderConfirmationPage(orderId: orderId);
@@ -107,8 +108,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) {
               final order = state.extra as BuyerOrder?;
               if (order == null) {
-                return const Scaffold(
-                  body: Center(child: Text('Error: No order provided')),
+                return Scaffold(
+                  body: Center(child: Text(context.l10n.errorNoOrder)),
                 );
               }
               return OrderTrackingPage(order: order);
@@ -119,8 +120,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) {
               final order = state.extra as BuyerOrder?;
               if (order == null) {
-                return const Scaffold(
-                  body: Center(child: Text('Error: No order provided')),
+                return Scaffold(
+                  body: Center(child: Text(context.l10n.errorNoOrder)),
                 );
               }
               return PickupPassPage(order: order);
@@ -139,8 +140,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) {
               final store = state.extra as StoreEntity?;
               if (store == null) {
-                return const Scaffold(
-                  body: Center(child: Text('Error: No store provided')),
+                return Scaffold(
+                  body: Center(child: Text(context.l10n.errorNoStore)),
                 );
               }
               return StorefrontPage(store: store);
@@ -157,8 +158,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                         String storeName,
                       })?;
               if (args == null) {
-                return const Scaffold(
-                  body: Center(child: Text('Error: No product provided')),
+                return Scaffold(
+                  body: Center(child: Text(context.l10n.errorNoProduct)),
                 );
               }
               return ProductDetailPage(

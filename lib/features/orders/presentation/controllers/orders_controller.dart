@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart' show apiServiceProvider;
+import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart'
+    show apiServiceProvider;
 import 'package:mapanytime_market_app/features/orders/data/order_remote_datasource.dart';
 import 'package:mapanytime_market_app/features/orders/domain/entities/buyer_order.dart';
 

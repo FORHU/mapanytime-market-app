@@ -77,8 +77,7 @@ class _OrderConfirmationPageState extends ConsumerState<OrderConfirmationPage> {
                     ),
                     child: QrImageView(
                       data: 'gcash-mock-payment-for-${widget.orderId}',
-                      version: QrVersions.auto,
-                      size: 200.0,
+                      size: 200,
                     ),
                   ),
                 ),

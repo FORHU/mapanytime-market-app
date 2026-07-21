@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
+import 'app_localizations_ko.dart';
 
 // ignore_for_file: type=lint
 
@@ -96,6 +97,7 @@ abstract class AppLocalizations {
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
     Locale('es'),
+    Locale('ko'),
   ];
 
   /// No description provided for @appName.
@@ -163,6 +165,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'World Map'**
   String get worldMap;
+
+  /// No description provided for @errorNoOrderId.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: No order ID provided'**
+  String get errorNoOrderId;
+
+  /// No description provided for @errorNoOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: No order provided'**
+  String get errorNoOrder;
+
+  /// No description provided for @errorNoStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: No store provided'**
+  String get errorNoStore;
+
+  /// No description provided for @errorNoProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: No product provided'**
+  String get errorNoProduct;
+
+  /// No description provided for @description.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get description;
+
+  /// No description provided for @clearCartPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear cart?'**
+  String get clearCartPrompt;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @productAddedToCart.
+  ///
+  /// In en, this message translates to:
+  /// **'{productName} added to cart'**
+  String productAddedToCart(String productName);
+
+  /// No description provided for @clearAndAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear & Add'**
+  String get clearAndAdd;
+
+  /// No description provided for @shareComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Share coming soon'**
+  String get shareComingSoon;
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get comingSoon;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @cart.
+  ///
+  /// In en, this message translates to:
+  /// **'Cart'**
+  String get cart;
+
+  /// No description provided for @orderPlacedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Order placed successfully!'**
+  String get orderPlacedSuccess;
+
+  /// No description provided for @orderPlacedFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to place order: {error}'**
+  String orderPlacedFailed(String error);
 }
 
 class _AppLocalizationsDelegate
@@ -176,7 +274,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'es'].contains(locale.languageCode);
+      <String>['en', 'es', 'ko'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -189,6 +287,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsEn();
     case 'es':
       return AppLocalizationsEs();
+    case 'ko':
+      return AppLocalizationsKo();
   }
 
   throw FlutterError(

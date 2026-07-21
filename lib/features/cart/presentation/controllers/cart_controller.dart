@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart' show apiServiceProvider;
+import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart'
+    show apiServiceProvider;
 import 'package:mapanytime_market_app/features/cart/data/cart_remote_datasource.dart';
 import 'package:mapanytime_market_app/features/cart/domain/entities/cart_item.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
@@ -33,14 +34,18 @@ class CartNotifier extends Notifier<List<CartItem>> {
         CartItem(product: product, storeId: storeId, storeName: storeName),
       ];
     }
-    final quantity =
-        state.firstWhere((i) => i.product.id == product.id).quantity;
+    final quantity = state
+        .firstWhere((i) => i.product.id == product.id)
+        .quantity;
     unawaited(
-      ref.read(cartRemoteDataSourceProvider).addToCart(
-        storeId: storeId,
-        productId: product.id,
-        quantity: quantity,
-      ).catchError((_) {}), // fire-and-forget
+      ref
+          .read(cartRemoteDataSourceProvider)
+          .addToCart(
+            storeId: storeId,
+            productId: product.id,
+            quantity: quantity,
+          )
+          .catchError((_) {}), // fire-and-forget
     );
 
     // A newly added item is "unseen" until the buyer opens the cart.
@@ -62,11 +67,14 @@ class CartNotifier extends Notifier<List<CartItem>> {
 
     final storeId = state.firstWhere((i) => i.product.id == productId).storeId;
     unawaited(
-      ref.read(cartRemoteDataSourceProvider).addToCart(
-        storeId: storeId,
-        productId: productId,
-        quantity: quantity,
-      ).catchError((_) {}),
+      ref
+          .read(cartRemoteDataSourceProvider)
+          .addToCart(
+            storeId: storeId,
+            productId: productId,
+            quantity: quantity,
+          )
+          .catchError((_) {}),
     );
   }
 

@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/core/utils/currency.dart';
-import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart' show apiServiceProvider;
+import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart'
+    show apiServiceProvider;
 import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart';
 import 'package:mapanytime_market_app/features/orders/data/order_remote_datasource.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
@@ -231,13 +233,13 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
         ? pickupDateTime.add(const Duration(days: 1))
         : pickupDateTime;
     final isoPickup = finalPickup.toUtc().toIso8601String();
-    
+
     final paymentMethodEnum = _methods[_method].$3;
 
     try {
       final api = ref.read(apiServiceProvider);
       final remote = OrderRemoteDataSource(api);
-      
+
       final orderId = await remote.createOrder(
         type: 'PICKUP',
         paymentMethod: paymentMethodEnum,
@@ -249,23 +251,23 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
         for (final item in ref.read(cartSelectedItemsProvider)) item.product.id,
       ];
       ref.read(cartProvider.notifier).removeMany(orderedIds);
-      
+
       // Temporary: Since backend CartService.clearCart is called on success,
       // let's clear local cart state or rely on removeMany.
       // Actually backend clears the whole cart, so we should clear local cart:
       ref.read(cartProvider.notifier).clear();
 
       if (!context.mounted) return;
-      
+
       context.go(RouteNames.orderConfirmation, extra: orderId);
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Order placed successfully!')),
+        SnackBar(content: Text(context.l10n.orderPlacedSuccess)),
       );
-    } catch (e) {
+    } on Exception catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to place order: $e')),
+        SnackBar(content: Text(context.l10n.orderPlacedFailed(e.toString()))),
       );
     }
   }

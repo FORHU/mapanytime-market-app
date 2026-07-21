@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/home/domain/entities/landing_content.dart';
 import 'package:mapanytime_market_app/features/home/presentation/controllers/landing_controller.dart';
@@ -397,7 +398,7 @@ class _ErrorState extends StatelessWidget {
             style: TextStyle(color: AppColors.text.secondaryDark),
           ),
           const Gap(AppSpacing.sm),
-          TextButton(onPressed: onRetry, child: const Text('Retry')),
+          TextButton(onPressed: onRetry, child: Text(context.l10n.retry)),
         ],
       ),
     );
