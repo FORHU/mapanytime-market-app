@@ -29,6 +29,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     final data = await _api.post(ApiEndpoints.login, {
       'email': email,
       'password': password,
+      'roleName': 'BUYER',
     });
     return UserModel.fromJson((data as Map).cast<String, dynamic>());
   }
