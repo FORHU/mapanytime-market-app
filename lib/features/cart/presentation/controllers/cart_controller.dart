@@ -79,18 +79,55 @@ class CartNotifier extends Notifier<List<CartItem>> {
   }
 
   void remove(String productId) {
+    CartItem? item;
+    for (final i in state) {
+      if (i.product.id == productId) {
+        item = i;
+        break;
+      }
+    }
     state = [
       for (final item in state)
         if (item.product.id != productId) item,
     ];
+    if (item != null) {
+      unawaited(
+        ref
+            .read(cartRemoteDataSourceProvider)
+            .addToCart(
+              storeId: item.storeId,
+              productId: productId,
+              quantity: 0,
+            )
+            .catchError((_) {}),
+      );
+    }
   }
 
   void removeMany(Iterable<String> productIds) {
     final ids = productIds.toSet();
+    final itemsToRemove = <CartItem>[];
+    for (final i in state) {
+      if (ids.contains(i.product.id)) {
+        itemsToRemove.add(i);
+      }
+    }
     state = [
       for (final item in state)
         if (!ids.contains(item.product.id)) item,
     ];
+    for (final item in itemsToRemove) {
+      unawaited(
+        ref
+            .read(cartRemoteDataSourceProvider)
+            .addToCart(
+              storeId: item.storeId,
+              productId: item.product.id,
+              quantity: 0,
+            )
+            .catchError((_) {}),
+      );
+    }
   }
 
   void clear() {
