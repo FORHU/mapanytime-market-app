@@ -85,8 +85,13 @@ class ProductDetailPage extends ConsumerWidget {
           ),
           _BottomCta(
             onAdd: () async {
+              final effectiveStoreId =
+                  storeId.isNotEmpty ? storeId : product.storeId;
+              final effectiveStoreName =
+                  storeName != 'Store' ? storeName : product.storeName;
+
               final cart = ref.read(cartProvider);
-              if (cart.isNotEmpty && cart.first.storeId != storeId) {
+              if (cart.isNotEmpty && cart.first.storeId != effectiveStoreId) {
                 await showDialog<void>(
                   context: context,
                   builder: (context) => AlertDialog(
@@ -109,8 +114,8 @@ class ProductDetailPage extends ConsumerWidget {
                               .read(cartProvider.notifier)
                               .add(
                                 product: product,
-                                storeId: storeId,
-                                storeName: storeName,
+                                storeId: effectiveStoreId,
+                                storeName: effectiveStoreName,
                               );
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -132,8 +137,8 @@ class ProductDetailPage extends ConsumerWidget {
                   .read(cartProvider.notifier)
                   .add(
                     product: product,
-                    storeId: storeId,
-                    storeName: storeName,
+                    storeId: effectiveStoreId,
+                    storeName: effectiveStoreName,
                   );
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(

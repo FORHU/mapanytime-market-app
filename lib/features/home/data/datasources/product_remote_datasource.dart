@@ -61,6 +61,8 @@ class ProductRemoteDataSource {
       id: m['id'] as String? ?? '',
       name: m['name'] as String? ?? '',
       price: (m['price'] as num?)?.toDouble() ?? 0,
+      storeId: m['storeId'] as String? ??
+          (store is Map ? store['id'] as String? : null),
       storeName: store is Map ? store['storeName'] as String? : null,
       imageUrl: file is Map ? file['fileUrl'] as String? : null,
       categoryName: category is Map ? category['name'] as String? : null,

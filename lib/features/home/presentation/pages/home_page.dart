@@ -10,6 +10,7 @@ import 'package:mapanytime_market_app/features/home/presentation/widgets/hero_ba
 import 'package:mapanytime_market_app/features/home/presentation/widgets/home_app_bar.dart';
 import 'package:mapanytime_market_app/features/home/presentation/widgets/quick_category_item.dart';
 import 'package:mapanytime_market_app/features/notifications/presentation/controllers/notification_feed_controller.dart';
+import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/category_tree.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/controllers/world_map_controller.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
@@ -279,7 +280,39 @@ class _HomePageState extends ConsumerState<HomePage> {
                                           price: p.price,
                                           storeName: p.storeName,
                                           width: itemWidth,
-                                          onTap: _openMap,
+                                          onTap: () {
+                                            if (p.storeId != null &&
+                                                p.storeId!.isNotEmpty) {
+                                              unawaited(
+                                                context.push(
+                                                  RouteNames.productDetail,
+                                                  extra: (
+                                                    product: StoreProduct(
+                                                      id: p.id,
+                                                      name: p.name,
+                                                      imageUrl:
+                                                          p.imageUrl ?? '',
+                                                      price: p.price,
+                                                      description: '',
+                                                      category:
+                                                          p.categoryName ??
+                                                              'Other',
+                                                      storeId: p.storeId!,
+                                                      storeName:
+                                                          p.storeName ??
+                                                              'Store',
+                                                    ),
+                                                    storeId: p.storeId!,
+                                                    storeName:
+                                                        p.storeName ??
+                                                            'Store',
+                                                  ),
+                                                ),
+                                              );
+                                            } else {
+                                              _openMap();
+                                            }
+                                          },
                                         ),
                                     ],
                                   );
