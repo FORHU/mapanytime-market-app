@@ -19,9 +19,7 @@ class AppConfig {
       appName: dotenv.env['APP_NAME'] ?? 'mapanytime_market_app',
       baseUrl: dotenv.env['BASE_URL'] ?? '',
       mapboxPublicToken:
-          dotenv.env['MAPBOX_PUBLIC_TOKEN'] ??
-          'pk.eyJ1IjoianVuZ2t3YW5zaGluIiwiYSI6ImNtcW9xcGE2aDA1d2wycXF2cXFzdG14'
-              'bWcifQ.HR1a5C0MxCY4M0f1yEt6-A',
+          dotenv.env['MAPBOX_PUBLIC_TOKEN'] ?? defaultMapboxPublicToken,
       enableLogging:
           (dotenv.env['ENABLE_LOGGING'] ??
                   (envString != 'prod' ? 'true' : 'false'))
@@ -36,7 +34,7 @@ class AppConfig {
     : environment = Environment.dev,
       appName = 'MapAnytime Market (Dev)',
       baseUrl = 'http://192.168.1.20:4002/api/v1',
-      mapboxPublicToken = '',
+      mapboxPublicToken = defaultMapboxPublicToken,
       enableLogging = true;
 
   /// Explicit production config used by `main_prod.dart` — logging off, real
@@ -45,7 +43,7 @@ class AppConfig {
     : environment = Environment.prod,
       appName = 'MapAnytime Market',
       baseUrl = '',
-      mapboxPublicToken = '',
+      mapboxPublicToken = defaultMapboxPublicToken,
       enableLogging = false;
 
   final Environment environment;
@@ -69,6 +67,16 @@ class AppConfig {
       port: uri.hasPort ? uri.port : null,
     ).toString();
   }
+
+  /// Public Mapbox token used when `MAPBOX_PUBLIC_TOKEN` isn't supplied.
+  ///
+  /// `pk.*` tokens are meant to be public, and this one ships inside the app
+  /// bundle regardless (`.env.dev`/`.env.prod` are pubspec assets), so holding
+  /// it here adds no exposure. Restrict it by app/URL in the Mapbox account so
+  /// the quota can't be spent by others.
+  static const String defaultMapboxPublicToken =
+      'pk.eyJ1IjoianVuZ2t3YW5zaGluIiwiYSI6ImNtcW9xcGE2aDA1d2wycXF2cXFzdG14'
+      'bWcifQ.HR1a5C0MxCY4M0f1yEt6-A';
 
   /// Set once by `bootstrap()` before `runApp`. Reading it before then throws.
   static late AppConfig instance;
