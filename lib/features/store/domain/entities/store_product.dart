@@ -7,9 +7,12 @@ class StoreProduct {
     required this.price,
     required this.description,
     required this.category,
+    this.storeId = '',
+    this.storeName = 'Store',
   });
 
   factory StoreProduct.fromJson(Map<String, dynamic> json) {
+    final storeObj = json['store'] as Map<String, dynamic>?;
     return StoreProduct(
       id: json['id'] as String,
       name: json['name'] as String,
@@ -18,6 +21,9 @@ class StoreProduct {
       price: (json['price'] as num).toDouble(),
       description: json['description'] as String? ?? '',
       category: (json['category'] as Map?)?['name'] as String? ?? 'Other',
+      storeId:
+          (json['storeId'] as String?) ?? (storeObj?['id'] as String?) ?? '',
+      storeName: (storeObj?['storeName'] as String?) ?? 'Store',
     );
   }
 
@@ -27,4 +33,6 @@ class StoreProduct {
   final num price;
   final String description;
   final String category;
+  final String storeId;
+  final String storeName;
 }

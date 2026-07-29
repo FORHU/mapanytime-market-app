@@ -33,11 +33,13 @@ class StoreRemoteDataSource {
         ? productsData['items'] as List<dynamic>
         : <dynamic>[]);
 
-    final products = rawProducts
-        .map(
-          (e) => StoreProduct.fromJson((e as Map).cast<String, dynamic>()),
-        )
-        .toList();
+    final products = rawProducts.map((e) {
+      final map = (e as Map).cast<String, dynamic>();
+      if ((map['storeId'] as String?)?.isEmpty ?? true) {
+        map['storeId'] = storeId;
+      }
+      return StoreProduct.fromJson(map);
+    }).toList();
 
     // Derive category chip labels from unique product categories.
     final categoryNames = {

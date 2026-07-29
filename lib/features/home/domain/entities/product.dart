@@ -6,6 +6,7 @@ class Product extends Equatable {
     required this.id,
     required this.name,
     required this.price,
+    this.storeId,
     this.storeName,
     this.imageUrl,
     this.categoryName,
@@ -14,17 +15,19 @@ class Product extends Equatable {
   final String id;
   final String name;
   final double price;
+  final String? storeId;
   final String? storeName;
   final String? imageUrl;
   final String? categoryName;
 
   @override
   List<Object?> get props => [
-    id,
-    name,
-    price,
-    storeName,
-    imageUrl,
-    categoryName,
-  ];
+        id,
+        name,
+        price,
+        storeId,
+        storeName,
+        imageUrl,
+        categoryName,
+      ];
 }
