@@ -13,16 +13,28 @@ import 'package:mapanytime_market_app/shared/widgets/section_title.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mapanytime_market_app/features/orders/presentation/controllers/orders_controller.dart';
+
 /// Order Tracking: live status, timeline, items and a pickup-pass CTA.
-class OrderTrackingPage extends StatelessWidget {
+class OrderTrackingPage extends ConsumerWidget {
   const OrderTrackingPage({required this.order, super.key});
 
   final BuyerOrder order;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ordersAsync = ref.watch(ordersProvider);
+    final currentOrder = ordersAsync.maybeWhen(
+      data: (list) => list.firstWhere(
+        (o) => o.id == order.id,
+        orElse: () => order,
+      ),
+      orElse: () => order,
+    );
+
     return Scaffold(
-      appBar: ModernAppBar(title: order.storeName),
+      appBar: ModernAppBar(title: currentOrder.storeName),
       body: Column(
         children: [
           Expanded(
@@ -35,16 +47,16 @@ class OrderTrackingPage extends StatelessWidget {
               ),
               children: [
                 PickupStatusCard(
-                  status: order.status,
-                  etaLabel: order.etaLabel,
+                  status: currentOrder.status,
+                  etaLabel: currentOrder.etaLabel,
                 ),
                 const Gap(AppSpacing.lg),
                 const SectionTitle(title: 'Progress'),
                 const Gap(AppSpacing.md),
                 GlassCard(
                   child: OrderTimeline(
-                    current: order.status,
-                    timestamps: order.timestamps,
+                    current: currentOrder.status,
+                    timestamps: currentOrder.timestamps,
                   ),
                 ),
                 const Gap(AppSpacing.lg),
@@ -53,13 +65,13 @@ class OrderTrackingPage extends StatelessWidget {
                 GlassCard(
                   child: Column(
                     children: [
-                      for (final line in order.lines) ...[
+                      for (final line in currentOrder.lines) ...[
                         _ItemRow(
                           name: line.name,
                           quantity: line.quantity,
                           total: line.lineTotal,
                         ),
-                        if (line != order.lines.last) const Gap(AppSpacing.sm),
+                        if (line != currentOrder.lines.last) const Gap(AppSpacing.sm),
                       ],
                       const Gap(AppSpacing.sm),
                       Divider(color: AppColors.ui.borderDark, height: 1),
@@ -72,7 +84,7 @@ class OrderTrackingPage extends StatelessWidget {
                             style: TextStyle(fontWeight: FontWeight.w800),
                           ),
                           Text(
-                            Money.peso(order.total),
+                            Money.peso(currentOrder.total),
                             style: const TextStyle(
                               fontWeight: FontWeight.w800,
                             ),
@@ -85,7 +97,7 @@ class OrderTrackingPage extends StatelessWidget {
               ],
             ),
           ),
-          if (order.isActive)
+          if (currentOrder.isActive)
             Container(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.md,

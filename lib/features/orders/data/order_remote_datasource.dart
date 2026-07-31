@@ -36,8 +36,13 @@ class OrderRemoteDataSource {
       OrderStatus status;
       switch (statusStr) {
         case 'PROCESSING':
+        case 'PREPARING':
           status = OrderStatus.preparing;
+        case 'READY_FOR_PICKUP':
+        case 'READY':
+          status = OrderStatus.ready;
         case 'COMPLETED':
+        case 'PICKED_UP':
           status = OrderStatus.pickedUp;
         case 'CANCELLED':
         case 'FAILED':
@@ -76,10 +81,26 @@ class OrderRemoteDataSource {
         total: map['totalAmount'] as num? ?? 0,
         timestamps: {
           OrderStatus.confirmed: createdAt?.toIso8601String() ?? '',
+          if (status == OrderStatus.preparing ||
+              status == OrderStatus.ready ||
+              status == OrderStatus.pickedUp)
+            OrderStatus.preparing: 'Preparing',
+          if (status == OrderStatus.ready || status == OrderStatus.pickedUp)
+            OrderStatus.ready: 'Ready for Pickup',
           if (completedAt != null)
             OrderStatus.pickedUp: completedAt.toIso8601String(),
         },
       );
     }).toList();
+  }
+
+  Future<bool> simulateMockPayment(String orderId) async {
+    final refNo = 'MOCK-${DateTime.now().millisecondsSinceEpoch}';
+    final response = await _api.post('/payments/mock-webhook', {
+      'orderId': orderId,
+      'status': 'COMPLETED',
+      'referenceNumber': refNo,
+    });
+    return response is Map && (response['success'] == true || response['statusCode'] == 200);
   }
 }

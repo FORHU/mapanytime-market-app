@@ -98,7 +98,10 @@ class StoreRemoteDataSource {
     if (t == null) return null;
     final parts = t.split(':');
     if (parts.length < 2) return null;
-    return int.tryParse(parts[0])! * 60 + (int.tryParse(parts[1]) ?? 0);
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return null;
+    return hour * 60 + minute;
   }
 
   String _etaLabel(Map<String, dynamic>? location) {
