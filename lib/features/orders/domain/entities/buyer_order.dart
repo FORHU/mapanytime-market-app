@@ -39,7 +39,8 @@ class BuyerOrder {
   final num total;
   final Map<OrderStatus, String> timestamps;
 
-  bool get isActive => status != OrderStatus.pickedUp;
+  bool get isActive =>
+      status != OrderStatus.pickedUp && status != OrderStatus.cancelled;
 
   int get itemCount => lines.fold<int>(0, (sum, line) => sum + line.quantity);
 }

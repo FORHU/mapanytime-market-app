@@ -20,14 +20,24 @@ class OrderTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const steps = OrderStatus.values;
+    final steps = current == OrderStatus.cancelled
+        ? const [OrderStatus.confirmed, OrderStatus.cancelled]
+        : const [
+            OrderStatus.confirmed,
+            OrderStatus.preparing,
+            OrderStatus.ready,
+            OrderStatus.pickedUp,
+          ];
+
+    final currentIndex = steps.indexOf(current);
+
     return Column(
       children: [
         for (var i = 0; i < steps.length; i++)
           _Step(
             status: steps[i],
-            isDone: i < current.index,
-            isActive: i == current.index,
+            isDone: i < currentIndex,
+            isActive: i == currentIndex,
             isLast: i == steps.length - 1,
             time: timestamps[steps[i]],
           ),

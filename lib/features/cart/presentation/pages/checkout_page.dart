@@ -10,6 +10,7 @@ import 'package:mapanytime_market_app/features/auth/presentation/controllers/aut
     show apiServiceProvider;
 import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart';
 import 'package:mapanytime_market_app/features/orders/data/order_remote_datasource.dart';
+import 'package:mapanytime_market_app/features/orders/presentation/controllers/orders_controller.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
@@ -36,6 +37,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
 
   int _method = 0;
   TimeOfDay? _pickupTime;
+  bool _isSubmitting = false;
 
   Future<void> _pickTime() async {
     final now = TimeOfDay.now();
@@ -57,7 +59,9 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
         ? 'Select a time'
         : MaterialLocalizations.of(context).formatTimeOfDay(_pickupTime!);
 
-    return Scaffold(
+    return Stack(
+      children: [
+        Scaffold(
       appBar: const ModernAppBar(title: 'Checkout'),
       body: Column(
         children: [
@@ -205,19 +209,66 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
           ),
           _PlaceOrderBar(
             total: total,
-            onPlaceOrder: () => unawaited(_placeOrder(context)),
+            onPlaceOrder: _isSubmitting ? null : () => unawaited(_placeOrder(context)),
           ),
         ],
       ),
+    ),
+    if (_isSubmitting)
+      ModalBarrier(
+        dismissible: false,
+        color: Colors.black.withValues(alpha: 0.6),
+      ),
+    if (_isSubmitting)
+      Center(
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          decoration: BoxDecoration(
+            color: AppColors.ui.surfaceDark,
+            borderRadius: AppRadius.brLg,
+            border: Border.all(color: AppColors.ui.borderDark),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(color: AppColors.brand.primary),
+              const Gap(AppSpacing.md),
+              const Text(
+                'Placing your order...',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  color: AppColors.text.primaryDark,
+                ),
+              ),
+              const Gap(4),
+              Text(
+                'Please wait a moment to prevent duplicates.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.text.secondaryDark,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      ],
     );
   }
 
   Future<void> _placeOrder(BuildContext context) async {
+    if (_isSubmitting) return;
+
     if (_pickupTime == null) {
       await _pickTime();
       if (_pickupTime == null) return;
     }
     if (!context.mounted) return;
+
+    setState(() => _isSubmitting = true);
 
     final now = DateTime.now();
     final pickupDateTime = DateTime(
@@ -252,10 +303,9 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       ];
       ref.read(cartProvider.notifier).removeMany(orderedIds);
 
-      // Temporary: Since backend CartService.clearCart is called on success,
-      // let's clear local cart state or rely on removeMany.
-      // Actually backend clears the whole cart, so we should clear local cart:
+      // Clear local cart and invalidate ordersProvider so the new order appears immediately
       ref.read(cartProvider.notifier).clear();
+      ref.invalidate(ordersProvider);
 
       if (!context.mounted) return;
 
@@ -269,6 +319,10 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.orderPlacedFailed(e.toString()))),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 }
