@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mapbox_privacy_policy">Política de privadesa de Mapbox</string>
+    <string name="mapbox_telemetryImproveMap">Millora aquest mapa</string>
+    <string name="mapbox_telemetrySettings">Telemetria de Mapbox</string>
+</resources>

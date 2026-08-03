@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mapbox_privacy_policy">Политика конфиденциальности Mapbox</string>
+    <string name="mapbox_telemetryImproveMap">Улучшить карту</string>
+    <string name="mapbox_telemetrySettings">Mapbox Телеметрия</string>
+</resources>

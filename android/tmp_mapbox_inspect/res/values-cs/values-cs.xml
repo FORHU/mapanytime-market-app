@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mapbox_privacy_policy">Zásady ochrany osobních údajů Mapbox</string>
+    <string name="mapbox_telemetryImproveMap">Vylepšete tuto mapu</string>
+    <string name="mapbox_telemetrySettings">Telemetrie Mapboxu</string>
+</resources>

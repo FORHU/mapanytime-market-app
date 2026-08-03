@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="mapbox_blue">#1E8CAB</color>
+    <color name="mapbox_gray">#7D7F80</color>
+    <color name="mapbox_gray_dark">#5F5F5F</color>
+    <color name="mapbox_location_layer_blue">#4A90E2</color>
+    <color name="mapbox_location_layer_gray">#A1B0C0</color>
+    <item name="collisionBox" type="id"/>
+    <item name="composeView" type="id"/>
+    <item name="mapView" type="id"/>
+    <string name="mapbox_geofencing_consent">Mapbox Geofencing</string>
+    <string name="mapbox_privacy_policy">Mapbox Privacy Policy</string>
+    <string name="mapbox_telemetryImproveMap">Improve This Map</string>
+    <string name="mapbox_telemetrySettings">Mapbox Telemetry</string>
+    <declare-styleable name="mapbox_MapView">
+        
+        <attr format="enum" name="mapbox_mapContextMode">
+            <!-- Unique context mode: in OpenGL, the GL context is not shared, thus we can retain knowledge about the GL state from a previous render pass. It also enables clearing the screen using glClear for the bottommost background layer when no pattern is applied to that layer. -->
+            <enum name="unique" value="0"/>
+            <!-- Shared context mode: in OpenGL, the GL context is shared with other renderers, thus we cannot rely on the GL state set from a previous render pass. -->
+            <enum name="shared" value="1"/>
+        </attr>
+        
+        <attr format="enum" name="mapbox_mapConstrainMode">
+            <!-- No constraints. -->
+            <enum name="none" value="0"/>
+            <!-- Constrain to height only. -->
+            <enum name="height_only" value="1"/>
+            <!-- Constrain both width and height axes. -->
+            <enum name="width_and_height" value="2"/>
+        </attr>
+        
+        <attr format="enum" name="mapbox_mapViewportMode">
+            <!-- Default viewport. -->
+            <enum name="default_viewport" value="0"/>
+            <!-- Viewport flipped on the y-axis. -->
+            <enum name="flipped_y" value="1"/>
+        </attr>
+        
+        <attr format="enum" name="mapbox_mapOrientation">
+            <!-- Default, map oriented upwards. -->
+            <enum name="upwards" value="0"/>
+            <!-- Map oriented rightwards. -->
+            <enum name="rightwards" value="1"/>
+            <!-- Map oriented downwards. -->
+            <enum name="downwards" value="2"/>
+            <!-- Map oriented lefttwards. -->
+            <enum name="lefttwards" value="3"/>
+        </attr>
+        
+        <attr format="boolean" name="mapbox_mapCrossSourceCollisionsEnabled"/>
+        
+        <attr format="float" name="mapbox_mapPixelRatio"/>
+        
+        <attr format="enum" name="mapbox_mapSurface">
+            <!-- Default, map rendering on a SurfaceView with no alpha channel in EGL config. -->
+            <enum name="surface_view" value="0"/>
+            <!-- Map rendering on a TextureView with 8-byte alpha channel in EGL config. -->
+            <enum name="texture_view" value="1"/>
+        </attr>
+        
+        <attr format="integer" name="mapbox_mapAntialiasingSampleCount"/>
+        
+        <attr format="string" name="mapbox_mapName"/>
+a
+        
+        <attr format="string" name="mapbox_mapFontFamily"/>
+        
+        <attr format="enum" name="mapbox_mapGlyphRasterizationMode">
+            <!-- No glyphs are rasterized locally. All glyphs are loaded from the server. -->
+            <enum name="no_glyphs_rasterized_locally" value="0"/>
+            <!-- Ideographs are rasterized locally, and they are not loaded from the server. -->
+            <enum name="ideographs_rasterized_locally" value="1"/>
+            <!-- All glyphs are rasterized locally. No glyphs are loaded from the server. -->
+            <enum name="all_glyphs_rasterized_locally" value="2"/>
+        </attr>
+
+        
+        
+        <attr format="float" name="mapbox_cameraTargetLat"/>
+        <attr format="float" name="mapbox_cameraTargetLng"/>
+        <attr format="float" name="mapbox_cameraZoom"/>
+        <attr format="float" name="mapbox_cameraBearing"/>
+        <attr format="float" name="mapbox_cameraPitch"/>
+        <attr format="float" name="mapbox_cameraAnchorX"/>
+        <attr format="float" name="mapbox_cameraAnchorY"/>
+        <attr format="float" name="mapbox_cameraPaddingTop"/>
+        <attr format="float" name="mapbox_cameraPaddingLeft"/>
+        <attr format="float" name="mapbox_cameraPaddingBottom"/>
+        <attr format="float" name="mapbox_cameraPaddingRight"/>
+
+        
+        <attr format="string" name="mapbox_styleUri"/>
+    </declare-styleable>
+</resources>

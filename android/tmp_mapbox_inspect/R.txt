@@ -1,0 +1,6 @@
+int dimen mapbox_defaultMultiTapMovementThreshold 0x0
+int dimen mapbox_defaultScaleSpanSinceStartThreshold 0x0
+int dimen mapbox_defaultShovePixelThreshold 0x0
+int dimen mapbox_internalMinSpan23 0x0
+int dimen mapbox_internalMinSpan24 0x0
+int layout activity_dummy 0x0

@@ -232,9 +232,9 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const CircularProgressIndicator(color: AppColors.brand.primary),
+              CircularProgressIndicator(color: AppColors.brand.primary),
               const Gap(AppSpacing.md),
-              const Text(
+              Text(
                 'Placing your order...',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -409,7 +409,7 @@ class _PlaceOrderBar extends StatelessWidget {
   const _PlaceOrderBar({required this.total, required this.onPlaceOrder});
 
   final num total;
-  final VoidCallback onPlaceOrder;
+  final VoidCallback? onPlaceOrder;
 
   @override
   Widget build(BuildContext context) {

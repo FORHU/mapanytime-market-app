@@ -3,7 +3,9 @@ import 'package:gap/gap.dart';
 import 'package:mapanytime_market_app/features/orders/domain/entities/buyer_order.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
 import 'package:mapanytime_market_app/shared/widgets/qr_card.dart';
+import 'package:mapanytime_market_app/shared/widgets/order_status.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -69,7 +71,7 @@ class PickupPassPage extends ConsumerWidget {
                         color: AppColors.text.tertiaryDark.withValues(alpha: 0.4),
                       ),
                       const Gap(AppSpacing.md),
-                      const Text(
+                      Text(
                         'QR Pass Locked',
                         style: TextStyle(
                           fontSize: 16,
@@ -123,7 +125,7 @@ class PickupPassPage extends ConsumerWidget {
                 PrimaryButton(
                   label: 'Simulate Mock Payment',
                   icon: Icons.payments_rounded,
-                  onTap: () async {
+                  onPressed: () async {
                     final api = ref.read(apiServiceProvider);
                     final remote = OrderRemoteDataSource(api);
                     final success = await remote.simulateMockPayment(currentOrder.id);
