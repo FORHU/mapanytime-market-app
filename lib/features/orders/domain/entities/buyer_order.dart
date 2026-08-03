@@ -27,6 +27,9 @@ class BuyerOrder {
     required this.lines,
     required this.total,
     required this.timestamps,
+    this.subtotalAmount,
+    this.taxAmount,
+    this.sellerNetAmount,
   });
 
   final String id;
@@ -38,6 +41,9 @@ class BuyerOrder {
   final List<OrderLine> lines;
   final num total;
   final Map<OrderStatus, String> timestamps;
+  final num? subtotalAmount;
+  final num? taxAmount;
+  final num? sellerNetAmount;
 
   bool get isActive =>
       status != OrderStatus.pickedUp && status != OrderStatus.cancelled;
