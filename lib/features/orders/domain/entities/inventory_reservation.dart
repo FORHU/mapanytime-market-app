@@ -1,21 +1,16 @@
-enum ReservationStatus {
-  reserved,
-  consumed,
-  expired,
-  released,
-}
+enum ReservationStatus { reserved, consumed, expired, released }
 
 class InventoryReservation {
   const InventoryReservation({
     required this.id,
     required this.inventoryId,
     required this.buyerId,
-    this.cartId,
-    this.orderId,
     required this.quantity,
     required this.status,
     required this.expiresAt,
     required this.createdAt,
+    this.cartId,
+    this.orderId,
   });
 
   final String id;

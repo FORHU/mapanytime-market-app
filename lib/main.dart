@@ -14,10 +14,7 @@ Future<void> main() async {
   // Which env asset to load, e.g. `--dart-define=ENV_FILE=.env.prod`. Defaults
   // to dev so a bare `flutter run` behaves as before; without this a release
   // build through this entry point would silently ship dev config.
-  const envFile = String.fromEnvironment(
-    'ENV_FILE',
-    defaultValue: '.env.dev',
-  );
+  const envFile = String.fromEnvironment('ENV_FILE', defaultValue: '.env.dev');
   await dotenv.load(fileName: envFile);
   await bootstrap(AppConfig.fromEnvironment());
 }

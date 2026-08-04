@@ -149,10 +149,8 @@ class _DealsRail extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
         itemCount: RecommendationsMock.deals.length,
         separatorBuilder: (_, _) => const Gap(AppSpacing.md),
-        itemBuilder: (context, i) => DealCard(
-          deal: RecommendationsMock.deals[i],
-          onTap: onTap,
-        ),
+        itemBuilder: (context, i) =>
+            DealCard(deal: RecommendationsMock.deals[i], onTap: onTap),
       ),
     );
   }

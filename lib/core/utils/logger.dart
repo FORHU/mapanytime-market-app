@@ -4,8 +4,5 @@ import 'package:logger/logger.dart';
 /// Replace all generic `print()` and `debugPrint()` statements
 /// with this structured logger.
 final appLogger = Logger(
-  printer: PrettyPrinter(
-    methodCount: 0,
-    lineLength: 100,
-  ),
+  printer: PrettyPrinter(methodCount: 0, lineLength: 100),
 );

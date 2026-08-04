@@ -185,11 +185,7 @@ class _PrimaryCta extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.map_rounded,
-                size: 20,
-                color: AppColors.brand.primary,
-              ),
+              Icon(Icons.map_rounded, size: 20, color: AppColors.brand.primary),
               const Gap(AppSpacing.sm),
               Text(
                 'Open Live Map',

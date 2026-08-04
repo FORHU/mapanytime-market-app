@@ -28,7 +28,9 @@ class ProductRemoteDataSource {
       },
     );
 
-    // Envelope: { ..., data: { items: [...], total, page, totalPages } }.
+    // Envelope: { ..., data: { items: [...], meta: { total, page, limit,
+    // totalPages } } }. Older responses put the counters directly on `data`,
+    // so fall back to that when `meta` is absent.
     final data = responseData is Map ? responseData['data'] : null;
     final rawList = (data is Map && data['items'] is List)
         ? data['items'] as List
@@ -39,8 +41,10 @@ class ProductRemoteDataSource {
         .where((p) => p.id.isNotEmpty)
         .toList();
 
+    final meta = (data is Map && data['meta'] is Map) ? data['meta'] : data;
+
     int intOf(String key, int fallback) {
-      final v = data is Map ? data[key] : null;
+      final v = meta is Map ? meta[key] : null;
       return v is num ? v.toInt() : fallback;
     }
 
@@ -54,18 +58,42 @@ class ProductRemoteDataSource {
 
   Product _fromJson(Map<String, dynamic> m) {
     final store = m['store'];
-    final file = m['productFile'];
     final category = m['category'];
 
     return Product(
       id: m['id'] as String? ?? '',
       name: m['name'] as String? ?? '',
-      price: (m['price'] as num?)?.toDouble() ?? 0,
-      storeId: m['storeId'] as String? ??
+      price: _priceOf(m['price']),
+      storeId:
+          m['storeId'] as String? ??
           (store is Map ? store['id'] as String? : null),
       storeName: store is Map ? store['storeName'] as String? : null,
-      imageUrl: file is Map ? file['fileUrl'] as String? : null,
+      imageUrl: _imageUrlOf(m),
       categoryName: category is Map ? category['name'] as String? : null,
     );
+  }
+
+  /// Prisma serializes `Decimal` columns as strings (`"1950"`), so a plain
+  /// `as num` cast blows up the whole page. Accept both shapes.
+  double _priceOf(Object? raw) {
+    if (raw is num) return raw.toDouble();
+    if (raw is String) return double.tryParse(raw) ?? 0;
+    return 0;
+  }
+
+  /// The catalog returns the primary image as
+  /// `productImages: [{ file: { path } }]`.
+  String? _imageUrlOf(Map<String, dynamic> m) {
+    final images = m['productImages'];
+    if (images is List && images.isNotEmpty) {
+      final first = images.first;
+      final file = first is Map ? first['file'] : null;
+      if (file is Map) {
+        return (file['path'] ?? file['fileUrl']) as String?;
+      }
+    }
+    // Legacy/mock shape.
+    final file = m['productFile'];
+    return file is Map ? file['fileUrl'] as String? : null;
   }
 }

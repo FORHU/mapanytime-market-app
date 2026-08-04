@@ -123,9 +123,9 @@ class ProfilePage extends ConsumerWidget {
   }
 
   static void _soon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.comingSoon)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.l10n.comingSoon)));
   }
 }
 
@@ -261,10 +261,7 @@ class _StatTile extends StatelessWidget {
           const Gap(2),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 11,
-              color: AppColors.text.tertiaryDark,
-            ),
+            style: TextStyle(fontSize: 11, color: AppColors.text.tertiaryDark),
           ),
         ],
       ),
@@ -286,11 +283,7 @@ class _MenuGroup extends StatelessWidget {
           for (var i = 0; i < children.length; i++) ...[
             children[i],
             if (i < children.length - 1)
-              Divider(
-                height: 1,
-                indent: 56,
-                color: AppColors.ui.borderDark,
-              ),
+              Divider(height: 1, indent: 56, color: AppColors.ui.borderDark),
           ],
         ],
       ),

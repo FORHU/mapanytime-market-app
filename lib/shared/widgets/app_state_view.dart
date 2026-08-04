@@ -83,9 +83,7 @@ class AppStateView extends StatelessWidget {
               decoration: BoxDecoration(
                 color: _accent.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: _accent.withValues(alpha: 0.30),
-                ),
+                border: Border.all(color: _accent.withValues(alpha: 0.30)),
               ),
               child: Icon(_icon, size: 36, color: _accent),
             ),

@@ -15,9 +15,7 @@ class RegisterPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: ModernAppBar(
-        onBack: () => context.go(RouteNames.login),
-      ),
+      appBar: ModernAppBar(onBack: () => context.go(RouteNames.login)),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

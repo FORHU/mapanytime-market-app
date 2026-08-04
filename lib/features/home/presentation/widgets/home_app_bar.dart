@@ -91,11 +91,7 @@ class HomeAppBar extends StatelessWidget {
 }
 
 class _IconButton extends StatelessWidget {
-  const _IconButton({
-    required this.icon,
-    this.onTap,
-    this.badgeCount = 0,
-  });
+  const _IconButton({required this.icon, this.onTap, this.badgeCount = 0});
 
   final IconData icon;
   final VoidCallback? onTap;
@@ -107,9 +103,7 @@ class _IconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: AppColors.ui.surfaceDark,
-      shape: const CircleBorder(
-        side: BorderSide(color: Color(0x1FFFFFFF)),
-      ),
+      shape: const CircleBorder(side: BorderSide(color: Color(0x1FFFFFFF))),
       child: InkWell(
         onTap: onTap,
         customBorder: const CircleBorder(),

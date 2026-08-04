@@ -8,11 +8,7 @@ import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 /// A compact card showing the current order [status] and an estimated time.
 class PickupStatusCard extends StatelessWidget {
-  const PickupStatusCard({
-    required this.status,
-    this.etaLabel,
-    super.key,
-  });
+  const PickupStatusCard({required this.status, this.etaLabel, super.key});
 
   final OrderStatus status;
   final String? etaLabel;

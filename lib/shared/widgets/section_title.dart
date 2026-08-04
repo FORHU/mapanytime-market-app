@@ -19,12 +19,7 @@ class SectionTitle extends StatelessWidget {
     final theme = Theme.of(context);
     return Row(
       children: [
-        Expanded(
-          child: Text(
-            title,
-            style: theme.textTheme.titleLarge,
-          ),
-        ),
+        Expanded(child: Text(title, style: theme.textTheme.titleLarge)),
         if (actionLabel != null)
           GestureDetector(
             onTap: onAction,

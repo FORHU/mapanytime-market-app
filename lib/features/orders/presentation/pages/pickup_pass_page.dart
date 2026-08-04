@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:mapanytime_market_app/features/orders/data/order_remote_datasource.dart';
 import 'package:mapanytime_market_app/features/orders/domain/entities/buyer_order.dart';
+import 'package:mapanytime_market_app/features/orders/presentation/controllers/orders_controller.dart';
+import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
-import 'package:mapanytime_market_app/shared/widgets/qr_card.dart';
 import 'package:mapanytime_market_app/shared/widgets/order_status.dart';
+import 'package:mapanytime_market_app/shared/widgets/qr_card.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
-
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:mapanytime_market_app/features/orders/data/order_remote_datasource.dart';
-import 'package:mapanytime_market_app/features/orders/presentation/controllers/orders_controller.dart';
-import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 
 /// Pickup Pass: the glowing QR + code to show at the store counter.
 class PickupPassPage extends ConsumerWidget {
@@ -24,38 +23,33 @@ class PickupPassPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ordersAsync = ref.watch(ordersProvider);
     final currentOrder = ordersAsync.maybeWhen(
-      data: (list) => list.firstWhere(
+      data: (orders) => orders.firstWhere(
         (o) => o.id == order.id,
         orElse: () => order,
       ),
       orElse: () => order,
     );
 
+    final showQr =
+        currentOrder.status == OrderStatus.ready ||
+        currentOrder.status == OrderStatus.pickedUp;
+
     return Scaffold(
+      backgroundColor: AppColors.ui.background,
       appBar: const ModernAppBar(title: 'Pickup Pass'),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Center(
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'Show this at ${currentOrder.storeName}',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const Gap(AppSpacing.xs),
-              Text(
-                'Staff will scan it to release your order.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.text.tertiaryDark),
-              ),
-              const Gap(AppSpacing.xl),
-              if (currentOrder.status == OrderStatus.ready)
-                QrCard(data: currentOrder.code, code: currentOrder.code, glow: true)
+              if (showQr)
+                QrCard(
+                  data: 'MAPANYTIME-ORDER-${currentOrder.id}',
+                  code: currentOrder.code,
+                  glow: true,
+                )
               else
                 Container(
-                  width: double.infinity,
                   padding: const EdgeInsets.all(AppSpacing.xl),
                   decoration: BoxDecoration(
                     color: AppColors.ui.surfaceDark,
@@ -63,16 +57,15 @@ class PickupPassPage extends ConsumerWidget {
                     border: Border.all(color: AppColors.ui.borderDark),
                   ),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         Icons.qr_code_2_rounded,
                         size: 64,
-                        color: AppColors.text.tertiaryDark.withValues(alpha: 0.4),
+                        color: AppColors.text.tertiaryDark,
                       ),
                       const Gap(AppSpacing.md),
                       Text(
-                        'QR Pass Locked',
+                        'QR Code Not Active Yet',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -81,7 +74,9 @@ class PickupPassPage extends ConsumerWidget {
                       ),
                       const Gap(AppSpacing.xs),
                       Text(
-                        'Your pickup pass QR code will automatically appear here once the store marks your order as Ready for Pickup.',
+                        'Your pickup pass QR code will automatically '
+                        'appear here once the store marks your order '
+                        'as Ready for Pickup.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12,
@@ -128,13 +123,18 @@ class PickupPassPage extends ConsumerWidget {
                   onPressed: () async {
                     final api = ref.read(apiServiceProvider);
                     final remote = OrderRemoteDataSource(api);
-                    final success = await remote.simulateMockPayment(currentOrder.id);
+                    final success = await remote.simulateMockPayment(
+                      currentOrder.id,
+                    );
                     if (success) {
                       ref.invalidate(ordersProvider);
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Mock Payment Successful! Order is now being prepared.'),
+                            content: Text(
+                              'Mock Payment Successful! Order is now being '
+                              'prepared.',
+                            ),
                             backgroundColor: Colors.green,
                           ),
                         );
