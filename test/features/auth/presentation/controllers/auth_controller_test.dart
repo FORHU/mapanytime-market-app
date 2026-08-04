@@ -35,11 +35,7 @@ void main() {
   group('AuthController', () {
     const tEmail = 'test@example.com';
     const tPassword = 'password123';
-    const tUser = UserEntity(
-      id: '1',
-      email: tEmail,
-      name: 'Test',
-    );
+    const tUser = UserEntity(id: '1', email: tEmail, name: 'Test');
 
     test('initial state is AuthState()', () {
       final state = container.read(authControllerProvider);

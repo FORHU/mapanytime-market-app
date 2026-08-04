@@ -57,4 +57,28 @@ class ApiEndpoints {
 
   /// Simulate payment settlement (mock webhook).  `POST /payments/mock-webhook`.
   static const String paymentWebhook = '/payments/mock-webhook';
+
+  // ── Inventory reservations ────────────────────────────────────────────────
+
+  /// Hold stock for the checkout window.  `POST /inventory/reserve`.
+  static const String inventoryReserve = '/inventory/reserve';
+
+  /// The caller's still-valid holds.  `GET /inventory/reservations/active`.
+  static const String activeReservations = '/inventory/reservations/active';
+
+  /// Consume a hold once the order is placed.
+  static String reservationConfirm(String id) =>
+      '/inventory/reservations/$id/confirm';
+
+  /// Give a hold back when checkout is abandoned.
+  static String reservationRelease(String id) =>
+      '/inventory/reservations/$id/release';
+
+  // ── Returns ───────────────────────────────────────────────────────────────
+
+  /// Submit a return request.  `POST /returns`.
+  static const String returns = '/returns';
+
+  /// The caller's return requests.  `GET /returns/buyer`.
+  static const String buyerReturns = '/returns/buyer';
 }

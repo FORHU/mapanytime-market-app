@@ -83,8 +83,8 @@ class StoreRemoteDataSource {
       final hMap = h as Map<String, dynamic>;
       if (hMap['dayOfWeek'] == dow) {
         if (hMap['isClosed'] == true) return false;
-        final open = _parseTime(hMap['openTime'] as String?);
-        final close = _parseTime(hMap['closeTime'] as String?);
+        final open = _minutesOf(hMap['openMinutes'], hMap['openTime']);
+        final close = _minutesOf(hMap['closeMinutes'], hMap['closeTime']);
         if (open != null && close != null) {
           final nowMins = now.hour * 60 + now.minute;
           return nowMins >= open && nowMins < close;
@@ -94,8 +94,16 @@ class StoreRemoteDataSource {
     return true;
   }
 
-  int? _parseTime(String? t) {
-    if (t == null) return null;
+  /// Store hours are minutes since midnight (`openMinutes` = 480 → 08:00).
+  /// [legacy] is the pre-migration `"HH:MM"` string, kept as a fallback so a
+  /// backend that has not been migrated yet still renders correctly.
+  int? _minutesOf(Object? minutes, Object? legacy) {
+    if (minutes is num) return minutes.toInt();
+    if (legacy is String) return _parseTime(legacy);
+    return null;
+  }
+
+  int? _parseTime(String t) {
     final parts = t.split(':');
     if (parts.length < 2) return null;
     final hour = int.tryParse(parts[0]);

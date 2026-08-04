@@ -234,22 +234,21 @@ class WorldMapController extends AsyncNotifier<WorldMapData> {
         centerLng: lng,
       );
 
-      return await result.fold(
-        (failure) async => const WorldMapData(),
-        (page) async {
-          _loadedOffset = page.stores.length;
-          // If there are more pages, start a background auto-pager to
-          // progressively fetch remaining pages (throttled) so the map
-          // eventually contains all stores for the viewport without
-          // requiring user interaction.
-          if (page.hasMore) unawaited(_autoLoadRemaining());
-          return WorldMapData(
-            stores: page.stores,
-            total: page.total,
-            hasMore: page.hasMore,
-          );
-        },
-      );
+      return await result.fold((failure) async => const WorldMapData(), (
+        page,
+      ) async {
+        _loadedOffset = page.stores.length;
+        // If there are more pages, start a background auto-pager to
+        // progressively fetch remaining pages (throttled) so the map
+        // eventually contains all stores for the viewport without
+        // requiring user interaction.
+        if (page.hasMore) unawaited(_autoLoadRemaining());
+        return WorldMapData(
+          stores: page.stores,
+          total: page.total,
+          hasMore: page.hasMore,
+        );
+      });
     } on Exception catch (_) {
       // GPS failed or timed out — map will still open, stores load on pan.
       return const WorldMapData();
@@ -333,10 +332,8 @@ class WorldMapController extends AsyncNotifier<WorldMapData> {
     );
 
     state = result.fold(
-      (failure) => AsyncValue.error(
-        StoreLoadException(failure),
-        StackTrace.current,
-      ),
+      (failure) =>
+          AsyncValue.error(StoreLoadException(failure), StackTrace.current),
       (page) {
         _loadedOffset = page.stores.length;
         final merged = filterChanged
@@ -405,9 +402,7 @@ class WorldMapController extends AsyncNotifier<WorldMapData> {
   ) {
     if (incoming.isEmpty) return current;
 
-    final storeMap = <String, StoreEntity>{
-      for (final s in current) s.id: s,
-    };
+    final storeMap = <String, StoreEntity>{for (final s in current) s.id: s};
     for (final s in incoming) {
       storeMap[s.id] = s;
     }

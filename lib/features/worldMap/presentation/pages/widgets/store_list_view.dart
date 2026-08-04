@@ -12,10 +12,7 @@ import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 class StoreListView extends ConsumerStatefulWidget {
-  const StoreListView({
-    required this.onNavigate,
-    super.key,
-  });
+  const StoreListView({required this.onNavigate, super.key});
 
   final void Function(StoreEntity store) onNavigate;
 

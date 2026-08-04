@@ -81,16 +81,16 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     super.didChangeDependencies();
     // Register exactly once — re-renders markers whenever
     // the store list changes.
-    _storesSubscription ??= ref.listenManual(
-      worldMapControllerProvider,
-      (previous, next) {
-        // Only re-render when we have actual data to show.
-        // Skip loading/error transitions to avoid clearing the map.
-        if (next.hasValue) {
-          unawaited(_renderMarkers());
-        }
-      },
-    );
+    _storesSubscription ??= ref.listenManual(worldMapControllerProvider, (
+      previous,
+      next,
+    ) {
+      // Only re-render when we have actual data to show.
+      // Skip loading/error transitions to avoid clearing the map.
+      if (next.hasValue) {
+        unawaited(_renderMarkers());
+      }
+    });
   }
 
   Future<void> _onMapCreated(MapboxMap mapboxMap) async {
@@ -105,10 +105,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       // 1. Immediately set camera to fallback country (prevents map from
       // starting at 0,0)
       await mapboxMap.setCamera(
-        CameraOptions(
-          center: _getCountryCenter(countryCode),
-          zoom: 5,
-        ),
+        CameraOptions(center: _getCountryCenter(countryCode), zoom: 5),
       );
 
       // The rest of the initialization (layers, GPS annotations) will happen
@@ -159,9 +156,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
           onFirstFix: (point) {
             if (mounted && mapboxMap != null) {
               unawaited(
-                mapboxMap!.setCamera(
-                  CameraOptions(center: point, zoom: 14),
-                ),
+                mapboxMap!.setCamera(CameraOptions(center: point, zoom: 14)),
               );
             }
             // We've centered on the user — dismiss the initial loader.
@@ -367,17 +362,11 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       );
     } on Exception catch (e) {
       debugPrint('Directions API failed, using straight line: $e');
-      routeCoords = [
-        userPoint.coordinates,
-        Position(store.lng, store.lat),
-      ];
+      routeCoords = [userPoint.coordinates, Position(store.lng, store.lat)];
     }
 
     if (routeCoords.isEmpty) {
-      routeCoords = [
-        userPoint.coordinates,
-        Position(store.lng, store.lat),
-      ];
+      routeCoords = [userPoint.coordinates, Position(store.lng, store.lat)];
     }
 
     _currentRoute = await polylineAnnotationManager!.create(
@@ -392,12 +381,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     final pitch = mode == TravelMode.driving ? 60.0 : 45.0;
     unawaited(
       mapboxMap?.setCamera(
-        CameraOptions(
-          center: userPoint,
-          zoom: 16,
-          pitch: pitch,
-          bearing: 0,
-        ),
+        CameraOptions(center: userPoint, zoom: 16, pitch: pitch, bearing: 0),
       ),
     );
   }
@@ -472,9 +456,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
                 // Fills the map so the overlay's internal Stack has bounded
                 // constraints (centered spinner, bottom-anchored error card).
-                const Positioned.fill(
-                  child: WorldMapStatusOverlay(),
-                ),
+                const Positioned.fill(child: WorldMapStatusOverlay()),
 
                 // SEARCH BAR + CATEGORY FILTERS (glass overlay)
                 Positioned(
@@ -558,10 +540,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                       if (point != null && mapboxMap != null) {
                         unawaited(
                           mapboxMap!.setCamera(
-                            CameraOptions(
-                              center: point,
-                              zoom: 15,
-                            ),
+                            CameraOptions(center: point, zoom: 15),
                           ),
                         );
                       }

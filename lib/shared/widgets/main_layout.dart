@@ -8,10 +8,7 @@ import 'package:mapanytime_market_app/shared/widgets/animated_bottom_navigation.
 
 /// App shell: hosts the routed [child] and the premium glass bottom navigation.
 class MainLayout extends ConsumerWidget {
-  const MainLayout({
-    required this.child,
-    super.key,
-  });
+  const MainLayout({required this.child, super.key});
 
   final Widget child;
 
@@ -70,9 +67,7 @@ class MainLayout extends ConsumerWidget {
       (d) => d.route != '/' && location.startsWith(d.route),
     );
     if (currentIndex == -1) {
-      currentIndex = destinations.indexWhere(
-        (d) => d.route == RouteNames.home,
-      );
+      currentIndex = destinations.indexWhere((d) => d.route == RouteNames.home);
       if (currentIndex == -1) currentIndex = 0;
     }
 

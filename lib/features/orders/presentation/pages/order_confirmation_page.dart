@@ -46,18 +46,13 @@ class _OrderConfirmationPageState extends ConsumerState<OrderConfirmationPage> {
           const Text(
             'Order Placed!',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-            ),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
           ),
           const Gap(AppSpacing.sm),
           Text(
             'Order ID: ${widget.orderId}',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppColors.text.tertiaryDark,
-            ),
+            style: TextStyle(color: AppColors.text.tertiaryDark),
           ),
           const Gap(AppSpacing.xxl),
           GlassCard(

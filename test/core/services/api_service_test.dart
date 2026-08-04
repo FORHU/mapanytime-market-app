@@ -82,11 +82,7 @@ void main() {
       await expectLater(
         api.get('/data'),
         throwsA(
-          isA<ServerException>().having(
-            (e) => e.statusCode,
-            'statusCode',
-            422,
-          ),
+          isA<ServerException>().having((e) => e.statusCode, 'statusCode', 422),
         ),
       );
     });

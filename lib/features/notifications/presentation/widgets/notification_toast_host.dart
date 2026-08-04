@@ -4,11 +4,10 @@ import 'package:gap/gap.dart';
 import 'package:mapanytime_market_app/features/notifications/domain/entities/app_notification.dart';
 import 'package:mapanytime_market_app/features/notifications/presentation/controllers/notification_feed_controller.dart';
 import 'package:mapanytime_market_app/features/notifications/presentation/controllers/notification_providers.dart';
+import 'package:mapanytime_market_app/features/orders/presentation/controllers/orders_controller.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
-
-import 'package:mapanytime_market_app/features/orders/presentation/controllers/orders_controller.dart';
 
 /// Wraps the whole app (via `MaterialApp.router`'s builder) and shows a
 /// floating toast whenever a realtime notification arrives for the user.
@@ -35,7 +34,11 @@ class NotificationToastHost extends ConsumerWidget {
         if (notification != null) {
           _showToast(context, notification);
           final type = notification.metadata?['type'] as String?;
-          if (type == 'ORDER_UPDATED' || type == 'ORDER_CREATED' || type == 'ORDER_PAID') {
+          final isOrderUpdate =
+              type == 'ORDER_UPDATED' ||
+              type == 'ORDER_CREATED' ||
+              type == 'ORDER_PAID';
+          if (isOrderUpdate) {
             ref.invalidate(ordersProvider);
           }
         }

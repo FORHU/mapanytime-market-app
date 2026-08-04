@@ -62,9 +62,7 @@ class MockOrdersRepository implements OrdersRepository {
           OrderStatus.ready: '4:50 PM',
           OrderStatus.pickedUp: '5:05 PM',
         },
-        lines: [
-          OrderLine(name: 'Studio Desk Lamp', quantity: 1, price: 1599),
-        ],
+        lines: [OrderLine(name: 'Studio Desk Lamp', quantity: 1, price: 1599)],
       ),
     ];
   }

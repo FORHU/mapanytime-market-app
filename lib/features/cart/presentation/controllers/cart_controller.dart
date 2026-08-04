@@ -69,11 +69,7 @@ class CartNotifier extends Notifier<List<CartItem>> {
     unawaited(
       ref
           .read(cartRemoteDataSourceProvider)
-          .addToCart(
-            storeId: storeId,
-            productId: productId,
-            quantity: quantity,
-          )
+          .addToCart(storeId: storeId, productId: productId, quantity: quantity)
           .catchError((_) {}),
     );
   }
@@ -94,11 +90,7 @@ class CartNotifier extends Notifier<List<CartItem>> {
       unawaited(
         ref
             .read(cartRemoteDataSourceProvider)
-            .addToCart(
-              storeId: item.storeId,
-              productId: productId,
-              quantity: 0,
-            )
+            .addToCart(storeId: item.storeId, productId: productId, quantity: 0)
             .catchError((_) {}),
       );
     }

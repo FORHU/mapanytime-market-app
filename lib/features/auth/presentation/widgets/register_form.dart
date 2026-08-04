@@ -87,10 +87,7 @@ class _RegisterFormState extends ConsumerState<RegisterForm> {
           ),
           if (state.error != null) ...[
             AppSpacing.sm.v,
-            Text(
-              state.error!,
-              style: TextStyle(color: AppColors.status.error),
-            ),
+            Text(state.error!, style: TextStyle(color: AppColors.status.error)),
           ],
           AppSpacing.lg.v,
           GradientButton(

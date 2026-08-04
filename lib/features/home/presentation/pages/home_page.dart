@@ -296,16 +296,15 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                       description: '',
                                                       category:
                                                           p.categoryName ??
-                                                              'Other',
+                                                          'Other',
                                                       storeId: p.storeId!,
                                                       storeName:
                                                           p.storeName ??
-                                                              'Store',
+                                                          'Store',
                                                     ),
                                                     storeId: p.storeId!,
                                                     storeName:
-                                                        p.storeName ??
-                                                            'Store',
+                                                        p.storeName ?? 'Store',
                                                   ),
                                                 ),
                                               );
