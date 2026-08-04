@@ -16,6 +16,7 @@ import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
 import 'package:mapanytime_market_app/shared/widgets/section_title.dart';
+import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
@@ -295,7 +296,9 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       final api = ref.read(apiServiceProvider);
       final remote = OrderRemoteDataSource(api);
 
-      final orderId = await remote.createOrder(
+      // The order id isn't needed here — the buyer pays from the pickup pass,
+      // which reads the order back from ordersProvider.
+      await remote.createOrder(
         type: 'PICKUP',
         paymentMethod: paymentMethodEnum,
         pickupAt: isoPickup,
@@ -314,16 +317,11 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
 
       if (!context.mounted) return;
 
-      context.go(RouteNames.orderConfirmation, extra: orderId);
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(context.l10n.orderPlacedSuccess)));
+      context.go(RouteNames.orders);
+      showTopToast(context, context.l10n.orderPlacedSuccess);
     } on Exception catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.orderPlacedFailed(e.toString()))),
-      );
+      showTopToast(context, context.l10n.orderPlacedFailed(e.toString()));
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);

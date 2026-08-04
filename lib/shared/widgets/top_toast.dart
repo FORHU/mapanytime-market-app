@@ -87,11 +87,11 @@ class _TopToastState extends State<_TopToast>
 
     return Positioned(
       top: 0,
-      left: 0,
-      right: 0,
+      left: 16,
+      right: 16,
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.only(top: 8),
           child: FadeTransition(
             opacity: _fade,
             child: SlideTransition(
@@ -100,26 +100,33 @@ class _TopToastState extends State<_TopToast>
                 alignment: Alignment.topCenter,
                 child: Material(
                   color: Colors.transparent,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 14,
-                    ),
-                    decoration: BoxDecoration(
-                      color: bg,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 12,
-                          offset: Offset(0, 4),
+                  child: GestureDetector(
+                    onTap: _dismiss,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: bg,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black38,
+                            blurRadius: 8,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        widget.message,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: fg,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                         ),
-                      ],
-                    ),
-                    child: Text(
-                      widget.message,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: fg, fontWeight: FontWeight.w600),
+                      ),
                     ),
                   ),
                 ),

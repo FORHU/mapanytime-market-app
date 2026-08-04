@@ -163,6 +163,11 @@ class _HomePageState extends ConsumerState<HomePage> {
     ];
   }
 
+  Future<void> _onRefresh() async {
+    ref.invalidate(categoryTreeProvider);
+    await ref.read(homeProductsControllerProvider.notifier).refresh();
+  }
+
   @override
   Widget build(BuildContext context) {
     // Category tree from the API; empty while loading or on error, in which
@@ -178,9 +183,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Scaffold(
       body: SafeArea(
         bottom: false,
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
+        child: RefreshIndicator(
+          onRefresh: _onRefresh,
+          color: AppColors.brand.primary,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            controller: _scrollController,
+            slivers: [
             // --- Scrolls away: top bar + hero ---
             SliverToBoxAdapter(
               child: Column(
@@ -337,7 +346,8 @@ class _HomePageState extends ConsumerState<HomePage> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 }
 

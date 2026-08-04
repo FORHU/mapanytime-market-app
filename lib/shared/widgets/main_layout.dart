@@ -66,6 +66,14 @@ class MainLayout extends ConsumerWidget {
     var currentIndex = destinations.indexWhere(
       (d) => d.route != '/' && location.startsWith(d.route),
     );
+    if (location == RouteNames.orders ||
+        location.startsWith(RouteNames.orders) ||
+        location == RouteNames.orderTracking ||
+        location == RouteNames.pickupPass) {
+      currentIndex = destinations.indexWhere(
+        (d) => d.route == RouteNames.profile,
+      );
+    }
     if (currentIndex == -1) {
       currentIndex = destinations.indexWhere((d) => d.route == RouteNames.home);
       if (currentIndex == -1) currentIndex = 0;

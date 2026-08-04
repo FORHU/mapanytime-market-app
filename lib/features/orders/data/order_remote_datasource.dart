@@ -25,12 +25,25 @@ class OrderRemoteDataSource {
 
   Future<List<BuyerOrder>> fetchMyOrders() async {
     final response = await _api.get(ApiEndpoints.ordersCreate);
-    final data = response is Map
-        ? response['data'] as List<dynamic>
-        : <dynamic>[];
 
-    return data.map((json) {
-      final map = json as Map<String, dynamic>;
+    var rawList = <dynamic>[];
+    if (response is Map) {
+      final resData = response['data'];
+      if (resData is List) {
+        rawList = resData;
+      } else if (resData is Map && resData['items'] is List) {
+        rawList = resData['items'] as List;
+      }
+    }
+
+    num parseNum(Object? raw) {
+      if (raw is num) return raw;
+      if (raw is String) return double.tryParse(raw) ?? 0;
+      return 0;
+    }
+
+    return rawList.map((json) {
+      final map = (json as Map).cast<String, dynamic>();
       final statusStr = map['status'] as String? ?? 'PENDING';
 
       OrderStatus status;
@@ -52,13 +65,18 @@ class OrderRemoteDataSource {
           status = OrderStatus.confirmed;
       }
 
-      final items = (map['orderitems'] as List? ?? []).map((i) {
-        final iMap = i as Map<String, dynamic>;
-        final pMap = iMap['product'] as Map<String, dynamic>? ?? {};
+      final rawItems = map['orderitems'] ?? map['orderItems'];
+      final items = (rawItems is List ? rawItems : <dynamic>[]).map((i) {
+        final iMap = (i as Map).cast<String, dynamic>();
+        final pMap = iMap['product'] is Map
+            ? (iMap['product'] as Map).cast<String, dynamic>()
+            : <String, dynamic>{};
         return OrderLine(
           name: pMap['name'] as String? ?? 'Unknown Product',
-          quantity: iMap['quantity'] as int? ?? 1,
-          price: iMap['unitPrice'] as num? ?? 0,
+          quantity: (iMap['quantity'] is num)
+              ? (iMap['quantity'] as num).toInt()
+              : 1,
+          price: parseNum(iMap['unitPrice'] ?? iMap['price']),
         );
       }).toList();
 
@@ -67,9 +85,14 @@ class OrderRemoteDataSource {
         map['completedAt'] as String? ?? '',
       );
 
+      final rawId = map['id'] as String? ?? '';
+      final code = rawId.length >= 8
+          ? rawId.substring(0, 8).toUpperCase()
+          : rawId.toUpperCase();
+
       return BuyerOrder(
-        id: map['id'] as String,
-        code: (map['id'] as String).substring(0, 8).toUpperCase(),
+        id: rawId,
+        code: code,
         storeName:
             (map['store'] as Map?)?['storeName'] as String? ?? 'Unknown Store',
         status: status,
@@ -78,7 +101,7 @@ class OrderRemoteDataSource {
             : '',
         etaLabel: '', // We don't have ETA from backend yet
         lines: items,
-        total: map['totalAmount'] as num? ?? 0,
+        total: parseNum(map['totalAmount'] ?? map['total']),
         timestamps: {
           OrderStatus.confirmed: createdAt?.toIso8601String() ?? '',
           if (status == OrderStatus.preparing ||

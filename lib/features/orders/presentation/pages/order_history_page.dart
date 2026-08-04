@@ -23,43 +23,62 @@ class OrderHistoryPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: const ModernAppBar(title: 'My Orders'),
-      body: ordersAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, _) => Center(
-          child: Text(
-            'Could not load orders',
-            style: TextStyle(color: AppColors.text.secondaryDark),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(ordersProvider);
+        },
+        color: AppColors.brand.primary,
+        child: ordersAsync.when(
+          loading: () => ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: const [
+              Gap(200),
+              Center(child: CircularProgressIndicator()),
+            ],
           ),
-        ),
-        data: (orders) {
-          final active = orders.where((o) => o.isActive).toList();
-          final past = orders.where((o) => !o.isActive).toList();
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.sm,
-              AppSpacing.md,
-              AppSpacing.xxl,
-            ),
+          error: (_, _) => ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
             children: [
-              if (active.isNotEmpty) ...[
-                const SectionTitle(title: 'Active'),
+              const Gap(200),
+              Center(
+                child: Text(
+                  'Could not load orders',
+                  style: TextStyle(color: AppColors.text.secondaryDark),
+                ),
+              ),
+            ],
+          ),
+          data: (orders) {
+            final active = orders.where((o) => o.isActive).toList();
+            final past = orders.where((o) => !o.isActive).toList();
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.sm,
+                AppSpacing.md,
+                AppSpacing.xxl,
+              ),
+              children: [
+                if (active.isNotEmpty) ...[
+                  const SectionTitle(title: 'Active'),
+                  const Gap(AppSpacing.md),
+                  for (final o in active) ...[
+                    _OrderCard(order: o),
+                    const Gap(AppSpacing.sm),
+                  ],
+                  const Gap(AppSpacing.md),
+                ],
+                const SectionTitle(title: 'Past orders'),
                 const Gap(AppSpacing.md),
-                for (final o in active) ...[
+                for (final o in past) ...[
                   _OrderCard(order: o),
                   const Gap(AppSpacing.sm),
                 ],
-                const Gap(AppSpacing.md),
               ],
-              const SectionTitle(title: 'Past orders'),
-              const Gap(AppSpacing.md),
-              for (final o in past) ...[
-                _OrderCard(order: o),
-                const Gap(AppSpacing.sm),
-              ],
-            ],
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

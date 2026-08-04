@@ -30,102 +30,108 @@ class ProfilePage extends ConsumerWidget {
         title: Text(context.l10n.profile),
         automaticallyImplyLeading: false,
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.md,
-          AppSpacing.sm,
-          AppSpacing.md,
-          AppSpacing.xxl,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(profileProvider);
+          await Future<void>.delayed(const Duration(milliseconds: 300));
+        },
+        color: AppColors.brand.primary,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.sm,
+            AppSpacing.md,
+            AppSpacing.xxl,
+          ),
+          children: [
+            _ProfileHeader(
+              name: name,
+              email: user?.email ?? '-',
+              initial: initial,
+            ),
+            const Gap(AppSpacing.md),
+            const _StatsRow(),
+            const Gap(AppSpacing.lg),
+            _MenuGroup(
+              children: [
+                _MenuTile(
+                  icon: Icons.receipt_long_rounded,
+                  label: 'My Orders',
+                  subtitle: 'Track and view past orders',
+                  onTap: () => context.push(RouteNames.orders),
+                ),
+                _MenuTile(
+                  icon: Icons.favorite_outline_rounded,
+                  label: 'Saved',
+                  subtitle: 'Your favourite stores & products',
+                  onTap: () => _soon(context),
+                ),
+                _MenuTile(
+                  icon: Icons.location_on_outlined,
+                  label: 'Addresses',
+                  onTap: () => _soon(context),
+                ),
+                _MenuTile(
+                  icon: Icons.credit_card_rounded,
+                  label: 'Payment methods',
+                  onTap: () => _soon(context),
+                ),
+              ],
+            ),
+            const Gap(AppSpacing.md),
+            _MenuGroup(
+              children: [
+                _MenuTile(
+                  icon: Icons.notifications_none_rounded,
+                  label: 'Notifications',
+                  onTap: () => _soon(context),
+                ),
+                _MenuTile(
+                  icon: Icons.help_outline_rounded,
+                  label: 'Help & Support',
+                  onTap: () => _soon(context),
+                ),
+                _MenuTile(
+                  icon: Icons.info_outline_rounded,
+                  label: 'About',
+                  onTap: () => _soon(context),
+                ),
+              ],
+            ),
+            const Gap(AppSpacing.md),
+            _MenuGroup(
+              children: [
+                _MenuTile(
+                  icon: Icons.logout_rounded,
+                  label: context.l10n.logout,
+                  danger: true,
+                  onTap: () async {
+                    final ok = await ref
+                        .read(authControllerProvider.notifier)
+                        .logout();
+                    if (!context.mounted) return;
+                    if (ok) {
+                      context.go(RouteNames.login);
+                    } else {
+                      final error = ref.read(authControllerProvider).error;
+                      showTopToast(
+                        context,
+                        error ?? 'Logout failed. Please try again.',
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+          ],
         ),
-        children: [
-          _ProfileHeader(
-            name: name,
-            email: user?.email ?? '-',
-            initial: initial,
-          ),
-          const Gap(AppSpacing.md),
-          const _StatsRow(),
-          const Gap(AppSpacing.lg),
-          _MenuGroup(
-            children: [
-              _MenuTile(
-                icon: Icons.receipt_long_rounded,
-                label: 'My Orders',
-                subtitle: 'Track and view past orders',
-                onTap: () => context.push(RouteNames.orders),
-              ),
-              _MenuTile(
-                icon: Icons.favorite_outline_rounded,
-                label: 'Saved',
-                subtitle: 'Your favourite stores & products',
-                onTap: () => _soon(context),
-              ),
-              _MenuTile(
-                icon: Icons.location_on_outlined,
-                label: 'Addresses',
-                onTap: () => _soon(context),
-              ),
-              _MenuTile(
-                icon: Icons.credit_card_rounded,
-                label: 'Payment methods',
-                onTap: () => _soon(context),
-              ),
-            ],
-          ),
-          const Gap(AppSpacing.md),
-          _MenuGroup(
-            children: [
-              _MenuTile(
-                icon: Icons.notifications_none_rounded,
-                label: 'Notifications',
-                onTap: () => _soon(context),
-              ),
-              _MenuTile(
-                icon: Icons.help_outline_rounded,
-                label: 'Help & Support',
-                onTap: () => _soon(context),
-              ),
-              _MenuTile(
-                icon: Icons.info_outline_rounded,
-                label: 'About',
-                onTap: () => _soon(context),
-              ),
-            ],
-          ),
-          const Gap(AppSpacing.md),
-          _MenuGroup(
-            children: [
-              _MenuTile(
-                icon: Icons.logout_rounded,
-                label: context.l10n.logout,
-                danger: true,
-                onTap: () async {
-                  final ok = await ref
-                      .read(authControllerProvider.notifier)
-                      .logout();
-                  if (!context.mounted) return;
-                  if (ok) {
-                    context.go(RouteNames.login);
-                  } else {
-                    final error = ref.read(authControllerProvider).error;
-                    showTopToast(
-                      context,
-                      error ?? 'Logout failed. Please try again.',
-                    );
-                  }
-                },
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
 
   static void _soon(BuildContext context) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(context.l10n.comingSoon)));
+    showTopToast(context, context.l10n.comingSoon);
   }
 }
 

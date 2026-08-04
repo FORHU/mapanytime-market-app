@@ -50,19 +50,37 @@ class _StorefrontPageState extends ConsumerState<StorefrontPage> {
           Gap(AppSpacing.md),
         ],
       ),
-      body: detailsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, _) => Center(
-          child: Text(
-            'Could not load store',
-            style: TextStyle(color: AppColors.text.secondaryDark),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(storeDetailsProvider(widget.store.id));
+        },
+        color: AppColors.brand.primary,
+        child: detailsAsync.when(
+          loading: () => ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: const [
+              Gap(200),
+              Center(child: CircularProgressIndicator()),
+            ],
           ),
-        ),
-        data: (details) => _StoreBody(
-          store: widget.store,
-          details: details,
-          selectedCategory: _category,
-          onCategory: (i) => setState(() => _category = i),
+          error: (_, _) => ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              const Gap(120),
+              Center(
+                child: Text(
+                  'Could not load store',
+                  style: TextStyle(color: AppColors.text.secondaryDark),
+                ),
+              ),
+            ],
+          ),
+          data: (details) => _StoreBody(
+            store: widget.store,
+            details: details,
+            selectedCategory: _category,
+            onCategory: (i) => setState(() => _category = i),
+          ),
         ),
       ),
     );
@@ -91,6 +109,7 @@ class _StoreBody extends StatelessWidget {
         : details.products.where((p) => p.category == selectedLabel).toList();
 
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
       children: [
         NetworkImageBox(url: details.heroImageUrl, height: 260),

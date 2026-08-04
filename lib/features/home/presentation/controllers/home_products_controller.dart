@@ -100,6 +100,11 @@ class HomeProductsController extends AsyncNotifier<HomeProductsData> {
     state = await AsyncValue.guard(_fetchInitial);
   }
 
+  /// Reloads the first page for the current category and search filter.
+  Future<void> refresh() async {
+    state = await AsyncValue.guard(_fetchInitial);
+  }
+
   /// Append the next page. No-op while already loading or when exhausted.
   Future<void> loadMore() async {
     final data = state.value;

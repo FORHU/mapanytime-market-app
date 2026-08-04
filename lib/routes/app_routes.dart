@@ -26,11 +26,34 @@ import 'package:mapanytime_market_app/features/worldMap/presentation/pages/world
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/main_layout.dart';
 
+/// Listenable helper to notify GoRouter whenever auth state changes.
+class RouterNotifier extends ChangeNotifier {
+  RouterNotifier(this._ref) {
+    _ref.listen<AuthState>(
+      authControllerProvider,
+      (previous, next) {
+        if (previous?.isAuthenticated != next.isAuthenticated) {
+          notifyListeners();
+        }
+      },
+    );
+  }
+
+  final Ref _ref;
+}
+
+final routerNotifierProvider = Provider<RouterNotifier>((ref) {
+  return RouterNotifier(ref);
+});
+
 /// The app's router. `redirect` guards routes based on auth state; the login
 /// form and logout button also navigate explicitly with `context.go(...)`.
 final goRouterProvider = Provider<GoRouter>((ref) {
+  final notifier = ref.watch(routerNotifierProvider);
+
   return GoRouter(
     initialLocation: RouteNames.home,
+    refreshListenable: notifier,
     redirect: (context, state) {
       final isAuth = ref.read(authControllerProvider).isAuthenticated;
       final goingToLogin = state.matchedLocation == RouteNames.login;

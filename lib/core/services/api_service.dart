@@ -12,8 +12,11 @@ import 'package:mapanytime_market_app/core/utils/logger.dart';
 ///
 /// Point it at your backend by setting `BASE_URL` (see `.env.*`).
 class ApiService {
-  ApiService({required StorageService storage, Dio? dio})
-    : client =
+  ApiService({
+    required StorageService storage,
+    void Function()? onUnauthenticated,
+    Dio? dio,
+  }) : client =
           dio ??
           Dio(
             BaseOptions(
@@ -26,14 +29,26 @@ class ApiService {
           ) {
     // 1. Attach the bearer token and transparently refresh it on a 401.
     client.interceptors.add(
-      AuthInterceptor(storage, baseUrl: client.options.baseUrl),
+      AuthInterceptor(
+        storage,
+        baseUrl: client.options.baseUrl,
+        onUnauthenticated: onUnauthenticated,
+      ),
     );
 
-    // 2. Retry transient failures on unstable networks.
+    // 2. Retry transient failures on unstable networks (do not retry 4xx client errors like 401/403).
     client.interceptors.add(
       RetryInterceptor(
         dio: client,
         logPrint: appLogger.w,
+        retryEvaluator: (error, attempt) {
+          final status = error.response?.statusCode;
+          if (status != null && status >= 400 && status < 500) {
+            return false;
+          }
+          return error.type != DioExceptionType.cancel &&
+              error.type != DioExceptionType.badResponse;
+        },
         retryDelays: const [
           Duration(seconds: 1),
           Duration(seconds: 2),

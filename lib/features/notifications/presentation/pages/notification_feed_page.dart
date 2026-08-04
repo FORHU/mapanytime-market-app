@@ -36,14 +36,27 @@ class _NotificationFeedPageState extends ConsumerState<NotificationFeedPage> {
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.notifications)),
-      body: items.isEmpty
-          ? const _EmptyFeed()
-          : ListView.separated(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              itemCount: items.length,
-              separatorBuilder: (_, _) => const Gap(AppSpacing.sm),
-              itemBuilder: (context, i) => _NotificationTile(items[i]),
-            ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(notificationFeedControllerProvider);
+        },
+        color: AppColors.brand.primary,
+        child: items.isEmpty
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [
+                  Gap(200),
+                  _EmptyFeed(),
+                ],
+              )
+            : ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(AppSpacing.md),
+                itemCount: items.length,
+                separatorBuilder: (_, _) => const Gap(AppSpacing.sm),
+                itemBuilder: (context, i) => _NotificationTile(items[i]),
+              ),
+      ),
     );
   }
 }
