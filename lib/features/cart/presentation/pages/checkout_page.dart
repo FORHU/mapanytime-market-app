@@ -62,199 +62,203 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
     return Stack(
       children: [
         Scaffold(
-      appBar: const ModernAppBar(title: 'Checkout'),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.sm,
-                AppSpacing.md,
-                AppSpacing.lg,
-              ),
-              children: [
-                const SectionTitle(title: 'Pickup'),
-                const Gap(AppSpacing.sm),
-                GlassCard(
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.brand.primary.withValues(
-                            alpha: 0.15,
+          appBar: const ModernAppBar(title: 'Checkout'),
+          body: Column(
+            children: [
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                    AppSpacing.md,
+                    AppSpacing.lg,
+                  ),
+                  children: [
+                    const SectionTitle(title: 'Pickup'),
+                    const Gap(AppSpacing.sm),
+                    GlassCard(
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: AppColors.brand.primary.withValues(
+                                alpha: 0.15,
+                              ),
+                              borderRadius: AppRadius.brMd,
+                            ),
+                            child: Icon(
+                              Icons.store_mall_directory_rounded,
+                              color: AppColors.brand.primary,
+                            ),
                           ),
-                          borderRadius: AppRadius.brMd,
-                        ),
-                        child: Icon(
-                          Icons.store_mall_directory_rounded,
-                          color: AppColors.brand.primary,
-                        ),
+                          const Gap(AppSpacing.sm),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  storeName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const Gap(2),
+                                Text(
+                                  'Pick up your order at this store',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.text.tertiaryDark,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const Gap(AppSpacing.sm),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    ),
+                    const Gap(AppSpacing.sm),
+                    GestureDetector(
+                      onTap: _pickTime,
+                      behavior: HitTestBehavior.opaque,
+                      child: GlassCard(
+                        child: Row(
                           children: [
-                            Text(
-                              storeName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: AppColors.brand.primary.withValues(
+                                  alpha: 0.15,
+                                ),
+                                borderRadius: AppRadius.brMd,
+                              ),
+                              child: Icon(
+                                Icons.schedule_rounded,
+                                color: AppColors.brand.primary,
                               ),
                             ),
-                            const Gap(2),
-                            Text(
-                              'Pick up your order at this store',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.text.tertiaryDark,
+                            const Gap(AppSpacing.sm),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Pickup time',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const Gap(2),
+                                  Text(
+                                    pickupLabel,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: _pickupTime == null
+                                          ? AppColors.text.tertiaryDark
+                                          : AppColors.brand.primary,
+                                    ),
+                                  ),
+                                ],
                               ),
+                            ),
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              color: AppColors.text.tertiaryDark,
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                const Gap(AppSpacing.sm),
-                GestureDetector(
-                  onTap: _pickTime,
-                  behavior: HitTestBehavior.opaque,
-                  child: GlassCard(
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: AppColors.brand.primary.withValues(
-                              alpha: 0.15,
-                            ),
-                            borderRadius: AppRadius.brMd,
-                          ),
-                          child: Icon(
-                            Icons.schedule_rounded,
-                            color: AppColors.brand.primary,
-                          ),
-                        ),
-                        const Gap(AppSpacing.sm),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Pickup time',
-                                style: TextStyle(fontWeight: FontWeight.w700),
-                              ),
-                              const Gap(2),
-                              Text(
-                                pickupLabel,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: _pickupTime == null
-                                      ? AppColors.text.tertiaryDark
-                                      : AppColors.brand.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          color: AppColors.text.tertiaryDark,
-                        ),
-                      ],
                     ),
-                  ),
-                ),
-                const Gap(AppSpacing.lg),
-                const SectionTitle(title: 'Payment method'),
-                const Gap(AppSpacing.sm),
-                for (var i = 0; i < _methods.length; i++) ...[
-                  _PaymentTile(
-                    label: _methods[i].$1,
-                    icon: _methods[i].$2,
-                    selected: _method == i,
-                    onTap: () => setState(() => _method = i),
-                  ),
-                  if (i < _methods.length - 1) const Gap(AppSpacing.sm),
-                ],
-                const Gap(AppSpacing.lg),
-                const SectionTitle(title: 'Order summary'),
-                const Gap(AppSpacing.sm),
-                GlassCard(
-                  child: Column(
-                    children: [
-                      _Row(label: 'Subtotal', value: Money.peso(subtotal)),
-                      const Gap(AppSpacing.sm),
-                      _Row(
-                        label: 'Service fee',
-                        value: Money.peso(_serviceFee),
+                    const Gap(AppSpacing.lg),
+                    const SectionTitle(title: 'Payment method'),
+                    const Gap(AppSpacing.sm),
+                    for (var i = 0; i < _methods.length; i++) ...[
+                      _PaymentTile(
+                        label: _methods[i].$1,
+                        icon: _methods[i].$2,
+                        selected: _method == i,
+                        onTap: () => setState(() => _method = i),
                       ),
-                      const Gap(AppSpacing.sm),
-                      Divider(color: AppColors.ui.borderDark, height: 1),
-                      const Gap(AppSpacing.sm),
-                      _Row(
-                        label: 'Total',
-                        value: Money.peso(total),
-                        bold: true,
-                      ),
+                      if (i < _methods.length - 1) const Gap(AppSpacing.sm),
                     ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          _PlaceOrderBar(
-            total: total,
-            onPlaceOrder: _isSubmitting ? null : () => unawaited(_placeOrder(context)),
-          ),
-        ],
-      ),
-    ),
-    if (_isSubmitting)
-      ModalBarrier(
-        dismissible: false,
-        color: Colors.black.withValues(alpha: 0.6),
-      ),
-    if (_isSubmitting)
-      Center(
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-          decoration: BoxDecoration(
-            color: AppColors.ui.surfaceDark,
-            borderRadius: AppRadius.brLg,
-            border: Border.all(color: AppColors.ui.borderDark),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(color: AppColors.brand.primary),
-              const Gap(AppSpacing.md),
-              Text(
-                'Placing your order...',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  color: AppColors.text.primaryDark,
+                    const Gap(AppSpacing.lg),
+                    const SectionTitle(title: 'Order summary'),
+                    const Gap(AppSpacing.sm),
+                    GlassCard(
+                      child: Column(
+                        children: [
+                          _Row(label: 'Subtotal', value: Money.peso(subtotal)),
+                          const Gap(AppSpacing.sm),
+                          _Row(
+                            label: 'Service fee',
+                            value: Money.peso(_serviceFee),
+                          ),
+                          const Gap(AppSpacing.sm),
+                          Divider(color: AppColors.ui.borderDark, height: 1),
+                          const Gap(AppSpacing.sm),
+                          _Row(
+                            label: 'Total',
+                            value: Money.peso(total),
+                            bold: true,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const Gap(4),
-              Text(
-                'Please wait a moment to prevent duplicates.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.text.secondaryDark,
-                ),
+              _PlaceOrderBar(
+                total: total,
+                onPlaceOrder: _isSubmitting
+                    ? null
+                    : () => unawaited(_placeOrder(context)),
               ),
             ],
           ),
         ),
-      ),
+        if (_isSubmitting)
+          ModalBarrier(
+            dismissible: false,
+            color: Colors.black.withValues(alpha: 0.6),
+          ),
+        if (_isSubmitting)
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              decoration: BoxDecoration(
+                color: AppColors.ui.surfaceDark,
+                borderRadius: AppRadius.brLg,
+                border: Border.all(color: AppColors.ui.borderDark),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(color: AppColors.brand.primary),
+                  const Gap(AppSpacing.md),
+                  Text(
+                    'Placing your order...',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: AppColors.text.primaryDark,
+                    ),
+                  ),
+                  const Gap(4),
+                  Text(
+                    'Please wait a moment to prevent duplicates.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.text.secondaryDark,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -303,7 +307,8 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       ];
       ref.read(cartProvider.notifier).removeMany(orderedIds);
 
-      // Clear local cart and invalidate ordersProvider so the new order appears immediately
+      // Clear local cart and invalidate ordersProvider so the new order
+      // appears immediately
       ref.read(cartProvider.notifier).clear();
       ref.invalidate(ordersProvider);
 
@@ -311,9 +316,9 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
 
       context.go(RouteNames.orderConfirmation, extra: orderId);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.orderPlacedSuccess)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.orderPlacedSuccess)));
     } on Exception catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

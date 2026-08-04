@@ -283,11 +283,7 @@ class _HeroCard extends StatelessWidget {
               ),
             ),
             const Gap(AppSpacing.sm),
-            const Icon(
-              Icons.map_rounded,
-              color: Colors.white,
-              size: 64,
-            ),
+            const Icon(Icons.map_rounded, color: Colors.white, size: 64),
           ],
         ),
       ),
@@ -365,10 +361,7 @@ class _StatTile extends StatelessWidget {
           const Gap(2),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 11,
-              color: AppColors.text.tertiaryDark,
-            ),
+            style: TextStyle(fontSize: 11, color: AppColors.text.tertiaryDark),
           ),
         ],
       ),

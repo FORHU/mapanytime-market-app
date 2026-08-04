@@ -101,6 +101,7 @@ class OrderRemoteDataSource {
       'status': 'COMPLETED',
       'referenceNumber': refNo,
     });
-    return response is Map && (response['success'] == true || response['statusCode'] == 200);
+    return response is Map &&
+        (response['success'] == true || response['statusCode'] == 200);
   }
 }

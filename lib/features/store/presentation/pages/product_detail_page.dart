@@ -85,10 +85,12 @@ class ProductDetailPage extends ConsumerWidget {
           ),
           _BottomCta(
             onAdd: () async {
-              final effectiveStoreId =
-                  storeId.isNotEmpty ? storeId : product.storeId;
-              final effectiveStoreName =
-                  storeName != 'Store' ? storeName : product.storeName;
+              final effectiveStoreId = storeId.isNotEmpty
+                  ? storeId
+                  : product.storeId;
+              final effectiveStoreName = storeName != 'Store'
+                  ? storeName
+                  : product.storeName;
 
               final cart = ref.read(cartProvider);
               if (cart.isNotEmpty && cart.first.storeId != effectiveStoreId) {

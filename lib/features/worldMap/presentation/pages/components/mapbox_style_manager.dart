@@ -26,8 +26,8 @@ class MapboxStyleManager {
   /// Creates annotation managers (once) and registers tap handling.
   Future<void> initializeStoreLayers() async {
     if (_pointManager == null) {
-      _pointManager =
-          await mapboxMap.annotations.createPointAnnotationManager();
+      _pointManager = await mapboxMap.annotations
+          .createPointAnnotationManager();
       _pointManager!.tapEvents(
         onTap: (annotation) {
           final storeId = _annotationToStore[annotation.id];
@@ -95,7 +95,6 @@ class MapboxStyleManager {
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
     canvas
       ..drawRRect(ribbonRRect.shift(const Offset(0, 2)), shadowPaint)
-
       // 2. Draw Ribbon Pill Body & Border
       ..drawRRect(ribbonRRect, ribbonBgPaint)
       ..drawRRect(ribbonRRect, ribbonBorderPaint);

@@ -87,9 +87,7 @@ class UserLocationManager {
     try {
       if (_mapboxMap != null) {
         await _mapboxMap!.location.updateSettings(
-          LocationComponentSettings(
-            enabled: false,
-          ),
+          LocationComponentSettings(enabled: false),
         );
       }
     } on Exception catch (_) {}

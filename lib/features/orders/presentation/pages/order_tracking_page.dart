@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/utils/currency.dart';
 import 'package:mapanytime_market_app/features/orders/domain/entities/buyer_order.dart';
+import 'package:mapanytime_market_app/features/orders/presentation/controllers/orders_controller.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
@@ -12,9 +14,6 @@ import 'package:mapanytime_market_app/shared/widgets/pickup_status_card.dart';
 import 'package:mapanytime_market_app/shared/widgets/section_title.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
-
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mapanytime_market_app/features/orders/presentation/controllers/orders_controller.dart';
 
 /// Order Tracking: live status, timeline, items and a pickup-pass CTA.
 class OrderTrackingPage extends ConsumerWidget {
@@ -26,10 +25,8 @@ class OrderTrackingPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ordersAsync = ref.watch(ordersProvider);
     final currentOrder = ordersAsync.maybeWhen(
-      data: (list) => list.firstWhere(
-        (o) => o.id == order.id,
-        orElse: () => order,
-      ),
+      data: (list) =>
+          list.firstWhere((o) => o.id == order.id, orElse: () => order),
       orElse: () => order,
     );
 
@@ -71,7 +68,8 @@ class OrderTrackingPage extends ConsumerWidget {
                           quantity: line.quantity,
                           total: line.lineTotal,
                         ),
-                        if (line != currentOrder.lines.last) const Gap(AppSpacing.sm),
+                        if (line != currentOrder.lines.last)
+                          const Gap(AppSpacing.sm),
                       ],
                       const Gap(AppSpacing.sm),
                       Divider(color: AppColors.ui.borderDark, height: 1),
@@ -85,9 +83,7 @@ class OrderTrackingPage extends ConsumerWidget {
                           ),
                           Text(
                             Money.peso(currentOrder.total),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                            ),
+                            style: const TextStyle(fontWeight: FontWeight.w800),
                           ),
                         ],
                       ),

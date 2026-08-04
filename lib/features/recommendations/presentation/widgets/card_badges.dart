@@ -78,11 +78,7 @@ class RatingPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Icon(
-      Icons.star_rounded,
-      size: 16,
-      color: AppColors.status.warning,
-    );
+    return Icon(Icons.star_rounded, size: 16, color: AppColors.status.warning);
   }
 }
 
