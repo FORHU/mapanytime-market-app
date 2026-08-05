@@ -18,13 +18,19 @@ class StoreProduct {
       name: json['name'] as String,
       // The API stores the image as a related file URL; fall back to empty.
       imageUrl: (json['productFile'] as Map?)?['fileUrl'] as String? ?? '',
-      price: (json['price'] as num).toDouble(),
+      price: _parsePrice(json['price']),
       description: json['description'] as String? ?? '',
       category: (json['category'] as Map?)?['name'] as String? ?? 'Other',
       storeId:
           (json['storeId'] as String?) ?? (storeObj?['id'] as String?) ?? '',
       storeName: (storeObj?['storeName'] as String?) ?? 'Store',
     );
+  }
+
+  static double _parsePrice(Object? raw) {
+    if (raw is num) return raw.toDouble();
+    if (raw is String) return double.tryParse(raw) ?? 0.0;
+    return 0;
   }
 
   final String id;

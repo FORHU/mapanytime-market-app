@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
 
 /// Convenience accessors on [BuildContext].
 extension BuildContextX on BuildContext {
@@ -7,9 +8,7 @@ extension BuildContextX on BuildContext {
   ColorScheme get colors => Theme.of(this).colorScheme;
 
   void showSnackBar(String message) {
-    ScaffoldMessenger.of(this)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    showTopToast(this, message);
   }
 }
 

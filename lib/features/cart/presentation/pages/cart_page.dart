@@ -44,34 +44,47 @@ class _CartPageState extends ConsumerState<CartPage> {
         title: Text(context.l10n.cart),
         automaticallyImplyLeading: false,
       ),
-      body: groups.isEmpty
-          ? const _EmptyCart()
-          : Column(
-              children: [
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.md,
-                      AppSpacing.sm,
-                      AppSpacing.md,
-                      AppSpacing.lg,
-                    ),
-                    children: [
-                      for (final group in groups) ...[
-                        _StoreGroup(group: group),
-                        const Gap(AppSpacing.lg),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await Future<void>.delayed(const Duration(milliseconds: 300));
+        },
+        color: AppColors.brand.primary,
+        child: groups.isEmpty
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [
+                  Gap(200),
+                  _EmptyCart(),
+                ],
+              )
+            : Column(
+                children: [
+                  Expanded(
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        AppSpacing.sm,
+                        AppSpacing.md,
+                        AppSpacing.lg,
+                      ),
+                      children: [
+                        for (final group in groups) ...[
+                          _StoreGroup(group: group),
+                          const Gap(AppSpacing.lg),
+                        ],
+                        _SummaryCard(subtotal: subtotal),
                       ],
-                      _SummaryCard(subtotal: subtotal),
-                    ],
+                    ),
                   ),
-                ),
-                _CheckoutBar(
-                  subtotal: subtotal,
-                  enabled: selectedCount > 0,
-                  onCheckout: () => context.push(RouteNames.checkout),
-                ),
-              ],
-            ),
+                  _CheckoutBar(
+                    subtotal: subtotal,
+                    enabled: selectedCount > 0,
+                    onCheckout: () => context.push(RouteNames.checkout),
+                  ),
+                ],
+              ),
+      ),
     );
   }
 }

@@ -15,7 +15,12 @@ import 'package:mapanytime_market_app/features/auth/domain/usecases/register_use
 // --- Dependency wiring (Riverpod providers) ---
 
 final apiServiceProvider = Provider<ApiService>((ref) {
-  return ApiService(storage: ref.watch(storageServiceProvider));
+  return ApiService(
+    storage: ref.watch(storageServiceProvider),
+    onUnauthenticated: () {
+      unawaited(ref.read(authControllerProvider.notifier).onUnauthenticated());
+    },
+  );
 });
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -68,6 +73,11 @@ class AuthController extends Notifier<AuthState> {
       unawaited(Future.microtask(refreshAuth));
     }
     return AuthState(user: cachedUser);
+  }
+
+  Future<void> onUnauthenticated() async {
+    await ref.read(storageServiceProvider).clearSession();
+    state = const AuthState();
   }
 
   Future<void> refreshAuth() async {

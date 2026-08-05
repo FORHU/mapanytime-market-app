@@ -26,6 +26,14 @@ class CartRemoteDataSource {
     });
   }
 
+  /// Fetches the server-side cart payload from Redis.
+  Future<Map<String, dynamic>> getCart() async {
+    final response = await _api.get(ApiEndpoints.cart);
+    return (response is Map && response['data'] is Map)
+        ? (response['data'] as Map).cast<String, dynamic>()
+        : <String, dynamic>{};
+  }
+
   /// Empties the server-side cart (called after order placement).
   Future<void> clearCart() async {
     await _api.delete(ApiEndpoints.cart);
