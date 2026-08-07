@@ -9,6 +9,12 @@ class StoreEntity extends Equatable {
     required this.lat,
     required this.lng,
     required this.distance,
+    this.categoryId,
+    this.categoryName,
+    this.logoUrl,
+    this.rating,
+    this.ratingCount,
+    this.isOpen,
   });
 
   final String id;
@@ -19,6 +25,28 @@ class StoreEntity extends Equatable {
   /// Distance from the query origin, in kilometres.
   final double distance;
 
+  // The fields below are not sent by `/stores/nearby` yet — they stay null
+  // until the backend exposes them. Marker/UI code must degrade gracefully
+  // rather than fabricate a value when these are absent.
+  final String? categoryId;
+  final String? categoryName;
+  final String? logoUrl;
+  final double? rating;
+  final int? ratingCount;
+  final bool? isOpen;
+
   @override
-  List<Object?> get props => [id, name, lat, lng, distance];
+  List<Object?> get props => [
+    id,
+    name,
+    lat,
+    lng,
+    distance,
+    categoryId,
+    categoryName,
+    logoUrl,
+    rating,
+    ratingCount,
+    isOpen,
+  ];
 }

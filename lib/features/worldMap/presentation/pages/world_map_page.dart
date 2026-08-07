@@ -293,6 +293,16 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     });
   }
 
+  /// Switches markers between the expanded (icon + name label) and
+  /// collapsed (plain dot) representation as the camera crosses the zoom
+  /// threshold. Runs on every camera tick — cheap, since
+  /// [MapboxStyleManager.updateZoom] only re-renders when the bucket flips.
+  Future<void> _updateMarkerZoomLevel() async {
+    if (mapboxMap == null || _styleManager == null) return;
+    final cameraState = await mapboxMap!.getCameraState();
+    await _styleManager!.updateZoom(cameraState.zoom);
+  }
+
   Future<void> _onCameraIdle() async {
     if (mapboxMap == null || !mounted) return;
 
@@ -451,6 +461,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                   onStyleLoadedListener: _onStyleLoaded,
                   onCameraChangeListener: (_) {
                     unawaited(_onCameraIdle());
+                    unawaited(_updateMarkerZoomLevel());
                   },
                 ),
 
