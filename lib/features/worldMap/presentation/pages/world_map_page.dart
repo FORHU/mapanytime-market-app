@@ -41,6 +41,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
   // Custom UI State
   String? _selectedStoreId;
+  bool _sheetOpen = false;
   final bool _showListView = false;
   int _selectedCategory = 0;
 
@@ -206,6 +207,12 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   }
 
   void _selectStore(String storeId) {
+    if (_sheetOpen) {
+      // A sheet (and its details fetch) is already open — ignore rapid
+      // re-taps rather than stacking sheets on top of each other.
+      return;
+    }
+
     if (mounted) {
       setState(() {
         _selectedStoreId = storeId;
@@ -216,12 +223,28 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     final stores = ref.read(worldMapControllerProvider).value?.stores ?? [];
     final store = stores.where((s) => s.id == storeId).firstOrNull;
     if (store != null) {
+      // Switch markers to their expanded (icon + label) form immediately
+      // rather than waiting for the camera-change listener to notice we've
+      // crossed the zoom threshold mid-flight — avoids a re-render hitch
+      // partway through the animation.
+      unawaited(_styleManager?.updateZoom(17));
+      unawaited(
+        mapboxMap?.flyTo(
+          CameraOptions(
+            center: Point(coordinates: Position(store.lng, store.lat)),
+            zoom: 17,
+          ),
+          MapAnimationOptions(duration: 900),
+        ),
+      );
+      _sheetOpen = true;
       unawaited(
         StoreBottomSheet.show(
           context,
           store,
           onNavigate: () => _startNavigationTo(store),
         ).whenComplete(() {
+          _sheetOpen = false;
           if (mounted) {
             setState(() {
               _selectedStoreId = null;
@@ -291,6 +314,16 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       if (!mounted) return;
       unawaited(_refetchForCurrentCamera());
     });
+  }
+
+  /// Switches markers between the expanded (icon + name label) and
+  /// collapsed (plain dot) representation as the camera crosses the zoom
+  /// threshold. Runs on every camera tick — cheap, since
+  /// [MapboxStyleManager.updateZoom] only re-renders when the bucket flips.
+  Future<void> _updateMarkerZoomLevel() async {
+    if (mapboxMap == null || _styleManager == null) return;
+    final cameraState = await mapboxMap!.getCameraState();
+    await _styleManager!.updateZoom(cameraState.zoom);
   }
 
   Future<void> _onCameraIdle() async {
@@ -451,6 +484,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                   onStyleLoadedListener: _onStyleLoaded,
                   onCameraChangeListener: (_) {
                     unawaited(_onCameraIdle());
+                    unawaited(_updateMarkerZoomLevel());
                   },
                 ),
 

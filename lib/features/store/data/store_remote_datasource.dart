@@ -1,6 +1,8 @@
 import 'package:mapanytime_market_app/core/constants/api_endpoints.dart';
 import 'package:mapanytime_market_app/core/services/api_service.dart';
+import 'package:mapanytime_market_app/features/store/data/mock_merchant_ads.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_details.dart';
+import 'package:mapanytime_market_app/features/store/domain/entities/store_hours.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
 
 /// Fetches storefront data from the real backend.
@@ -50,7 +52,9 @@ class StoreRemoteDataSource {
 
     // ── 3. Build StoreDetails ─────────────────────────────────────────────
     final location = storeData['storeLocations'] as Map<String, dynamic>?;
-    final hours = storeData['storeHours'] as List<dynamic>?;
+    final rawHours = storeData['storeHours'] as List<dynamic>?;
+    final parsedHours = _parseHours(rawHours);
+    final category = _categoryLabel(storeData);
 
     return StoreDetails(
       // No hero image in the API yet — use a placeholder seeded by storeId.
@@ -58,11 +62,15 @@ class StoreRemoteDataSource {
       // Reviews/ratings not yet in the API; use neutral defaults.
       rating: 0,
       ratingCount: 0,
-      category: _categoryLabel(storeData),
-      isOpen: _isOpenNow(hours),
+      category: category,
+      isOpen: parsedHours.isOpenNow(),
       etaLabel: _etaLabel(location),
       productCategories: categoryNames,
       products: products,
+      hours: parsedHours,
+      // Merchant ads not yet in the API; synthesized client-side like
+      // heroImageUrl/rating above until the backend ships a real ads field.
+      ads: mockMerchantAdsForStore(storeId, category: category),
     );
   }
 
@@ -74,24 +82,17 @@ class StoreRemoteDataSource {
     return (cats.first as Map)['name'] as String? ?? 'Marketplace';
   }
 
-  bool _isOpenNow(List<dynamic>? hours) {
-    if (hours == null || hours.isEmpty) return true;
-    final now = DateTime.now();
-    // dayOfWeek: Prisma uses 0=Sun … 6=Sat; DateTime.weekday 1=Mon … 7=Sun.
-    final dow = now.weekday % 7; // converts to 0=Sun … 6=Sat
-    for (final h in hours) {
+  List<StoreDayHours> _parseHours(List<dynamic>? hours) {
+    if (hours == null) return const [];
+    return hours.map((h) {
       final hMap = h as Map<String, dynamic>;
-      if (hMap['dayOfWeek'] == dow) {
-        if (hMap['isClosed'] == true) return false;
-        final open = _minutesOf(hMap['openMinutes'], hMap['openTime']);
-        final close = _minutesOf(hMap['closeMinutes'], hMap['closeTime']);
-        if (open != null && close != null) {
-          final nowMins = now.hour * 60 + now.minute;
-          return nowMins >= open && nowMins < close;
-        }
-      }
-    }
-    return true;
+      return StoreDayHours(
+        dayOfWeek: (hMap['dayOfWeek'] as num?)?.toInt() ?? -1,
+        isClosed: hMap['isClosed'] == true,
+        openMinutes: _minutesOf(hMap['openMinutes'], hMap['openTime']),
+        closeMinutes: _minutesOf(hMap['closeMinutes'], hMap['closeTime']),
+      );
+    }).toList();
   }
 
   /// Store hours are minutes since midnight (`openMinutes` = 480 → 08:00).
