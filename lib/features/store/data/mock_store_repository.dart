@@ -1,4 +1,6 @@
+import 'package:mapanytime_market_app/features/store/data/mock_merchant_ads.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_details.dart';
+import 'package:mapanytime_market_app/features/store/domain/entities/store_hours.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
 import 'package:mapanytime_market_app/features/store/domain/repositories/store_repository.dart';
 
@@ -23,6 +25,49 @@ class MockStoreRepository implements StoreRepository {
       isOpen: true,
       etaLabel: 'Pickup in ~15 min',
       productCategories: const ['All', 'Produce', 'Bakery', 'Dairy', 'Snacks'],
+      hours: const [
+        StoreDayHours(dayOfWeek: 0, isClosed: true),
+        StoreDayHours(
+          dayOfWeek: 1,
+          isClosed: false,
+          openMinutes: 540,
+          closeMinutes: 1260,
+        ),
+        StoreDayHours(
+          dayOfWeek: 2,
+          isClosed: false,
+          openMinutes: 540,
+          closeMinutes: 1260,
+        ),
+        StoreDayHours(
+          dayOfWeek: 3,
+          isClosed: false,
+          openMinutes: 540,
+          closeMinutes: 1260,
+        ),
+        StoreDayHours(
+          dayOfWeek: 4,
+          isClosed: false,
+          openMinutes: 540,
+          closeMinutes: 1260,
+        ),
+        StoreDayHours(
+          dayOfWeek: 5,
+          isClosed: false,
+          openMinutes: 540,
+          closeMinutes: 1260,
+        ),
+        StoreDayHours(
+          dayOfWeek: 6,
+          isClosed: false,
+          openMinutes: 540,
+          closeMinutes: 1260,
+        ),
+      ],
+      ads: mockMerchantAdsForStore(
+        storeId,
+        category: 'Specialty • Grocery & Essentials',
+      ),
       products: [
         StoreProduct(
           id: '$seed-1',

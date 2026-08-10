@@ -41,6 +41,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
   // Custom UI State
   String? _selectedStoreId;
+  bool _sheetOpen = false;
   final bool _showListView = false;
   int _selectedCategory = 0;
 
@@ -206,6 +207,12 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   }
 
   void _selectStore(String storeId) {
+    if (_sheetOpen) {
+      // A sheet (and its details fetch) is already open — ignore rapid
+      // re-taps rather than stacking sheets on top of each other.
+      return;
+    }
+
     if (mounted) {
       setState(() {
         _selectedStoreId = storeId;
@@ -216,12 +223,28 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     final stores = ref.read(worldMapControllerProvider).value?.stores ?? [];
     final store = stores.where((s) => s.id == storeId).firstOrNull;
     if (store != null) {
+      // Switch markers to their expanded (icon + label) form immediately
+      // rather than waiting for the camera-change listener to notice we've
+      // crossed the zoom threshold mid-flight — avoids a re-render hitch
+      // partway through the animation.
+      unawaited(_styleManager?.updateZoom(17));
+      unawaited(
+        mapboxMap?.flyTo(
+          CameraOptions(
+            center: Point(coordinates: Position(store.lng, store.lat)),
+            zoom: 17,
+          ),
+          MapAnimationOptions(duration: 900),
+        ),
+      );
+      _sheetOpen = true;
       unawaited(
         StoreBottomSheet.show(
           context,
           store,
           onNavigate: () => _startNavigationTo(store),
         ).whenComplete(() {
+          _sheetOpen = false;
           if (mounted) {
             setState(() {
               _selectedStoreId = null;
