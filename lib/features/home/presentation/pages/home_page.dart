@@ -128,7 +128,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           _Chip(
             label: roots[i].name,
             icon: iconForCategory(roots[i].name),
-            color: colorForCategory(i),
+            color: colorForKey(roots[i].id),
             selected: _selectedId == roots[i].id,
             onTap: () => _onRootTap(i, roots[i]),
           ),
@@ -148,7 +148,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       _Chip(
         label: 'All',
         icon: Icons.grid_view_rounded,
-        color: colorForCategory(drill),
+        color: colorForKey(root.id),
         selected: _selectedId == root.id,
         onTap: () => _applyCategory(root.id),
       ),
@@ -156,7 +156,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         _Chip(
           label: root.children[i].name,
           icon: iconForCategory(root.children[i].name),
-          color: colorForCategory(i),
+          color: colorForKey(root.children[i].id),
           selected: _selectedId == root.children[i].id,
           onTap: () => _applyCategory(root.children[i].id),
         ),

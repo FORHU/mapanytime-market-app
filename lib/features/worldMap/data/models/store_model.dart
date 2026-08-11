@@ -20,8 +20,18 @@ class StoreModel extends StoreEntity {
     required super.lat,
     required super.lng,
     required super.distance,
+    super.categoryId,
+    super.categoryName,
+    super.logoUrl,
+    super.rating,
+    super.ratingCount,
+    super.isOpen,
   });
 
+  // categoryId/categoryName/logoUrl/rating/ratingCount/isOpen aren't sent by
+  // the backend yet — parsed defensively so they light up with no further
+  // changes once the API starts including them (see Part B of the merchant
+  // markers plan).
   factory StoreModel.fromJson(Map<String, dynamic> json) {
     final coords = json['coordinates'] as Map<String, dynamic>? ?? {};
     return StoreModel(
@@ -30,6 +40,12 @@ class StoreModel extends StoreEntity {
       lat: (coords['lat'] as num?)?.toDouble() ?? 0.0,
       lng: (coords['lng'] as num?)?.toDouble() ?? 0.0,
       distance: (json['distanceKm'] as num?)?.toDouble() ?? 0.0,
+      categoryId: json['categoryId'] as String?,
+      categoryName: json['categoryName'] as String?,
+      logoUrl: json['logoUrl'] as String?,
+      rating: (json['rating'] as num?)?.toDouble(),
+      ratingCount: (json['ratingCount'] as num?)?.toInt(),
+      isOpen: json['isOpen'] as bool?,
     );
   }
 
@@ -38,5 +54,11 @@ class StoreModel extends StoreEntity {
     'name': name,
     'coordinates': {'lat': lat, 'lng': lng},
     'distanceKm': distance,
+    'categoryId': categoryId,
+    'categoryName': categoryName,
+    'logoUrl': logoUrl,
+    'rating': rating,
+    'ratingCount': ratingCount,
+    'isOpen': isOpen,
   };
 }
