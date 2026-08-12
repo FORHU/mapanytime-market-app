@@ -56,8 +56,7 @@ class NearbyStoreCard extends StatelessWidget {
                       merchant.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 16,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -66,8 +65,7 @@ class NearbyStoreCard extends StatelessWidget {
                       merchant.category,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.text.tertiaryDark,
                       ),
                     ),
@@ -78,10 +76,7 @@ class NearbyStoreCard extends StatelessWidget {
                         const Gap(6),
                         Text(
                           merchant.rating.toStringAsFixed(1),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: Theme.of(context).textTheme.labelMedium,
                         ),
                         const Spacer(),
                         Icon(
@@ -92,8 +87,7 @@ class NearbyStoreCard extends StatelessWidget {
                         const Gap(2),
                         Text(
                           '${merchant.distanceKm} km · ${merchant.travelTime}',
-                          style: TextStyle(
-                            fontSize: 11,
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: AppColors.text.tertiaryDark,
                           ),
                         ),
@@ -184,12 +178,10 @@ class _VisitButton extends StatelessWidget {
           child: Container(
             height: 40,
             alignment: Alignment.center,
-            child: const Text(
+            child: Text(
               'Visit Store',
-              style: TextStyle(
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
                 color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
               ),
             ),
           ),

@@ -7,16 +7,35 @@ import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/animated_bottom_navigation.dart';
 
 /// App shell: hosts the routed [child] and the premium glass bottom navigation.
-class MainLayout extends ConsumerWidget {
+class MainLayout extends ConsumerStatefulWidget {
   const MainLayout({required this.child, super.key});
 
   final Widget child;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Unseen cart items surface as a notification dot on the Cart tab.
+  ConsumerState<MainLayout> createState() => _MainLayoutState();
+}
+
+class _MainLayoutState extends ConsumerState<MainLayout> {
+  bool _navCompact = false;
+  String? _prevLocation;
+
+  bool _onScroll(ScrollNotification notification) {
+    if (notification is ScrollUpdateNotification &&
+        notification.metrics.axis == Axis.vertical) {
+      final delta = notification.scrollDelta ?? 0;
+      if (delta > 1 && !_navCompact) {
+        setState(() => _navCompact = true);
+      } else if (delta < -1 && _navCompact) {
+        setState(() => _navCompact = false);
+      }
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final cartHasUnseen = ref.watch(cartHasUnseenProvider);
-    // Tab destinations paired with their routes (order = tab order).
     final destinations = <_Destination>[
       _Destination(
         item: NavBarItem(
@@ -61,8 +80,14 @@ class MainLayout extends ConsumerWidget {
       ),
     ];
 
-    // Resolve the active tab from the current route (ignoring root '/').
     final location = GoRouterState.of(context).matchedLocation;
+    if (_prevLocation != null && _prevLocation != location && _navCompact) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _navCompact = false);
+      });
+    }
+    _prevLocation = location;
+
     var currentIndex = destinations.indexWhere(
       (d) => d.route != '/' && location.startsWith(d.route),
     );
@@ -80,10 +105,15 @@ class MainLayout extends ConsumerWidget {
     }
 
     return Scaffold(
-      body: child,
+      extendBody: true,
+      body: NotificationListener<ScrollNotification>(
+        onNotification: _onScroll,
+        child: widget.child,
+      ),
       bottomNavigationBar: AnimatedBottomNavigation(
         items: [for (final d in destinations) d.item],
         currentIndex: currentIndex,
+        isCompact: _navCompact,
         onTap: (index) => context.go(destinations[index].route),
       ),
     );

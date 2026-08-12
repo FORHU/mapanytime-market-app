@@ -8,9 +8,9 @@ import 'package:mapanytime_market_app/features/auth/presentation/controllers/aut
 import 'package:mapanytime_market_app/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
+import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
 import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
-import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
@@ -26,10 +26,7 @@ class ProfilePage extends ConsumerWidget {
         : '?';
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.profile),
-        automaticallyImplyLeading: false,
-      ),
+      appBar: ModernAppBar(title: context.l10n.profile, showBack: false),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(profileProvider);
@@ -38,18 +35,14 @@ class ProfilePage extends ConsumerWidget {
         color: AppColors.brand.primary,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(
+          padding: EdgeInsets.fromLTRB(
             AppSpacing.md,
             AppSpacing.sm,
             AppSpacing.md,
-            AppSpacing.xxl,
+            AppSpacing.md + MediaQuery.paddingOf(context).bottom,
           ),
           children: [
-            _ProfileHeader(
-              name: name,
-              email: user?.email ?? '-',
-              initial: initial,
-            ),
+            _ProfileHeader(name: name, email: user?.email ?? '-', initial: initial),
             const Gap(AppSpacing.md),
             const _StatsRow(),
             const Gap(AppSpacing.lg),
@@ -148,6 +141,7 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
     return GlassCard(
       child: Row(
         children: [
@@ -156,14 +150,14 @@ class _ProfileHeader extends StatelessWidget {
             height: 64,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
+              color: AppColors.ui.surfaceDark,
               shape: BoxShape.circle,
-              boxShadow: AppEffects.primaryGlow,
+              border: Border.all(color: AppColors.brand.primary, width: 2),
             ),
             child: Text(
               initial,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: AppColors.brand.primary,
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
               ),
@@ -174,20 +168,19 @@ class _ProfileHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: Theme.of(context).textTheme.titleLarge),
+                Text(name, style: tt.titleLarge),
                 const Gap(2),
                 Text(
                   email,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: AppColors.text.secondaryDark),
+                  style: tt.bodyMedium?.copyWith(
+                    color: AppColors.text.secondaryDark,
+                  ),
                 ),
                 const Gap(AppSpacing.sm),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.status.warning.withValues(alpha: 0.15),
                     borderRadius: AppRadius.brPill,
@@ -203,8 +196,7 @@ class _ProfileHeader extends StatelessWidget {
                       const Gap(4),
                       Text(
                         'Gold member',
-                        style: TextStyle(
-                          fontSize: 11,
+                        style: tt.labelSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: AppColors.status.warning,
                         ),
@@ -228,17 +220,11 @@ class _StatsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Row(
       children: [
-        Expanded(
-          child: _StatTile(value: '8', label: 'Orders'),
-        ),
+        Expanded(child: _StatTile(value: '8', label: 'Orders')),
         Gap(AppSpacing.sm),
-        Expanded(
-          child: _StatTile(value: '320', label: 'Points'),
-        ),
+        Expanded(child: _StatTile(value: '320', label: 'Points')),
         Gap(AppSpacing.sm),
-        Expanded(
-          child: _StatTile(value: '12', label: 'Saved'),
-        ),
+        Expanded(child: _StatTile(value: '12', label: 'Saved')),
       ],
     );
   }
@@ -252,14 +238,14 @@ class _StatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
     return GlassCard(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: Column(
         children: [
           Text(
             value,
-            style: TextStyle(
-              fontSize: 20,
+            style: tt.titleLarge?.copyWith(
               fontWeight: FontWeight.w800,
               color: AppColors.text.primaryDark,
             ),
@@ -267,7 +253,7 @@ class _StatTile extends StatelessWidget {
           const Gap(2),
           Text(
             label,
-            style: TextStyle(fontSize: 11, color: AppColors.text.tertiaryDark),
+            style: tt.labelSmall?.copyWith(color: AppColors.text.tertiaryDark),
           ),
         ],
       ),
@@ -314,6 +300,7 @@ class _MenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
     final color = danger ? AppColors.status.error : AppColors.text.primaryDark;
     return Semantics(
       button: true,
@@ -340,18 +327,13 @@ class _MenuTile extends StatelessWidget {
                   children: [
                     Text(
                       label,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: color,
-                      ),
+                      style: tt.titleSmall?.copyWith(color: color),
                     ),
                     if (subtitle != null) ...[
                       const Gap(2),
                       Text(
                         subtitle!,
-                        style: TextStyle(
-                          fontSize: 12,
+                        style: tt.bodySmall?.copyWith(
                           color: AppColors.text.tertiaryDark,
                         ),
                       ),

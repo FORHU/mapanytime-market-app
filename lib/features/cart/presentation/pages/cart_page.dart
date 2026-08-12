@@ -9,6 +9,7 @@ import 'package:mapanytime_market_app/features/cart/presentation/controllers/car
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
+import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
 import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
@@ -40,10 +41,7 @@ class _CartPageState extends ConsumerState<CartPage> {
     final selectedCount = ref.watch(cartSelectedCountProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.cart),
-        automaticallyImplyLeading: false,
-      ),
+      appBar: ModernAppBar(title: context.l10n.cart, showBack: false),
       body: RefreshIndicator(
         onRefresh: () async {
           await Future<void>.delayed(const Duration(milliseconds: 300));
@@ -62,11 +60,11 @@ class _CartPageState extends ConsumerState<CartPage> {
                   Expanded(
                     child: ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(
+                      padding: EdgeInsets.fromLTRB(
                         AppSpacing.md,
                         AppSpacing.sm,
                         AppSpacing.md,
-                        AppSpacing.lg,
+                        AppSpacing.md + MediaQuery.paddingOf(context).bottom,
                       ),
                       children: [
                         for (final group in groups) ...[
@@ -180,14 +178,13 @@ class _CartRow extends ConsumerWidget {
                   item.product.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  style: Theme.of(context).textTheme.titleSmall,
                 ),
                 const Gap(2),
                 Text(
                   Money.peso(item.product.price),
-                  style: TextStyle(
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.text.secondaryDark,
-                    fontSize: 13,
                   ),
                 ),
               ],
@@ -306,8 +303,8 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = TextStyle(
-      fontSize: bold ? 16 : 14,
+    final tt = Theme.of(context).textTheme;
+    final style = (bold ? tt.bodyLarge : tt.bodyMedium)?.copyWith(
       fontWeight: bold ? FontWeight.w800 : FontWeight.w500,
       color: bold ? AppColors.text.primaryDark : AppColors.text.secondaryDark,
     );

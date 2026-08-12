@@ -30,6 +30,7 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -59,9 +60,7 @@ class ProductCard extends StatelessWidget {
                     name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                    style: tt.titleSmall?.copyWith(
                       color: AppColors.text.primaryDark,
                     ),
                   ),
@@ -71,8 +70,7 @@ class ProductCard extends StatelessWidget {
                       storeName!,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: tt.bodySmall?.copyWith(
                         color: AppColors.text.tertiaryDark,
                       ),
                     ),
@@ -84,8 +82,7 @@ class ProductCard extends StatelessWidget {
                       if (distanceKm != null)
                         Text(
                           '${distanceKm!.toStringAsFixed(1)} km',
-                          style: TextStyle(
-                            fontSize: 11,
+                          style: tt.labelSmall?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: AppColors.brand.primary,
                           ),

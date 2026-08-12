@@ -29,6 +29,7 @@ class StoreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -59,8 +60,7 @@ class StoreCard extends StatelessWidget {
                           name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 15,
+                          style: tt.titleMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: AppColors.text.primaryDark,
                           ),
@@ -81,9 +81,7 @@ class StoreCard extends StatelessWidget {
                         const Gap(3),
                         Text(
                           rating!.toStringAsFixed(1),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                          style: tt.labelMedium?.copyWith(
                             color: AppColors.text.secondaryDark,
                           ),
                         ),
@@ -95,8 +93,7 @@ class StoreCard extends StatelessWidget {
                             category!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
+                            style: tt.bodySmall?.copyWith(
                               color: AppColors.text.tertiaryDark,
                             ),
                           ),
@@ -107,9 +104,7 @@ class StoreCard extends StatelessWidget {
                     const Gap(6),
                     Text(
                       '${distanceKm!.toStringAsFixed(1)} km away',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                      style: tt.labelMedium?.copyWith(
                         color: AppColors.brand.primary,
                       ),
                     ),
@@ -131,9 +126,7 @@ class _OpenBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isOpen
-        ? AppColors.status.success
-        : AppColors.text.tertiaryDark;
+    final color = isOpen ? AppColors.status.success : AppColors.text.tertiaryDark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(

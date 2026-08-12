@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
-import 'package:mapanytime_market_app/theme/tokens/effects.dart';
+import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
-/// Home top bar: greeting + name, current location, notification and avatar.
+/// Home top bar: avatar, greeting + name, notification, and location selector.
 class HomeAppBar extends StatelessWidget {
   const HomeAppBar({
     required this.greeting,
@@ -25,78 +25,96 @@ class HomeAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
+    final tt = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                greeting,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.text.secondaryDark,
-                ),
-              ),
-              const Gap(2),
-              Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleLarge,
-              ),
-              const Gap(6),
-              Row(
+        Row(
+          children: [
+            _Avatar(name: name, onTap: onProfile),
+            const Gap(AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.location_on_rounded,
-                    size: 14,
-                    color: AppColors.brand.primaryBright,
-                  ),
-                  const Gap(2),
-                  Flexible(
-                    child: Text(
-                      location,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.text.tertiaryDark,
-                      ),
+                  Text(
+                    greeting,
+                    style: tt.bodySmall?.copyWith(
+                      color: AppColors.text.secondaryDark,
                     ),
                   ),
-                  const Gap(2),
-                  Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    size: 16,
-                    color: AppColors.text.tertiaryDark,
+                  Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: tt.titleLarge,
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+            const Gap(AppSpacing.sm),
+            _NotificationButton(
+              onTap: onNotifications,
+              badgeCount: unreadCount,
+            ),
+          ],
         ),
         const Gap(AppSpacing.sm),
-        _IconButton(
-          icon: Icons.notifications_none_rounded,
-          onTap: onNotifications,
-          badgeCount: unreadCount,
-        ),
-        const Gap(AppSpacing.sm),
-        _Avatar(name: name, onTap: onProfile),
+        _LocationSelector(location: location),
       ],
     );
   }
 }
 
-class _IconButton extends StatelessWidget {
-  const _IconButton({required this.icon, this.onTap, this.badgeCount = 0});
+class _LocationSelector extends StatelessWidget {
+  const _LocationSelector({required this.location});
 
-  final IconData icon;
+  final String location;
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: AppColors.ui.surfaceElevatedDark,
+        borderRadius: AppRadius.brPill,
+        border: Border.all(color: AppColors.ui.borderDark),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.location_on_rounded,
+            size: 16,
+            color: AppColors.brand.primaryBright,
+          ),
+          const Gap(AppSpacing.xs),
+          Expanded(
+            child: Text(
+              location,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: tt.bodySmall?.copyWith(
+                color: AppColors.text.secondaryDark,
+              ),
+            ),
+          ),
+          Icon(
+            Icons.keyboard_arrow_down_rounded,
+            size: 18,
+            color: AppColors.text.tertiaryDark,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NotificationButton extends StatelessWidget {
+  const _NotificationButton({this.onTap, this.badgeCount = 0});
+
   final VoidCallback? onTap;
-
-  /// Unread count shown as a badge; 0 hides the badge.
   final int badgeCount;
 
   @override
@@ -108,17 +126,21 @@ class _IconButton extends StatelessWidget {
         onTap: onTap,
         customBorder: const CircleBorder(),
         child: SizedBox(
-          width: 44,
-          height: 44,
+          width: 40,
+          height: 40,
           child: Stack(
             alignment: Alignment.center,
             clipBehavior: Clip.none,
             children: [
-              Icon(icon, size: 22, color: AppColors.text.primaryDark),
+              Icon(
+                Icons.notifications_none_rounded,
+                size: 20,
+                color: AppColors.text.primaryDark,
+              ),
               if (badgeCount > 0)
                 Positioned(
-                  top: 8,
-                  right: 6,
+                  top: 6,
+                  right: 4,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     constraints: const BoxConstraints(
@@ -138,7 +160,7 @@ class _IconButton extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 9,
+                        fontSize: 10,
                         fontWeight: FontWeight.w700,
                         height: 1.2,
                       ),
@@ -161,22 +183,23 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initial = name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : '?';
+    final initial =
+        name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : '?';
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 46,
-        height: 46,
+        width: 44,
+        height: 44,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          gradient: AppColors.primaryGradient,
+          color: AppColors.ui.surfaceDark,
           shape: BoxShape.circle,
-          boxShadow: AppEffects.primaryGlow,
+          border: Border.all(color: AppColors.brand.primary, width: 1.5),
         ),
         child: Text(
           initial,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: AppColors.brand.primary,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
