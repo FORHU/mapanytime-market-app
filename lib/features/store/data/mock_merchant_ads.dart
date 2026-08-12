@@ -15,8 +15,7 @@ List<MerchantAd> mockMerchantAdsForStore(String storeId, {String? category}) {
       id: '$seed-promo',
       kind: MerchantAdKind.promo,
       title: 'Weekend special: 15% off',
-      description:
-          'Save on your next order from $categoryLabel this weekend.',
+      description: 'Save on your next order from $categoryLabel this weekend.',
       badgeLabel: '15% OFF',
       ctaLabel: 'View deal',
       extra: const {'validUntil': 'This Sunday'},

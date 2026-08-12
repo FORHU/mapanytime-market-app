@@ -190,164 +190,166 @@ class _HomePageState extends ConsumerState<HomePage> {
             physics: const AlwaysScrollableScrollPhysics(),
             controller: _scrollController,
             slivers: [
-            // --- Scrolls away: top bar + hero ---
-            SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  const Gap(AppSpacing.sm),
-                  Padding(
-                    padding: _hPad,
-                    child: FadeSlideIn(
-                      child: HomeAppBar(
-                        greeting: HomeMock.greeting,
-                        name: HomeMock.userName,
-                        location: HomeMock.location,
-                        unreadCount: ref.watch(
-                          notificationFeedControllerProvider.select(
-                            (s) => s.unreadCount,
-                          ),
-                        ),
-                        onNotifications: () =>
-                            context.go(RouteNames.notifications),
-                        onProfile: () => context.go(RouteNames.profile),
-                      ),
-                    ),
-                  ),
-                  const Gap(AppSpacing.lg),
-                  Padding(
-                    padding: _hPad,
-                    child: FadeSlideIn(
-                      delay: const Duration(milliseconds: 60),
-                      child: HeroBanner(
-                        nearbyCount: HomeMock.nearbyCount,
-                        openNowCount: HomeMock.openNowCount,
-                        dealsCount: HomeMock.dealsCount,
-                        onOpenMap: _openMap,
-                        onBrowseCategories: _openMap,
-                      ),
-                    ),
-                  ),
-                  const Gap(AppSpacing.md),
-                ],
-              ),
-            ),
-
-            // --- Pinned: search + category filters ---
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _StickySearchHeader(
-                controller: _searchController,
-                onChanged: _onSearchChanged,
-                chips: chips,
-                signature: signature,
-              ),
-            ),
-
-            // --- Scrolls under the pinned header: product grid ---
-            // A minimum height keeps the scrollable content taller than the
-            // viewport, so the pinned filter header stays pinned when the grid
-            // shrinks (e.g. while a filter reloads into a small spinner)
-            // instead of bouncing back up and revealing the hero above it.
-            SliverToBoxAdapter(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight:
-                      MediaQuery.of(context).size.height -
-                      _StickySearchHeader._height,
-                ),
+              // --- Scrolls away: top bar + hero ---
+              SliverToBoxAdapter(
                 child: Column(
                   children: [
-                    const Gap(AppSpacing.md),
-                    const Padding(
+                    const Gap(AppSpacing.sm),
+                    Padding(
                       padding: _hPad,
-                      child: SectionTitle(title: 'Products'),
+                      child: FadeSlideIn(
+                        child: HomeAppBar(
+                          greeting: HomeMock.greeting,
+                          name: HomeMock.userName,
+                          location: HomeMock.location,
+                          unreadCount: ref.watch(
+                            notificationFeedControllerProvider.select(
+                              (s) => s.unreadCount,
+                            ),
+                          ),
+                          onNotifications: () =>
+                              context.go(RouteNames.notifications),
+                          onProfile: () => context.go(RouteNames.profile),
+                        ),
+                      ),
+                    ),
+                    const Gap(AppSpacing.lg),
+                    Padding(
+                      padding: _hPad,
+                      child: FadeSlideIn(
+                        delay: const Duration(milliseconds: 60),
+                        child: HeroBanner(
+                          nearbyCount: HomeMock.nearbyCount,
+                          openNowCount: HomeMock.openNowCount,
+                          dealsCount: HomeMock.dealsCount,
+                          onOpenMap: _openMap,
+                          onBrowseCategories: _openMap,
+                        ),
+                      ),
                     ),
                     const Gap(AppSpacing.md),
-                    productsState.when(
-                      loading: () => const _LoadingResults(),
-                      error: (_, _) => const _ErrorResults(),
-                      data: (data) {
-                        final products = data.items;
-                        if (products.isEmpty) return const _EmptyResults();
-                        return Column(
-                          children: [
-                            Padding(
-                              padding: _hPad,
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final itemWidth =
-                                      (constraints.maxWidth - AppSpacing.md) /
-                                      2;
-                                  return Wrap(
-                                    spacing: AppSpacing.md,
-                                    runSpacing: AppSpacing.md,
-                                    children: [
-                                      for (final p in products)
-                                        ProductCard(
-                                          name: p.name,
-                                          imageUrl: p.imageUrl ?? '',
-                                          price: p.price,
-                                          storeName: p.storeName,
-                                          width: itemWidth,
-                                          onTap: () {
-                                            if (p.storeId != null &&
-                                                p.storeId!.isNotEmpty) {
-                                              unawaited(
-                                                context.push(
-                                                  RouteNames.productDetail,
-                                                  extra: (
-                                                    product: StoreProduct(
-                                                      id: p.id,
-                                                      name: p.name,
-                                                      imageUrl:
-                                                          p.imageUrl ?? '',
-                                                      price: p.price,
-                                                      description: '',
-                                                      category:
-                                                          p.categoryName ??
-                                                          'Other',
+                  ],
+                ),
+              ),
+
+              // --- Pinned: search + category filters ---
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _StickySearchHeader(
+                  controller: _searchController,
+                  onChanged: _onSearchChanged,
+                  chips: chips,
+                  signature: signature,
+                ),
+              ),
+
+              // --- Scrolls under the pinned header: product grid ---
+              // A minimum height keeps the scrollable content taller than
+              // the viewport, so the pinned filter header stays pinned when
+              // the grid shrinks (e.g. while a filter reloads into a small
+              // spinner) instead of bouncing back up and revealing the hero
+              // above it.
+              SliverToBoxAdapter(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight:
+                        MediaQuery.of(context).size.height -
+                        _StickySearchHeader._height,
+                  ),
+                  child: Column(
+                    children: [
+                      const Gap(AppSpacing.md),
+                      const Padding(
+                        padding: _hPad,
+                        child: SectionTitle(title: 'Products'),
+                      ),
+                      const Gap(AppSpacing.md),
+                      productsState.when(
+                        loading: () => const _LoadingResults(),
+                        error: (_, _) => const _ErrorResults(),
+                        data: (data) {
+                          final products = data.items;
+                          if (products.isEmpty) return const _EmptyResults();
+                          return Column(
+                            children: [
+                              Padding(
+                                padding: _hPad,
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final itemWidth =
+                                        (constraints.maxWidth - AppSpacing.md) /
+                                        2;
+                                    return Wrap(
+                                      spacing: AppSpacing.md,
+                                      runSpacing: AppSpacing.md,
+                                      children: [
+                                        for (final p in products)
+                                          ProductCard(
+                                            name: p.name,
+                                            imageUrl: p.imageUrl ?? '',
+                                            price: p.price,
+                                            storeName: p.storeName,
+                                            width: itemWidth,
+                                            onTap: () {
+                                              if (p.storeId != null &&
+                                                  p.storeId!.isNotEmpty) {
+                                                unawaited(
+                                                  context.push(
+                                                    RouteNames.productDetail,
+                                                    extra: (
+                                                      product: StoreProduct(
+                                                        id: p.id,
+                                                        name: p.name,
+                                                        imageUrl:
+                                                            p.imageUrl ?? '',
+                                                        price: p.price,
+                                                        description: '',
+                                                        category:
+                                                            p.categoryName ??
+                                                            'Other',
+                                                        storeId: p.storeId!,
+                                                        storeName:
+                                                            p.storeName ??
+                                                            'Store',
+                                                      ),
                                                       storeId: p.storeId!,
                                                       storeName:
                                                           p.storeName ??
                                                           'Store',
                                                     ),
-                                                    storeId: p.storeId!,
-                                                    storeName:
-                                                        p.storeName ?? 'Store',
                                                   ),
-                                                ),
-                                              );
-                                            } else {
-                                              _openMap();
-                                            }
-                                          },
-                                        ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                            if (data.isLoadingMore)
-                              const Padding(
-                                padding: EdgeInsets.symmetric(
-                                  vertical: AppSpacing.lg,
+                                                );
+                                              } else {
+                                                _openMap();
+                                              }
+                                            },
+                                          ),
+                                      ],
+                                    );
+                                  },
                                 ),
-                                child: CircularProgressIndicator(),
                               ),
-                          ],
-                        );
-                      },
-                    ),
-                    const Gap(AppSpacing.xxxl),
-                  ],
+                              if (data.isLoadingMore)
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: AppSpacing.lg,
+                                  ),
+                                  child: CircularProgressIndicator(),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
+                      const Gap(AppSpacing.xxxl),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
   }
 }
 

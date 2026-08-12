@@ -17,16 +17,16 @@ class ApiService {
     void Function()? onUnauthenticated,
     Dio? dio,
   }) : client =
-          dio ??
-          Dio(
-            BaseOptions(
-              baseUrl: AppConfig.instance.baseUrl,
-              connectTimeout: const Duration(seconds: 30),
-              receiveTimeout: const Duration(seconds: 30),
-              sendTimeout: const Duration(seconds: 30),
-              contentType: Headers.jsonContentType,
-            ),
-          ) {
+           dio ??
+           Dio(
+             BaseOptions(
+               baseUrl: AppConfig.instance.baseUrl,
+               connectTimeout: const Duration(seconds: 30),
+               receiveTimeout: const Duration(seconds: 30),
+               sendTimeout: const Duration(seconds: 30),
+               contentType: Headers.jsonContentType,
+             ),
+           ) {
     // 1. Attach the bearer token and transparently refresh it on a 401.
     client.interceptors.add(
       AuthInterceptor(

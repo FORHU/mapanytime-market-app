@@ -63,6 +63,12 @@ void main() {
       'name': 'Round Trip',
       'coordinates': {'lat': 1.5, 'lng': 2.5},
       'distanceKm': 3.5,
+      'categoryId': null,
+      'categoryName': null,
+      'logoUrl': null,
+      'rating': null,
+      'ratingCount': null,
+      'isOpen': null,
     });
   });
 }
