@@ -125,3 +125,4 @@ app.*.symbols
 .idea/
 *.iml
 .vscode/
+DESIGN.md
