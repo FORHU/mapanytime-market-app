@@ -78,6 +78,16 @@ class ProductDetailPage extends ConsumerWidget {
                           height: 1.5,
                         ),
                       ),
+                      if (product.tags.isNotEmpty) ...[
+                        const Gap(AppSpacing.lg),
+                        Wrap(
+                          spacing: AppSpacing.xs,
+                          runSpacing: AppSpacing.xs,
+                          children: product.tags
+                              .map((tag) => _TagPill(label: tag))
+                              .toList(),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -171,6 +181,31 @@ class _CategoryPill extends StatelessWidget {
           fontSize: 12,
           fontWeight: FontWeight.w700,
           color: AppColors.brand.primaryBright,
+        ),
+      ),
+    );
+  }
+}
+
+class _TagPill extends StatelessWidget {
+  const _TagPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.ui.surfaceElevatedDark,
+        borderRadius: AppRadius.brPill,
+        border: Border.all(color: AppColors.ui.borderDark),
+      ),
+      child: Text(
+        '#$label',
+        style: TextStyle(
+          fontSize: 12,
+          color: AppColors.text.secondaryDark,
         ),
       ),
     );

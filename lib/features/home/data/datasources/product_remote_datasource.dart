@@ -89,7 +89,7 @@ class ProductRemoteDataSource {
       final first = images.first;
       final file = first is Map ? first['file'] : null;
       if (file is Map) {
-        return (file['path'] ?? file['fileUrl']) as String?;
+        return (file['url'] ?? file['path'] ?? file['fileUrl']) as String?;
       }
     }
     // Legacy/mock shape.

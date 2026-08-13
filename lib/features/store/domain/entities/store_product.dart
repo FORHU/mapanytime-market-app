@@ -7,24 +7,43 @@ class StoreProduct {
     required this.price,
     required this.description,
     required this.category,
+    this.tags = const [],
     this.storeId = '',
     this.storeName = 'Store',
   });
 
   factory StoreProduct.fromJson(Map<String, dynamic> json) {
     final storeObj = json['store'] as Map<String, dynamic>?;
+    final rawTags = json['tags'];
     return StoreProduct(
       id: json['id'] as String,
       name: json['name'] as String,
-      // The API stores the image as a related file URL; fall back to empty.
-      imageUrl: (json['productFile'] as Map?)?['fileUrl'] as String? ?? '',
+      imageUrl: _imageUrlOf(json),
       price: _parsePrice(json['price']),
       description: json['description'] as String? ?? '',
       category: (json['category'] as Map?)?['name'] as String? ?? 'Other',
+      tags: rawTags is List
+          ? rawTags
+              .whereType<Map>()
+              .map((t) => (t['tag'] as Map?)?['name'] as String?)
+              .whereType<String>()
+              .toList()
+          : const [],
       storeId:
           (json['storeId'] as String?) ?? (storeObj?['id'] as String?) ?? '',
       storeName: (storeObj?['storeName'] as String?) ?? 'Store',
     );
+  }
+
+  static String _imageUrlOf(Map<String, dynamic> json) {
+    final images = json['productImages'];
+    if (images is List && images.isNotEmpty) {
+      final file = (images.first as Map?)?['file'];
+      if (file is Map) {
+        return (file['url'] ?? file['path'] ?? file['fileUrl']) as String? ?? '';
+      }
+    }
+    return '';
   }
 
   static double _parsePrice(Object? raw) {
@@ -39,6 +58,7 @@ class StoreProduct {
   final num price;
   final String description;
   final String category;
+  final List<String> tags;
   final String storeId;
   final String storeName;
 }
