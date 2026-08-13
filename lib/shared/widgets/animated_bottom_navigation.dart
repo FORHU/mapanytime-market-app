@@ -91,8 +91,8 @@ class _NavItem extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  static const _activeColor = Colors.white;
-  static const _inactiveColor = Color(0x66FFFFFF); // white 40%
+  static const Color _activeColor = Colors.white;
+  static const Color _inactiveColor = Color(0x66FFFFFF); // white 40%
 
   @override
   Widget build(BuildContext context) {

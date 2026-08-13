@@ -87,9 +87,10 @@ class NearbyStoreCard extends StatelessWidget {
                         const Gap(2),
                         Text(
                           '${merchant.distanceKm} km · ${merchant.travelTime}',
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppColors.text.tertiaryDark,
-                          ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: AppColors.text.tertiaryDark,
+                              ),
                         ),
                       ],
                     ),

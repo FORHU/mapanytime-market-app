@@ -25,7 +25,7 @@ const _hPad = EdgeInsets.symmetric(horizontal: AppSpacing.md);
 
 /// Neutral accent for the leading "All" / back chips, distinct from the
 /// colourful per-category discs.
-final _neutralColor = AppColors.text.tertiaryDark;
+final Color _neutralColor = AppColors.text.tertiaryDark;
 
 /// Buyer Home (Discover) tab — hero landing plus a product search grid.
 ///
@@ -344,7 +344,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                         },
                       ),
                       SizedBox(
-                        height: AppSpacing.md +
+                        height:
+                            AppSpacing.md +
                             MediaQuery.paddingOf(context).bottom,
                       ),
                     ],

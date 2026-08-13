@@ -52,18 +52,18 @@ IconData iconForCategory(String name) {
 /// separable from each other, from the brand gradient (indigo → violet), and
 /// from the status palette (error red, success green, warning amber).
 const _categoryColors = <String, Color>{
-  'Food & Beverage':       Color(0xFFF97316), // orange
-  'Shopping & Retail':     Color(0xFFEC4899), // hot pink
-  'Electronics':           Color(0xFF38BDF8), // sky blue
-  'Home & Living':         Color(0xFF14B8A6), // teal
-  'Health & Wellness':     Color(0xFF84CC16), // lime
-  'Automotive':            Color(0xFFEF4444), // red
-  'Pets':                  Color(0xFFCD7C3A), // warm brown
-  'Sports & Outdoors':     Color(0xFF06B6D4), // cyan
-  'Entertainment':         Color(0xFFA855F7), // purple
-  'Baby & Kids':           Color(0xFFF472B6), // light pink
-  'Services':              Color(0xFF3B82F6), // royal blue
-  'Agriculture':           Color(0xFF22C55E), // green
+  'Food & Beverage': Color(0xFFF97316), // orange
+  'Shopping & Retail': Color(0xFFEC4899), // hot pink
+  'Electronics': Color(0xFF38BDF8), // sky blue
+  'Home & Living': Color(0xFF14B8A6), // teal
+  'Health & Wellness': Color(0xFF84CC16), // lime
+  'Automotive': Color(0xFFEF4444), // red
+  'Pets': Color(0xFFCD7C3A), // warm brown
+  'Sports & Outdoors': Color(0xFF06B6D4), // cyan
+  'Entertainment': Color(0xFFA855F7), // purple
+  'Baby & Kids': Color(0xFFF472B6), // light pink
+  'Services': Color(0xFF3B82F6), // royal blue
+  'Agriculture': Color(0xFF22C55E), // green
   'Industrial & Business': Color(0xFF94A3B8), // steel
 };
 
@@ -84,7 +84,8 @@ const _fallbackPalette = <Color>[
 /// Returns the canonical color for a known category [name].
 /// Falls back to a hash-stable color from [_fallbackPalette] for unknowns.
 Color colorForCategory(String name) =>
-    _categoryColors[name] ?? _fallbackPalette[name.hashCode.abs() % _fallbackPalette.length];
+    _categoryColors[name] ??
+    _fallbackPalette[name.hashCode.abs() % _fallbackPalette.length];
 
 /// Hash-stable color for an arbitrary [key] (e.g. a store ID).
 /// Prefer [colorForCategory] when the category name is known.

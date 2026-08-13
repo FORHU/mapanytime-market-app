@@ -42,7 +42,11 @@ class ProfilePage extends ConsumerWidget {
             AppSpacing.md + MediaQuery.paddingOf(context).bottom,
           ),
           children: [
-            _ProfileHeader(name: name, email: user?.email ?? '-', initial: initial),
+            _ProfileHeader(
+              name: name,
+              email: user?.email ?? '-',
+              initial: initial,
+            ),
             const Gap(AppSpacing.md),
             const _StatsRow(),
             const Gap(AppSpacing.lg),
@@ -180,7 +184,10 @@ class _ProfileHeader extends StatelessWidget {
                 ),
                 const Gap(AppSpacing.sm),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.status.warning.withValues(alpha: 0.15),
                     borderRadius: AppRadius.brPill,
@@ -220,11 +227,17 @@ class _StatsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Row(
       children: [
-        Expanded(child: _StatTile(value: '8', label: 'Orders')),
+        Expanded(
+          child: _StatTile(value: '8', label: 'Orders'),
+        ),
         Gap(AppSpacing.sm),
-        Expanded(child: _StatTile(value: '320', label: 'Points')),
+        Expanded(
+          child: _StatTile(value: '320', label: 'Points'),
+        ),
         Gap(AppSpacing.sm),
-        Expanded(child: _StatTile(value: '12', label: 'Saved')),
+        Expanded(
+          child: _StatTile(value: '12', label: 'Saved'),
+        ),
       ],
     );
   }

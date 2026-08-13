@@ -35,7 +35,8 @@ class StoreProduct {
     if (images is List && images.isNotEmpty) {
       final file = (images.first as Map?)?['file'];
       if (file is Map) {
-        return (file['url'] ?? file['path'] ?? file['fileUrl']) as String? ?? '';
+        return (file['url'] ?? file['path'] ?? file['fileUrl']) as String? ??
+            '';
       }
     }
     return '';

@@ -126,7 +126,9 @@ class _OpenBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isOpen ? AppColors.status.success : AppColors.text.tertiaryDark;
+    final color = isOpen
+        ? AppColors.status.success
+        : AppColors.text.tertiaryDark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
