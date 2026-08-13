@@ -5,6 +5,10 @@ import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_en
 /// wherever they appear (map filter, home filter, …). The backend only sends
 /// `{ id, name }`; the icon and accent colour are derived here.
 
+// ---------------------------------------------------------------------------
+// Icons
+// ---------------------------------------------------------------------------
+
 /// Maps a category name to a chip icon. Unknown names fall back to a generic
 /// storefront glyph.
 IconData iconForCategory(String name) {
@@ -40,34 +44,68 @@ IconData iconForCategory(String name) {
   }
 }
 
-const _categoryPalette = <Color>[
-  Color(0xFFFF7A59),
-  Color(0xFFB07B53),
-  Color(0xFF5E5CE6),
-  Color(0xFFEC4899),
+// ---------------------------------------------------------------------------
+// Colors
+// ---------------------------------------------------------------------------
+
+/// One distinct color per known category name. Chosen to be visually
+/// separable from each other, from the brand gradient (indigo → violet), and
+/// from the status palette (error red, success green, warning amber).
+const _categoryColors = <String, Color>{
+  'Food & Beverage': Color(0xFFF97316), // orange
+  'Shopping & Retail': Color(0xFFEC4899), // hot pink
+  'Electronics': Color(0xFF38BDF8), // sky blue
+  'Home & Living': Color(0xFF14B8A6), // teal
+  'Health & Wellness': Color(0xFF84CC16), // lime
+  'Automotive': Color(0xFFEF4444), // red
+  'Pets': Color(0xFFCD7C3A), // warm brown
+  'Sports & Outdoors': Color(0xFF06B6D4), // cyan
+  'Entertainment': Color(0xFFA855F7), // purple
+  'Baby & Kids': Color(0xFFF472B6), // light pink
+  'Services': Color(0xFF3B82F6), // royal blue
+  'Agriculture': Color(0xFF22C55E), // green
+  'Industrial & Business': Color(0xFF94A3B8), // steel
+};
+
+/// Fallback palette for arbitrary keys (store IDs, unknown category IDs).
+/// Uses the first 8 colors from [_categoryColors] so the visual language stays
+/// consistent even for unrecognised categories.
+const _fallbackPalette = <Color>[
+  Color(0xFFF97316),
   Color(0xFF38BDF8),
-  Color(0xFF34D399),
-  Color(0xFFFBBF24),
-  Color(0xFF8B5CF6),
+  Color(0xFF84CC16),
+  Color(0xFFEC4899),
+  Color(0xFFA855F7),
+  Color(0xFF14B8A6),
+  Color(0xFFCD7C3A),
+  Color(0xFF06B6D4),
 ];
 
-/// A stable accent colour for [key] (a category id, store id, or similar),
-/// cycled from a fixed palette by hashing the string. Unlike a positional
-/// index, the same key always maps to the same colour regardless of where it
-/// falls in a list.
-Color colorForKey(String key) {
-  return _categoryPalette[key.hashCode % _categoryPalette.length];
-}
+/// Returns the canonical color for a known category [name].
+/// Falls back to a hash-stable color from [_fallbackPalette] for unknowns.
+Color colorForCategory(String name) =>
+    _categoryColors[name] ??
+    _fallbackPalette[name.hashCode.abs() % _fallbackPalette.length];
 
-/// A merchant's marker/accent colour: keyed off its category once the
-/// backend provides one, falling back to the store id so distinct merchants
-/// still get distinct, stable colours before then.
+/// Hash-stable color for an arbitrary [key] (e.g. a store ID).
+/// Prefer [colorForCategory] when the category name is known.
+Color colorForKey(String key) =>
+    _fallbackPalette[key.hashCode.abs() % _fallbackPalette.length];
+
+// ---------------------------------------------------------------------------
+// Store helpers
+// ---------------------------------------------------------------------------
+
+/// A merchant's accent color: derived from its category name when known,
+/// falling back to a hash of the store ID so distinct merchants still get
+/// stable, distinct colors before the category is available.
 Color colorForStore(StoreEntity store) {
-  return colorForKey(store.categoryId ?? store.id);
+  final name = store.categoryName;
+  return name != null ? colorForCategory(name) : colorForKey(store.id);
 }
 
-/// A merchant's marker icon: its category icon once the backend provides a
-/// category name, falling back to a generic storefront glyph.
+/// A merchant's marker icon: its category icon when the category name is
+/// known, falling back to a generic storefront glyph.
 IconData iconForStore(StoreEntity store) {
   final categoryName = store.categoryName;
   return categoryName == null

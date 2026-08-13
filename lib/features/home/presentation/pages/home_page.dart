@@ -25,7 +25,7 @@ const _hPad = EdgeInsets.symmetric(horizontal: AppSpacing.md);
 
 /// Neutral accent for the leading "All" / back chips, distinct from the
 /// colourful per-category discs.
-const _neutralColor = Color(0xFF64748B);
+final Color _neutralColor = AppColors.text.tertiaryDark;
 
 /// Buyer Home (Discover) tab — hero landing plus a product search grid.
 ///
@@ -128,7 +128,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           _Chip(
             label: roots[i].name,
             icon: iconForCategory(roots[i].name),
-            color: colorForKey(roots[i].id),
+            color: colorForCategory(roots[i].name),
             selected: _selectedId == roots[i].id,
             onTap: () => _onRootTap(i, roots[i]),
           ),
@@ -148,7 +148,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       _Chip(
         label: 'All',
         icon: Icons.grid_view_rounded,
-        color: colorForKey(root.id),
+        color: colorForCategory(root.name),
         selected: _selectedId == root.id,
         onTap: () => _applyCategory(root.id),
       ),
@@ -156,7 +156,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         _Chip(
           label: root.children[i].name,
           icon: iconForCategory(root.children[i].name),
-          color: colorForKey(root.children[i].id),
+          color: colorForCategory(root.children[i].name),
           selected: _selectedId == root.children[i].id,
           onTap: () => _applyCategory(root.children[i].id),
         ),
@@ -223,7 +223,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                           openNowCount: HomeMock.openNowCount,
                           dealsCount: HomeMock.dealsCount,
                           onOpenMap: _openMap,
-                          onBrowseCategories: _openMap,
                         ),
                       ),
                     ),
@@ -303,10 +302,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                         imageUrl:
                                                             p.imageUrl ?? '',
                                                         price: p.price,
-                                                        description: '',
+                                                        description:
+                                                            p.description,
                                                         category:
                                                             p.categoryName ??
                                                             'Other',
+                                                        tags: p.tags,
                                                         storeId: p.storeId!,
                                                         storeName:
                                                             p.storeName ??
@@ -330,17 +331,23 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 ),
                               ),
                               if (data.isLoadingMore)
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
                                     vertical: AppSpacing.lg,
                                   ),
-                                  child: CircularProgressIndicator(),
+                                  child: CircularProgressIndicator(
+                                    color: AppColors.brand.primary,
+                                  ),
                                 ),
                             ],
                           );
                         },
                       ),
-                      const Gap(AppSpacing.xxxl),
+                      SizedBox(
+                        height:
+                            AppSpacing.md +
+                            MediaQuery.paddingOf(context).bottom,
+                      ),
                     ],
                   ),
                 ),
@@ -465,9 +472,11 @@ class _LoadingResults extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: AppSpacing.xxl),
-      child: Center(child: CircularProgressIndicator()),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
+      child: Center(
+        child: CircularProgressIndicator(color: AppColors.brand.primary),
+      ),
     );
   }
 }
@@ -491,7 +500,9 @@ class _ErrorResults extends StatelessWidget {
             const Gap(AppSpacing.sm),
             Text(
               "Couldn't load products",
-              style: TextStyle(color: AppColors.text.secondaryDark),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.text.secondaryDark,
+              ),
             ),
           ],
         ),
@@ -519,7 +530,9 @@ class _EmptyResults extends StatelessWidget {
             const Gap(AppSpacing.sm),
             Text(
               'No products found',
-              style: TextStyle(color: AppColors.text.secondaryDark),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.text.secondaryDark,
+              ),
             ),
           ],
         ),

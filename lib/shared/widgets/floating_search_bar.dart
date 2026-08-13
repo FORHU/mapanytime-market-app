@@ -28,10 +28,15 @@ class FloatingSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final readOnly = onTap != null;
+    final hasFilter = onFilterTap != null;
+    final baseStyle = Theme.of(context).textTheme.bodyLarge;
 
     return Container(
       height: 54,
-      padding: const EdgeInsets.only(left: AppSpacing.md, right: 6),
+      padding: EdgeInsets.only(
+        left: AppSpacing.md,
+        right: hasFilter ? 6 : AppSpacing.md,
+      ),
       decoration: BoxDecoration(
         color: AppColors.ui.surfaceDark.withValues(alpha: 0.92),
         borderRadius: AppRadius.brPill,
@@ -40,7 +45,11 @@ class FloatingSearchBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.search_rounded, color: AppColors.text.secondaryDark),
+          Icon(
+            Icons.search_rounded,
+            size: 20,
+            color: AppColors.text.secondaryDark,
+          ),
           const Gap(AppSpacing.sm),
           Expanded(
             child: TextField(
@@ -48,17 +57,23 @@ class FloatingSearchBar extends StatelessWidget {
               onChanged: onChanged,
               readOnly: readOnly,
               onTap: onTap,
-              style: TextStyle(color: AppColors.text.primaryDark, fontSize: 15),
+              style: baseStyle?.copyWith(color: AppColors.text.primaryDark),
               cursorColor: AppColors.brand.primary,
               decoration: InputDecoration(
                 isCollapsed: true,
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                filled: true,
+                fillColor: Colors.transparent,
                 hintText: hint,
-                hintStyle: TextStyle(color: AppColors.text.tertiaryDark),
+                hintStyle: baseStyle?.copyWith(
+                  color: AppColors.text.tertiaryDark,
+                ),
               ),
             ),
           ),
-          if (onFilterTap != null)
+          if (hasFilter)
             GestureDetector(
               onTap: onFilterTap,
               child: Container(

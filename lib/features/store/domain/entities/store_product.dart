@@ -1,3 +1,5 @@
+import 'package:mapanytime_market_app/shared/utils/tag_parser.dart';
+
 /// A product sold by a store.
 class StoreProduct {
   const StoreProduct({
@@ -7,6 +9,7 @@ class StoreProduct {
     required this.price,
     required this.description,
     required this.category,
+    this.tags = const [],
     this.storeId = '',
     this.storeName = 'Store',
   });
@@ -16,15 +19,27 @@ class StoreProduct {
     return StoreProduct(
       id: json['id'] as String,
       name: json['name'] as String,
-      // The API stores the image as a related file URL; fall back to empty.
-      imageUrl: (json['productFile'] as Map?)?['fileUrl'] as String? ?? '',
+      imageUrl: _imageUrlOf(json),
       price: _parsePrice(json['price']),
       description: json['description'] as String? ?? '',
       category: (json['category'] as Map?)?['name'] as String? ?? 'Other',
+      tags: parseTagNames(json['tags']),
       storeId:
           (json['storeId'] as String?) ?? (storeObj?['id'] as String?) ?? '',
       storeName: (storeObj?['storeName'] as String?) ?? 'Store',
     );
+  }
+
+  static String _imageUrlOf(Map<String, dynamic> json) {
+    final images = json['productImages'];
+    if (images is List && images.isNotEmpty) {
+      final file = (images.first as Map?)?['file'];
+      if (file is Map) {
+        return (file['url'] ?? file['path'] ?? file['fileUrl']) as String? ??
+            '';
+      }
+    }
+    return '';
   }
 
   static double _parsePrice(Object? raw) {
@@ -39,6 +54,7 @@ class StoreProduct {
   final num price;
   final String description;
   final String category;
+  final List<String> tags;
   final String storeId;
   final String storeName;
 }

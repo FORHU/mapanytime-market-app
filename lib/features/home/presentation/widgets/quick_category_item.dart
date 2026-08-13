@@ -16,14 +16,12 @@ class QuickCategoryItem extends StatelessWidget {
   final String label;
   final IconData icon;
   final Color color;
-
-  /// Whether this category is the active filter — draws a stronger fill,
-  /// a solid ring, and a bolder, brighter label.
   final bool selected;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
     return SizedBox(
       width: 68,
       child: Column(
@@ -52,9 +50,8 @@ class QuickCategoryItem extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+            style: tt.labelSmall?.copyWith(
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               color: selected
                   ? AppColors.text.primaryDark
                   : AppColors.text.secondaryDark,

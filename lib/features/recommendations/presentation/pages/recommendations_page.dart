@@ -26,9 +26,9 @@ class RecommendationsPage extends StatelessWidget {
       body: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.only(
+          padding: EdgeInsets.only(
             top: AppSpacing.sm,
-            bottom: AppSpacing.xxxl,
+            bottom: AppSpacing.md + MediaQuery.paddingOf(context).bottom,
           ),
           children: [
             // --- Header ---
@@ -39,13 +39,12 @@ class RecommendationsPage extends StatelessWidget {
                 children: [
                   Text(
                     'For You',
-                    style: Theme.of(context).textTheme.headlineSmall,
+                    style: Theme.of(context).textTheme.headlineLarge,
                   ),
                   const Gap(2),
                   Text(
                     'Personalised picks near you',
-                    style: TextStyle(
-                      fontSize: 13,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.text.secondaryDark,
                     ),
                   ),
