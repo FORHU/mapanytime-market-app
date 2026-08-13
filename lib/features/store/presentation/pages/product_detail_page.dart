@@ -6,6 +6,7 @@ import 'package:mapanytime_market_app/features/cart/presentation/controllers/car
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
+import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
 import 'package:mapanytime_market_app/shared/widgets/price_tag.dart';
 import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
@@ -40,18 +41,14 @@ class ProductDetailPage extends ConsumerWidget {
               children: [
                 Hero(
                   tag: 'product-${product.id}',
-                  child: Image.network(
-                    product.imageUrl,
+                  child: Container(
                     height: 320,
                     width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => Container(
+                    color: AppColors.ui.surfaceElevatedDark,
+                    child: NetworkImageBox(
+                      url: product.imageUrl,
                       height: 320,
-                      color: AppColors.ui.surfaceElevatedDark,
-                      child: Icon(
-                        Icons.image_not_supported_outlined,
-                        color: AppColors.text.tertiaryDark,
-                      ),
+                      fit: BoxFit.contain,
                     ),
                   ),
                 ),
