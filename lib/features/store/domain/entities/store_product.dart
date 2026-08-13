@@ -1,3 +1,5 @@
+import 'package:mapanytime_market_app/shared/utils/tag_parser.dart';
+
 /// A product sold by a store.
 class StoreProduct {
   const StoreProduct({
@@ -14,7 +16,6 @@ class StoreProduct {
 
   factory StoreProduct.fromJson(Map<String, dynamic> json) {
     final storeObj = json['store'] as Map<String, dynamic>?;
-    final rawTags = json['tags'];
     return StoreProduct(
       id: json['id'] as String,
       name: json['name'] as String,
@@ -22,13 +23,7 @@ class StoreProduct {
       price: _parsePrice(json['price']),
       description: json['description'] as String? ?? '',
       category: (json['category'] as Map?)?['name'] as String? ?? 'Other',
-      tags: rawTags is List
-          ? rawTags
-              .whereType<Map>()
-              .map((t) => (t['tag'] as Map?)?['name'] as String?)
-              .whereType<String>()
-              .toList()
-          : const [],
+      tags: parseTagNames(json['tags']),
       storeId:
           (json['storeId'] as String?) ?? (storeObj?['id'] as String?) ?? '',
       storeName: (storeObj?['storeName'] as String?) ?? 'Store',

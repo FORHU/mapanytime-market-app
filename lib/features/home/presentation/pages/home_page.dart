@@ -302,10 +302,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                         imageUrl:
                                                             p.imageUrl ?? '',
                                                         price: p.price,
-                                                        description: '',
+                                                        description:
+                                                            p.description,
                                                         category:
                                                             p.categoryName ??
                                                             'Other',
+                                                        tags: p.tags,
                                                         storeId: p.storeId!,
                                                         storeName:
                                                             p.storeName ??

@@ -2,6 +2,7 @@ import 'package:mapanytime_market_app/core/constants/api_endpoints.dart';
 import 'package:mapanytime_market_app/core/services/api_service.dart';
 import 'package:mapanytime_market_app/features/home/domain/entities/product.dart';
 import 'package:mapanytime_market_app/features/home/domain/entities/product_page.dart';
+import 'package:mapanytime_market_app/shared/utils/tag_parser.dart';
 
 /// Fetches the buyer catalog from `GET /products/all`. An optional `categoryId`
 /// narrows the results to that category and all of its descendants (the backend
@@ -70,6 +71,8 @@ class ProductRemoteDataSource {
       storeName: store is Map ? store['storeName'] as String? : null,
       imageUrl: _imageUrlOf(m),
       categoryName: category is Map ? category['name'] as String? : null,
+      description: m['description'] as String? ?? '',
+      tags: parseTagNames(m['tags']),
     );
   }
 
