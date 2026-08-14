@@ -289,6 +289,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                                             price: p.price,
                                             storeName: p.storeName,
                                             width: itemWidth,
+                                            badgeLabel:
+                                                p.activeAd?.displayBadge,
                                             onTap: () {
                                               if (p.storeId != null &&
                                                   p.storeId!.isNotEmpty) {
@@ -317,6 +319,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                       storeName:
                                                           p.storeName ??
                                                           'Store',
+                                                      promo: p.activeAd,
                                                     ),
                                                   ),
                                                 );

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:mapanytime_market_app/features/store/domain/entities/merchant_ad.dart';
 
 /// A catalog product shown in the Home grid, from `GET /products/all`.
 class Product extends Equatable {
@@ -12,6 +13,7 @@ class Product extends Equatable {
     this.categoryName,
     this.description = '',
     this.tags = const [],
+    this.activeAd,
   });
 
   final String id;
@@ -24,6 +26,9 @@ class Product extends Equatable {
   final String description;
   final List<String> tags;
 
+  /// The active discount ad linked to this product, if any.
+  final MerchantAd? activeAd;
+
   @override
   List<Object?> get props => [
     id,
@@ -35,5 +40,6 @@ class Product extends Equatable {
     categoryName,
     description,
     tags,
+    activeAd,
   ];
 }

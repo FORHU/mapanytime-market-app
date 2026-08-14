@@ -31,7 +31,9 @@ class StoreDetails {
   /// one already has live API support — see `store_remote_datasource.dart`).
   final List<StoreDayHours> hours;
 
-  /// Merchant promos/deals and job postings. Not backed by a real API field
-  /// yet — see `mock_merchant_ads.dart`.
+  /// Merchant promos/deals, limited-time events, and job postings. Backed by
+  /// the real `merchantAds` field on `GET /stores/:id` (see
+  /// `store_remote_datasource.dart`); `MockStoreRepository` still synthesizes
+  /// these via `mock_merchant_ads.dart` for the offline/demo repository.
   final List<MerchantAd> ads;
 }

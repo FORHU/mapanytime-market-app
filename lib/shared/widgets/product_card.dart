@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:mapanytime_market_app/features/recommendations/presentation/widgets/card_badges.dart';
 import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
 import 'package:mapanytime_market_app/shared/widgets/price_tag.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
@@ -17,6 +18,7 @@ class ProductCard extends StatelessWidget {
     this.distanceKm,
     this.onTap,
     this.width = 168,
+    this.badgeLabel,
     super.key,
   });
 
@@ -27,6 +29,10 @@ class ProductCard extends StatelessWidget {
   final double? distanceKm;
   final VoidCallback? onTap;
   final double width;
+
+  /// When set (e.g. "20% OFF"), overlays a [DiscountBadge] on the image to
+  /// highlight that this product is linked to an active merchant ad.
+  final String? badgeLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -44,12 +50,22 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            NetworkImageBox(
-              url: imageUrl,
-              height: width * 0.9,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppRadius.card),
-              ),
+            Stack(
+              children: [
+                NetworkImageBox(
+                  url: imageUrl,
+                  height: width * 0.9,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppRadius.card),
+                  ),
+                ),
+                if (badgeLabel != null)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: DiscountBadge(label: badgeLabel!),
+                  ),
+              ],
             ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.sm + 4),

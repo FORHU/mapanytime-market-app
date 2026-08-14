@@ -43,6 +43,11 @@ class ApiEndpoints {
   /// Append `/<storeId>` → `GET /stores/<id>`.
   static const String storeById = '/stores';
 
+  /// Active discount ads (BOGO/%/fixed-amount) across nearby stores, with a
+  /// representative linked product. Public — powers the "For You" page's
+  /// "Today's Deals" rail. Same bounding-box query params as [storesNearby].
+  static const String merchantAdsNearby = '/merchant-ads/nearby';
+
   // ── Cart ──────────────────────────────────────────────────────────────────
 
   /// Get the current user's cart from Redis.  `GET /cart`.

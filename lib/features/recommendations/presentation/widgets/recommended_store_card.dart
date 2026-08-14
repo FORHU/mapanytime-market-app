@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:mapanytime_market_app/features/recommendations/presentation/recommendations_mock_data.dart';
 import 'package:mapanytime_market_app/features/recommendations/presentation/widgets/card_badges.dart';
+import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
+import 'package:mapanytime_market_app/shared/utils/category_visuals.dart';
 import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/effects.dart';
@@ -17,12 +18,14 @@ class RecommendedStoreCard extends StatelessWidget {
     super.key,
   });
 
-  final RecommendedStore store;
+  final StoreEntity store;
   final VoidCallback? onTap;
   final VoidCallback? onVisit;
 
   @override
   Widget build(BuildContext context) {
+    final logoUrl = store.logoUrl;
+
     return Material(
       color: AppColors.ui.surfaceDark,
       borderRadius: AppRadius.brCard,
@@ -40,11 +43,19 @@ class RecommendedStoreCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: AppRadius.brMd,
-                child: NetworkImageBox(
-                  url: store.imageUrl,
-                  width: 84,
-                  height: 84,
-                ),
+                child: logoUrl != null
+                    ? NetworkImageBox(url: logoUrl, width: 84, height: 84)
+                    : Container(
+                        width: 84,
+                        height: 84,
+                        color: colorForStore(store).withValues(alpha: 0.18),
+                        alignment: Alignment.center,
+                        child: Icon(
+                          iconForStore(store),
+                          size: 32,
+                          color: colorForStore(store),
+                        ),
+                      ),
               ),
               const Gap(AppSpacing.md),
               Expanded(
@@ -67,7 +78,7 @@ class RecommendedStoreCard extends StatelessWidget {
                         const RatingPill(),
                         const Gap(2),
                         Text(
-                          store.rating.toStringAsFixed(1),
+                          (store.rating ?? 0).toStringAsFixed(1),
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -77,7 +88,7 @@ class RecommendedStoreCard extends StatelessWidget {
                     ),
                     const Gap(2),
                     Text(
-                      store.category,
+                      store.categoryName ?? 'Store',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -88,7 +99,7 @@ class RecommendedStoreCard extends StatelessWidget {
                     const Gap(AppSpacing.sm),
                     Row(
                       children: [
-                        _OpenDot(isOpen: store.isOpen),
+                        _OpenDot(isOpen: store.isOpen ?? true),
                         const Gap(AppSpacing.md),
                         Icon(
                           Icons.location_on_rounded,
@@ -97,7 +108,7 @@ class RecommendedStoreCard extends StatelessWidget {
                         ),
                         const Gap(2),
                         Text(
-                          '${store.distanceKm} km',
+                          '${store.distance.toStringAsFixed(1)} km',
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.text.tertiaryDark,

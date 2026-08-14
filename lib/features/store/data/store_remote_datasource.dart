@@ -1,6 +1,6 @@
 import 'package:mapanytime_market_app/core/constants/api_endpoints.dart';
 import 'package:mapanytime_market_app/core/services/api_service.dart';
-import 'package:mapanytime_market_app/features/store/data/mock_merchant_ads.dart';
+import 'package:mapanytime_market_app/features/store/domain/entities/merchant_ad.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_details.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_hours.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
@@ -55,6 +55,7 @@ class StoreRemoteDataSource {
     final rawHours = storeData['storeHours'] as List<dynamic>?;
     final parsedHours = _parseHours(rawHours);
     final category = _categoryLabel(storeData);
+    final ads = _parseAds(storeData['merchantAds']);
 
     return StoreDetails(
       // No hero image in the API yet — use a placeholder seeded by storeId.
@@ -68,9 +69,7 @@ class StoreRemoteDataSource {
       productCategories: categoryNames,
       products: products,
       hours: parsedHours,
-      // Merchant ads not yet in the API; synthesized client-side like
-      // heroImageUrl/rating above until the backend ships a real ads field.
-      ads: mockMerchantAdsForStore(storeId, category: category),
+      ads: ads,
     );
   }
 
@@ -111,6 +110,15 @@ class StoreRemoteDataSource {
     final minute = int.tryParse(parts[1]);
     if (hour == null || minute == null) return null;
     return hour * 60 + minute;
+  }
+
+  // Server-filtered to active/unexpired/in-stock ads already — see
+  // `filterLiveAds` in mapanytime-api's store.service.ts.
+  List<MerchantAd> _parseAds(Object? raw) {
+    if (raw is! List) return const [];
+    return raw
+        .map((e) => MerchantAd.fromJson((e as Map).cast<String, dynamic>()))
+        .toList();
   }
 
   String _etaLabel(Map<String, dynamic>? location) {

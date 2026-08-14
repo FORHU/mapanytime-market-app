@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mapanytime_market_app/features/store/domain/entities/merchant_ad.dart';
 import 'package:mapanytime_market_app/features/store/presentation/controllers/store_controller.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/merchant_ad_section.dart';
@@ -30,6 +31,14 @@ class StoreBottomSheet extends ConsumerWidget {
     StoreEntity store, {
     VoidCallback? onNavigate,
   }) {
+    // Force a fresh fetch on every open — otherwise a store viewed earlier
+    // in this session (before a merchant published/edited an ad) keeps
+    // replaying its stale cached FutureProvider result forever.
+    ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).invalidate(storeDetailsProvider(store.id));
+
     return showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -200,11 +209,40 @@ class StoreBottomSheet extends ConsumerWidget {
                     const Gap(AppSpacing.lg),
                     StoreHoursSection(hours: details.hours),
                     if (details.hours.isNotEmpty) const Gap(AppSpacing.lg),
-                    MerchantAdSection(ads: details.ads),
+                    MerchantAdSection(
+                      ads: details.ads,
+                      onAdTap: (ad) {
+                        Navigator.of(context).pop();
+                        if (ad.kind == MerchantAdKind.job) {
+                          unawaited(
+                            context.push(
+                              RouteNames.jobPostingDetail,
+                              extra: (
+                                ad: ad,
+                                storeId: store.id,
+                                storeName: store.name,
+                              ),
+                            ),
+                          );
+                        } else {
+                          unawaited(
+                            context.push(RouteNames.storefront, extra: store),
+                          );
+                        }
+                      },
+                    ),
                   ],
                 ),
                 loading: () => const _SectionsLoadingPlaceholder(),
-                error: (_, _) => const SizedBox.shrink(),
+                error: (_, _) => Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppSpacing.lg,
+                  ),
+                  child: Text(
+                    'Could not load store details',
+                    style: TextStyle(color: AppColors.text.secondaryDark),
+                  ),
+                ),
               ),
             ],
           ),

@@ -5,6 +5,7 @@ class RouteNames {
   static const String home = '/';
   static const String storefront = '/storefront';
   static const String productDetail = '/product';
+  static const String jobPostingDetail = '/job-posting';
   static const String recommendations = '/recommendations';
   static const String worldMap = '/worldMap';
   static const String cart = '/cart';

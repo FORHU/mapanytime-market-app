@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:intl/intl.dart';
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart';
+import 'package:mapanytime_market_app/features/store/domain/entities/merchant_ad.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
@@ -19,12 +21,16 @@ class ProductDetailPage extends ConsumerWidget {
     required this.product,
     this.storeId = '',
     this.storeName = 'Store',
+    this.promo,
     super.key,
   });
 
   final StoreProduct product;
   final String storeId;
   final String storeName;
+
+  /// The merchant ad linked to this product, if any — shown as a banner.
+  final MerchantAd? promo;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -62,6 +68,10 @@ class ProductDetailPage extends ConsumerWidget {
                       Text(product.name, style: theme.textTheme.headlineSmall),
                       const Gap(AppSpacing.sm),
                       PriceTag(amount: product.price, fontSize: 24),
+                      if (promo != null) ...[
+                        const Gap(AppSpacing.md),
+                        _PromoBanner(promo: promo!),
+                      ],
                       const Gap(AppSpacing.lg),
                       Text(
                         context.l10n.description,
@@ -153,6 +163,90 @@ class ProductDetailPage extends ConsumerWidget {
               );
             },
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Highlights the merchant ad linked to this product (promo/event) with its
+/// title, description, discount badge, and expiry if the ad has one.
+class _PromoBanner extends StatelessWidget {
+  const _PromoBanner({required this.promo});
+
+  final MerchantAd promo;
+
+  @override
+  Widget build(BuildContext context) {
+    final validUntil = promo.extra['validUntil'];
+    final expiry = validUntil != null ? DateTime.tryParse(validUntil) : null;
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm + 4),
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        borderRadius: AppRadius.brLg,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.local_offer_rounded,
+                color: Colors.white,
+                size: 16,
+              ),
+              const Gap(6),
+              Expanded(
+                child: Text(
+                  promo.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (promo.displayBadge != null) ...[
+                const Gap(6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: AppRadius.brPill,
+                  ),
+                  child: Text(
+                    promo.displayBadge!,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const Gap(4),
+          Text(
+            promo.description,
+            style: const TextStyle(color: Colors.white, fontSize: 12),
+          ),
+          if (expiry != null) ...[
+            const Gap(4),
+            Text(
+              'Valid until ${DateFormat.yMMMd().format(expiry)}',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.85),
+                fontSize: 11,
+              ),
+            ),
+          ],
         ],
       ),
     );

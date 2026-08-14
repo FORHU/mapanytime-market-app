@@ -1,17 +1,22 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
+import 'package:mapanytime_market_app/features/store/domain/entities/merchant_ad.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_details.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
 import 'package:mapanytime_market_app/features/store/presentation/controllers/store_controller.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
+import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/merchant_ad_section.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/category_chip.dart';
 import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
 import 'package:mapanytime_market_app/shared/widgets/product_card.dart';
 import 'package:mapanytime_market_app/shared/widgets/section_title.dart';
+import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
@@ -107,6 +112,7 @@ class _StoreBody extends StatelessWidget {
     final products = selectedLabel == 'All'
         ? details.products
         : details.products.where((p) => p.category == selectedLabel).toList();
+    final adsByProduct = details.ads.byProductId;
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -197,12 +203,35 @@ class _StoreBody extends StatelessWidget {
                   ),
                 ),
                 const Gap(AppSpacing.lg),
+                if (details.ads.isNotEmpty) ...[
+                  MerchantAdSection(
+                    ads: details.ads,
+                    onAdTap: (ad) {
+                      if (ad.kind == MerchantAdKind.job) {
+                        unawaited(
+                          context.push(
+                            RouteNames.jobPostingDetail,
+                            extra: (
+                              ad: ad,
+                              storeId: store.id,
+                              storeName: store.name,
+                            ),
+                          ),
+                        );
+                      } else {
+                        showTopToast(context, context.l10n.comingSoon);
+                      }
+                    },
+                  ),
+                  const Gap(AppSpacing.lg),
+                ],
                 const SectionTitle(title: 'Products'),
                 const Gap(AppSpacing.md),
                 _ProductGrid(
                   products: products,
                   storeId: store.id,
                   storeName: store.name,
+                  adsByProduct: adsByProduct,
                 ),
               ],
             ),
@@ -218,11 +247,13 @@ class _ProductGrid extends StatelessWidget {
     required this.products,
     required this.storeId,
     required this.storeName,
+    required this.adsByProduct,
   });
 
   final List<StoreProduct> products;
   final String storeId;
   final String storeName;
+  final Map<String, MerchantAd> adsByProduct;
 
   @override
   Widget build(BuildContext context) {
@@ -252,9 +283,15 @@ class _ProductGrid extends StatelessWidget {
                 price: p.price,
                 storeName: p.category,
                 width: itemWidth,
+                badgeLabel: adsByProduct[p.id]?.displayBadge,
                 onTap: () => context.push(
                   RouteNames.productDetail,
-                  extra: (product: p, storeId: storeId, storeName: storeName),
+                  extra: (
+                    product: p,
+                    storeId: storeId,
+                    storeName: storeName,
+                    promo: adsByProduct[p.id],
+                  ),
                 ),
               ),
           ],

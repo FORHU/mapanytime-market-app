@@ -2,6 +2,7 @@ import 'package:mapanytime_market_app/core/constants/api_endpoints.dart';
 import 'package:mapanytime_market_app/core/services/api_service.dart';
 import 'package:mapanytime_market_app/features/home/domain/entities/product.dart';
 import 'package:mapanytime_market_app/features/home/domain/entities/product_page.dart';
+import 'package:mapanytime_market_app/features/store/domain/entities/merchant_ad.dart';
 import 'package:mapanytime_market_app/shared/utils/tag_parser.dart';
 
 /// Fetches the buyer catalog from `GET /products/all`. An optional `categoryId`
@@ -60,6 +61,7 @@ class ProductRemoteDataSource {
   Product _fromJson(Map<String, dynamic> m) {
     final store = m['store'];
     final category = m['category'];
+    final activeAd = m['activeAd'];
 
     return Product(
       id: m['id'] as String? ?? '',
@@ -73,6 +75,9 @@ class ProductRemoteDataSource {
       categoryName: category is Map ? category['name'] as String? : null,
       description: m['description'] as String? ?? '',
       tags: parseTagNames(m['tags']),
+      activeAd: activeAd is Map
+          ? MerchantAd.fromJson(activeAd.cast<String, dynamic>())
+          : null,
     );
   }
 
