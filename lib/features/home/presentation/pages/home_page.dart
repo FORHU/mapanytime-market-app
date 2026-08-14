@@ -5,7 +5,6 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/features/home/presentation/controllers/home_products_controller.dart';
 import 'package:mapanytime_market_app/features/home/presentation/home_mock_data.dart';
-import 'package:mapanytime_market_app/features/home/presentation/widgets/fade_slide_in.dart';
 import 'package:mapanytime_market_app/features/home/presentation/widgets/hero_banner.dart';
 import 'package:mapanytime_market_app/features/home/presentation/widgets/home_app_bar.dart';
 import 'package:mapanytime_market_app/features/home/presentation/widgets/quick_category_item.dart';
@@ -15,6 +14,7 @@ import 'package:mapanytime_market_app/features/worldMap/domain/entities/category
 import 'package:mapanytime_market_app/features/worldMap/presentation/controllers/world_map_controller.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/utils/category_visuals.dart';
+import 'package:mapanytime_market_app/shared/widgets/fade_slide_in.dart';
 import 'package:mapanytime_market_app/shared/widgets/floating_search_bar.dart';
 import 'package:mapanytime_market_app/shared/widgets/product_card.dart';
 import 'package:mapanytime_market_app/shared/widgets/section_title.dart';

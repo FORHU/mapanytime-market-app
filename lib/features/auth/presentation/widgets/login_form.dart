@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/core/utils/validators.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:mapanytime_market_app/features/auth/presentation/widgets/auth_button.dart';
+import 'package:mapanytime_market_app/features/auth/presentation/widgets/social_login_row.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
-import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_text_field.dart';
 import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
+import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 class LoginForm extends ConsumerStatefulWidget {
@@ -19,8 +21,8 @@ class LoginForm extends ConsumerStatefulWidget {
 
 class _LoginFormState extends ConsumerState<LoginForm> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'buyer@example.com');
-  final _passwordController = TextEditingController(text: 'Buyer123');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   @override
   void dispose() {
@@ -55,26 +57,41 @@ class _LoginFormState extends ConsumerState<LoginForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ModernTextField(
-            label: context.l10n.email,
+            hint: context.l10n.email,
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
-            prefixIcon: Icons.email_outlined,
             validator: Validators.email,
           ),
           AppSpacing.md.v,
           ModernTextField(
-            label: context.l10n.password,
+            hint: context.l10n.password,
             controller: _passwordController,
             obscureText: true,
-            prefixIcon: Icons.lock_outline,
             validator: Validators.password,
           ),
-          AppSpacing.lg.v,
-          GradientButton(
-            label: context.l10n.login,
+          AppSpacing.sm.v,
+          Align(
+            alignment: Alignment.centerRight,
+            child: GestureDetector(
+              onTap: () => context.push(RouteNames.forgotPassword),
+              child: Text(
+                context.l10n.forgotPassword,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.brand.primary,
+                ),
+              ),
+            ),
+          ),
+          AppSpacing.md.v,
+          AuthButton(
+            label: context.l10n.signInCta,
             isLoading: state.isLoading,
             onPressed: _submit,
           ),
+          AppSpacing.lg.v,
+          const SocialLoginRow(),
         ],
       ),
     );

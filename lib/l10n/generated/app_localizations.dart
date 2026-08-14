@@ -142,11 +142,257 @@ abstract class AppLocalizations {
   /// **'Sign in to continue'**
   String get signInToContinue;
 
-  /// No description provided for @loginHint.
+  /// No description provided for @forgotPassword.
   ///
   /// In en, this message translates to:
-  /// **'Hint: any email + password of 6+ chars'**
-  String get loginHint;
+  /// **'Forgot password?'**
+  String get forgotPassword;
+
+  /// No description provided for @dontHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get dontHaveAccount;
+
+  /// No description provided for @signUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up'**
+  String get signUp;
+
+  /// No description provided for @createAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your account'**
+  String get createAccount;
+
+  /// No description provided for @joinTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Join MapAnytime Market as a buyer'**
+  String get joinTagline;
+
+  /// No description provided for @fullNameOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name (optional)'**
+  String get fullNameOptional;
+
+  /// No description provided for @createAccountCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get createAccountCta;
+
+  /// No description provided for @accountCreatedPleaseLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Account created. Please log in.'**
+  String get accountCreatedPleaseLogin;
+
+  /// No description provided for @alreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get alreadyHaveAccount;
+
+  /// No description provided for @logIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get logIn;
+
+  /// No description provided for @forgotPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset your password'**
+  String get forgotPasswordTitle;
+
+  /// No description provided for @forgotPasswordSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email and we\'ll send you a verification code'**
+  String get forgotPasswordSubtitle;
+
+  /// No description provided for @sendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get sendCode;
+
+  /// No description provided for @resetCodeSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code sent. Check your email.'**
+  String get resetCodeSent;
+
+  /// No description provided for @resetPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter verification code'**
+  String get resetPasswordTitle;
+
+  /// No description provided for @resetPasswordSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a 6-digit code to {email}'**
+  String resetPasswordSubtitle(String email);
+
+  /// No description provided for @verificationCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code'**
+  String get verificationCode;
+
+  /// No description provided for @verificationCodeInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 4-digit code'**
+  String get verificationCodeInvalid;
+
+  /// No description provided for @signInCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get signInCta;
+
+  /// No description provided for @signUpCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up'**
+  String get signUpCta;
+
+  /// No description provided for @nextCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get nextCta;
+
+  /// No description provided for @acceptTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'I accept the Terms & Privacy'**
+  String get acceptTerms;
+
+  /// No description provided for @registerStepEmailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s your email?'**
+  String get registerStepEmailTitle;
+
+  /// No description provided for @registerStepEmailSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll use this to keep your account secure.'**
+  String get registerStepEmailSubtitle;
+
+  /// No description provided for @registerStepNameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s your name?'**
+  String get registerStepNameTitle;
+
+  /// No description provided for @registerStepNameSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This helps personalize your experience.'**
+  String get registerStepNameSubtitle;
+
+  /// No description provided for @registerStepPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a password'**
+  String get registerStepPasswordTitle;
+
+  /// No description provided for @registerStepPasswordSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it at least 6 characters.'**
+  String get registerStepPasswordSubtitle;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get newPassword;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get confirmPassword;
+
+  /// No description provided for @resetPasswordCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset password'**
+  String get resetPasswordCta;
+
+  /// No description provided for @passwordResetSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset. Please log in.'**
+  String get passwordResetSuccess;
+
+  /// No description provided for @passwordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwordsDoNotMatch;
+
+  /// No description provided for @errorNoEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: No email provided'**
+  String get errorNoEmail;
+
+  /// No description provided for @orSignInWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Or sign in with'**
+  String get orSignInWith;
+
+  /// No description provided for @continueWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get continueWithGoogle;
+
+  /// No description provided for @registerSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Success!'**
+  String get registerSuccessTitle;
+
+  /// No description provided for @registerSuccessSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is ready. Start discovering stores near you.'**
+  String get registerSuccessSubtitle;
+
+  /// No description provided for @continueButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueButton;
+
+  /// No description provided for @authTaglineDiscover.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover nearby stores on the live map'**
+  String get authTaglineDiscover;
+
+  /// No description provided for @authTaglineTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your pickup in real time'**
+  String get authTaglineTrack;
+
+  /// No description provided for @authTaglineCheckout.
+  ///
+  /// In en, this message translates to:
+  /// **'Checkout securely in Philippine peso'**
+  String get authTaglineCheckout;
 
   /// No description provided for @home.
   ///

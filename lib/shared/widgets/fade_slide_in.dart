@@ -17,14 +17,22 @@ class FadeSlideIn extends StatelessWidget {
   /// Initial downward offset in logical pixels (animates to 0).
   final double offset;
 
+  static const _animationDuration = Duration(milliseconds: 450);
+
   @override
   Widget build(BuildContext context) {
+    final totalDuration = _animationDuration + delay;
+    // Interval reserves the first [delay] fraction of the tween for holding
+    // at the start value, then runs the real animation over the rest.
+    final delayFraction = delay == Duration.zero
+        ? 0.0
+        : delay.inMicroseconds / totalDuration.inMicroseconds;
+
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 450),
-      curve: Curves.easeOutCubic,
+      duration: totalDuration,
+      curve: Interval(delayFraction, 1, curve: Curves.easeOutCubic),
       builder: (context, t, child) {
-        // Apply the per-section [delay] by clamping progress until it elapses.
         return Opacity(
           opacity: t.clamp(0.0, 1.0),
           child: Transform.translate(

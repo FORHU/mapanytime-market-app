@@ -17,6 +17,12 @@ abstract class AuthRepository {
   });
   Future<Either<Failure, void>> logout();
   Future<Either<Failure, UserEntity>> refreshAuth();
+  Future<Either<Failure, void>> requestPasswordReset(String email);
+  Future<Either<Failure, void>> resetPassword(
+    String email,
+    String code,
+    String newPassword,
+  );
 }
 
 /// Coordinates the remote data source and local token storage. Catches the
@@ -121,6 +127,38 @@ class AuthRepositoryImpl implements AuthRepository {
     } on UnauthorizedException catch (e) {
       await _storage.clearSession(); // Clear stale tokens
       return Left(UnauthorizedFailure(e.message));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on AppException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Object catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> requestPasswordReset(String email) async {
+    try {
+      await _remote.requestPasswordReset(email.trim());
+      return const Right(null);
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on AppException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Object catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> resetPassword(
+    String email,
+    String code,
+    String newPassword,
+  ) async {
+    try {
+      await _remote.resetPassword(email.trim(), code.trim(), newPassword);
+      return const Right(null);
     } on NetworkException catch (e) {
       return Left(NetworkFailure(e.message));
     } on AppException catch (e) {

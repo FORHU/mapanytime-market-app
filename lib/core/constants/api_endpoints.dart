@@ -9,6 +9,15 @@ class ApiEndpoints {
   static const String refresh = '/auth/refresh-token';
   static const String logout = '/auth/logout';
 
+  /// Sends a one-time reset code to the given email.
+  /// NOT YET IMPLEMENTED on the backend — request body `{ email }`.
+  static const String forgotPassword = '/auth/forgot-password';
+
+  /// Verifies the code and sets a new password.
+  /// NOT YET IMPLEMENTED on the backend — request body
+  /// `{ email, code, newPassword }`.
+  static const String resetPassword = '/auth/reset-password';
+
   // Users
   static const String users = '/users';
   static const String me = '/users/me';

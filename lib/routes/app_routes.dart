@@ -4,8 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/services/storage_service.dart';
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:mapanytime_market_app/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/pages/login_page.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/pages/register_page.dart';
+import 'package:mapanytime_market_app/features/auth/presentation/pages/register_success_page.dart';
+import 'package:mapanytime_market_app/features/auth/presentation/pages/reset_password_page.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/pages/cart_page.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/pages/checkout_page.dart';
 import 'package:mapanytime_market_app/features/home/presentation/pages/home_page.dart';
@@ -58,10 +61,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final isAuth = ref.read(authControllerProvider).isAuthenticated;
       final goingToLogin = state.matchedLocation == RouteNames.login;
       final goingToRegister = state.matchedLocation == RouteNames.register;
+      final goingToForgotPassword =
+          state.matchedLocation == RouteNames.forgotPassword;
+      final goingToResetPassword =
+          state.matchedLocation == RouteNames.resetPassword;
+      final goingToRegisterSuccess =
+          state.matchedLocation == RouteNames.registerSuccess;
       final goingToOnboarding = state.matchedLocation == RouteNames.onboarding;
 
       if (!isAuth) {
-        return (goingToLogin || goingToRegister) ? null : RouteNames.login;
+        final goingToAuthFlow =
+            goingToLogin ||
+            goingToRegister ||
+            goingToForgotPassword ||
+            goingToResetPassword ||
+            goingToRegisterSuccess;
+        return goingToAuthFlow ? null : RouteNames.login;
       }
 
       // First-run onboarding gate: new users (local flag unset) see it once.
@@ -71,7 +86,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       }
       if (goingToOnboarding) return RouteNames.home;
 
-      if (goingToLogin || goingToRegister) return RouteNames.home;
+      if (goingToLogin ||
+          goingToRegister ||
+          goingToForgotPassword ||
+          goingToResetPassword ||
+          goingToRegisterSuccess) {
+        return RouteNames.home;
+      }
       return null;
     },
     routes: [
@@ -82,6 +103,26 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.register,
         builder: (context, state) => const RegisterPage(),
+      ),
+      GoRoute(
+        path: RouteNames.registerSuccess,
+        builder: (context, state) => const RegisterSuccessPage(),
+      ),
+      GoRoute(
+        path: RouteNames.forgotPassword,
+        builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: RouteNames.resetPassword,
+        builder: (context, state) {
+          final email = state.extra as String?;
+          if (email == null) {
+            return Scaffold(
+              body: Center(child: Text(context.l10n.errorNoEmail)),
+            );
+          }
+          return ResetPasswordPage(email: email);
+        },
       ),
       GoRoute(
         path: RouteNames.onboarding,
