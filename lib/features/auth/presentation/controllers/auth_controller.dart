@@ -11,6 +11,8 @@ import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.
 import 'package:mapanytime_market_app/features/auth/domain/usecases/login_usecase.dart';
 import 'package:mapanytime_market_app/features/auth/domain/usecases/refresh_auth_usecase.dart';
 import 'package:mapanytime_market_app/features/auth/domain/usecases/register_usecase.dart';
+import 'package:mapanytime_market_app/features/auth/domain/usecases/request_password_reset_usecase.dart';
+import 'package:mapanytime_market_app/features/auth/domain/usecases/reset_password_usecase.dart';
 
 // --- Dependency wiring (Riverpod providers) ---
 
@@ -38,6 +40,15 @@ final registerUseCaseProvider = Provider<RegisterUseCase>(
 
 final refreshAuthUseCaseProvider = Provider<RefreshAuthUseCase>(
   (ref) => RefreshAuthUseCase(ref.watch(authRepositoryProvider)),
+);
+
+final requestPasswordResetUseCaseProvider =
+    Provider<RequestPasswordResetUseCase>(
+      (ref) => RequestPasswordResetUseCase(ref.watch(authRepositoryProvider)),
+    );
+
+final resetPasswordUseCaseProvider = Provider<ResetPasswordUseCase>(
+  (ref) => ResetPasswordUseCase(ref.watch(authRepositoryProvider)),
 );
 
 // --- State ---

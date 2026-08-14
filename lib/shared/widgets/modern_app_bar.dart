@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 
 /// Minimal, transparent app bar with a circular back button and optional
@@ -56,17 +55,18 @@ class _CircleIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: AppColors.ui.surfaceDark,
+          color: colors.surface,
           borderRadius: AppRadius.brPill,
-          border: Border.all(color: AppColors.ui.borderDark),
+          border: Border.all(color: colors.outline),
         ),
-        child: Icon(icon, size: 18, color: AppColors.text.primaryDark),
+        child: Icon(icon, size: 18, color: colors.onSurface),
       ),
     );
   }

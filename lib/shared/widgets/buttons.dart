@@ -24,7 +24,7 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _PressableButton(
+    return PressableButtonBase(
       onPressed: onPressed,
       expand: expand,
       isLoading: isLoading,
@@ -58,7 +58,7 @@ class GradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _PressableButton(
+    return PressableButtonBase(
       onPressed: onPressed,
       expand: expand,
       isLoading: isLoading,
@@ -73,14 +73,19 @@ class GradientButton extends StatelessWidget {
   }
 }
 
-class _PressableButton extends StatefulWidget {
-  const _PressableButton({
+/// The shared pressable shape/interaction (scale-on-tap, disabled fade,
+/// loading spinner) behind [PrimaryButton]/[GradientButton]. Reuse this for
+/// any new button variant rather than re-implementing the press behavior.
+class PressableButtonBase extends StatefulWidget {
+  const PressableButtonBase({
     required this.label,
     required this.onPressed,
     required this.decoration,
     required this.expand,
     required this.isLoading,
     this.icon,
+    this.foregroundColor = Colors.white,
+    super.key,
   });
 
   final String label;
@@ -89,12 +94,13 @@ class _PressableButton extends StatefulWidget {
   final bool expand;
   final bool isLoading;
   final IconData? icon;
+  final Color foregroundColor;
 
   @override
-  State<_PressableButton> createState() => _PressableButtonState();
+  State<PressableButtonBase> createState() => _PressableButtonBaseState();
 }
 
-class _PressableButtonState extends State<_PressableButton> {
+class _PressableButtonBaseState extends State<PressableButtonBase> {
   bool _down = false;
 
   bool get _enabled => widget.onPressed != null && !widget.isLoading;
@@ -121,25 +127,31 @@ class _PressableButtonState extends State<_PressableButton> {
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             decoration: widget.decoration,
             child: widget.isLoading
-                ? const SizedBox(
+                ? SizedBox(
                     width: 22,
                     height: 22,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.4,
-                      valueColor: AlwaysStoppedAnimation(Colors.white),
+                      valueColor: AlwaysStoppedAnimation(
+                        widget.foregroundColor,
+                      ),
                     ),
                   )
                 : Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (widget.icon != null) ...[
-                        Icon(widget.icon, color: Colors.white, size: 20),
+                        Icon(
+                          widget.icon,
+                          color: widget.foregroundColor,
+                          size: 20,
+                        ),
                         const Gap(AppSpacing.sm),
                       ],
                       Text(
                         widget.label,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: widget.foregroundColor,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),

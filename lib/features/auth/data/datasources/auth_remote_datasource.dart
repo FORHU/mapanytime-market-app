@@ -17,6 +17,12 @@ abstract class AuthRemoteDataSource {
   /// Revokes the session server-side. Sends the refresh token so the API can
   /// delete the matching session row.
   Future<void> logout(String? refreshToken);
+
+  /// Requests a one-time reset code be sent to [email].
+  Future<void> requestPasswordReset(String email);
+
+  /// Verifies [code] and sets [newPassword] for [email].
+  Future<void> resetPassword(String email, String code, String newPassword);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -71,6 +77,24 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     await _api.post(ApiEndpoints.logout, {
       if (refreshToken != null && refreshToken.isNotEmpty)
         'refreshToken': refreshToken,
+    });
+  }
+
+  @override
+  Future<void> requestPasswordReset(String email) async {
+    await _api.post(ApiEndpoints.forgotPassword, {'email': email});
+  }
+
+  @override
+  Future<void> resetPassword(
+    String email,
+    String code,
+    String newPassword,
+  ) async {
+    await _api.post(ApiEndpoints.resetPassword, {
+      'email': email,
+      'code': code,
+      'newPassword': newPassword,
     });
   }
 }

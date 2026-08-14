@@ -62,6 +62,14 @@ class _UI {
   // --- Light (fallback only) ---
   Color get background => const Color(0xFFF6F7FB);
   Color get surface => const Color(0xFFFFFFFF);
+
+  /// Nested surface one level up from [surface] (inputs, unselected cards).
+  Color get surfaceElevated => const Color(0xFFEEF0F5);
+
+  /// Border for light surfaces — the dark palette's ~12%-white border is
+  /// invisible on a light canvas, so this is a real, clearly-visible
+  /// light-neutral gray instead.
+  Color get border => const Color(0xFFC7CBD6);
 }
 
 class _Text {
