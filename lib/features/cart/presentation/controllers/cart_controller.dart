@@ -5,6 +5,7 @@ import 'package:mapanytime_market_app/features/auth/presentation/controllers/aut
     show apiServiceProvider;
 import 'package:mapanytime_market_app/features/cart/data/cart_remote_datasource.dart';
 import 'package:mapanytime_market_app/features/cart/domain/entities/cart_item.dart';
+import 'package:mapanytime_market_app/features/cart/domain/entities/cart_pricing.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
 
 final cartRemoteDataSourceProvider = Provider<CartRemoteDataSource>((ref) {
@@ -256,4 +257,19 @@ final cartSelectedSubtotalProvider = Provider<num>((ref) {
   return ref
       .watch(cartSelectedItemsProvider)
       .fold<num>(0, (sum, item) => sum + item.lineTotal);
+});
+
+/// Server-verified pricing (subtotal, auto-applied discount, tax, total) for
+/// the currently-selected items — refetches whenever selection or quantities
+/// change. `null` when nothing is selected. This is the single source of
+/// truth the cart and checkout pages both read for the breakdown, so what a
+/// buyer sees is always what checkout will actually charge.
+final cartPricingProvider = FutureProvider<CartPricing?>((ref) async {
+  final selected = ref.watch(cartSelectedItemsProvider);
+  if (selected.isEmpty) return null;
+
+  final productIds = [for (final item in selected) item.product.id];
+  return ref
+      .read(cartRemoteDataSourceProvider)
+      .getPricing(productIds: productIds);
 });

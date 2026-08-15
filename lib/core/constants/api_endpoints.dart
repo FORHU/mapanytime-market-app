@@ -56,6 +56,10 @@ class ApiEndpoints {
   /// Add / update an item in the cart.  `POST /cart/add`.
   static const String cartAdd = '/cart/add';
 
+  /// Server-verified pricing preview (subtotal, auto-applied discounts, tax,
+  /// total) for the cart or a selected subset of it.  `POST /cart/pricing`.
+  static const String cartPricing = '/cart/pricing';
+
   // ── Orders ────────────────────────────────────────────────────────────────
 
   /// Create a new order from the Redis cart.  `POST /orders`.

@@ -1,5 +1,6 @@
 import 'package:mapanytime_market_app/core/constants/api_endpoints.dart';
 import 'package:mapanytime_market_app/core/services/api_service.dart';
+import 'package:mapanytime_market_app/features/cart/domain/entities/cart_pricing.dart';
 
 /// Thin wrapper around the cart API endpoints.
 ///
@@ -37,5 +38,16 @@ class CartRemoteDataSource {
   /// Empties the server-side cart (called after order placement).
   Future<void> clearCart() async {
     await _api.delete(ApiEndpoints.cart);
+  }
+
+  /// Fetches a server-verified pricing breakdown for the cart, or just
+  /// [productIds] when provided — the exact numbers checkout will charge.
+  Future<CartPricing> getPricing({List<String>? productIds}) async {
+    final response = await _api.post(ApiEndpoints.cartPricing, {
+      if (productIds != null && productIds.isNotEmpty) 'productIds': productIds,
+    });
+
+    final data = response is Map ? response['data'] : null;
+    return CartPricing.fromJson((data as Map).cast<String, dynamic>());
   }
 }

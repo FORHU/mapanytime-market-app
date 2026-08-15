@@ -12,11 +12,13 @@ class OrderRemoteDataSource {
     required String type,
     required String paymentMethod,
     required String pickupAt,
+    List<String>? productIds,
   }) async {
     final response = await _api.post(ApiEndpoints.ordersCreate, {
       'type': type,
       'paymentMethod': paymentMethod,
       'pickupAt': pickupAt,
+      if (productIds != null && productIds.isNotEmpty) 'productIds': productIds,
     });
 
     final data = response is Map ? response['data'] : null;
