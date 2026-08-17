@@ -6,6 +6,7 @@ class CartItemPricing {
     required this.unitPrice,
     required this.discountAmount,
     this.appliedAdId,
+    this.freeUnits = 0,
   });
 
   factory CartItemPricing.fromJson(Map<String, dynamic> json) {
@@ -14,6 +15,7 @@ class CartItemPricing {
       unitPrice: _numOf(json['unitPrice']),
       discountAmount: _numOf(json['discountAmount']),
       appliedAdId: json['appliedAdId'] as String?,
+      freeUnits: _numOf(json['freeUnits']).toInt(),
     );
   }
 
@@ -21,6 +23,7 @@ class CartItemPricing {
   final num unitPrice;
   final num discountAmount;
   final String? appliedAdId;
+  final int freeUnits;
 }
 
 /// Server-verified pricing breakdown for the cart (or a selected subset of

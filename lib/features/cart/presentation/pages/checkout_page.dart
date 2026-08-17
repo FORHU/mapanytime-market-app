@@ -10,6 +10,7 @@ import 'package:mapanytime_market_app/features/auth/presentation/controllers/aut
 import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart';
 import 'package:mapanytime_market_app/features/orders/data/order_remote_datasource.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/controllers/orders_controller.dart';
+import 'package:mapanytime_market_app/features/orders/presentation/pages/order_confirmation_page.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
@@ -229,16 +230,17 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
     final orderedIds = [
       for (final item in ref.read(cartSelectedItemsProvider)) item.product.id,
     ];
+    // Captured before removeMany() below, which can invalidate
+    // cartPricingProvider (it re-derives from the now-changed selection).
+    final orderPricing = ref.read(cartPricingProvider).value!;
 
     try {
       final api = ref.read(apiServiceProvider);
       final remote = OrderRemoteDataSource(api);
 
       // Only the selected items are charged — the backend leaves everything
-      // else in the buyer's cart. The order id isn't needed here — the
-      // buyer pays from the pickup pass, which reads the order back from
-      // ordersProvider.
-      await remote.createOrder(
+      // else in the buyer's cart.
+      final orderId = await remote.createOrder(
         type: 'PICKUP',
         paymentMethod: paymentMethodEnum,
         pickupAt: isoPickup,
@@ -252,8 +254,15 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
 
       if (!context.mounted) return;
 
-      context.go(RouteNames.orders);
-      showTopToast(context, context.l10n.orderPlacedSuccess);
+      context.go(
+        RouteNames.orderConfirmation,
+        extra: OrderConfirmationArgs(
+          orderId: orderId,
+          paymentMethodLabel: _paymentMethods[_method].$1,
+          isCashOnDelivery: paymentMethodEnum == 'CASH_ON_DELIVERY',
+          pricing: orderPricing,
+        ),
+      );
     } on Exception catch (e) {
       if (!context.mounted) return;
       showTopToast(context, context.l10n.orderPlacedFailed(e.toString()));

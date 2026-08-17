@@ -168,7 +168,7 @@ class _WideLayout extends ConsumerWidget {
                 const Gap(AppSpacing.md),
                 GradientButton(
                   label: selectedCount > 0
-                      ? 'Checkout'
+                      ? 'Review payment method'
                       : 'Select items to checkout',
                   icon: Icons.arrow_forward_rounded,
                   onPressed: selectedCount > 0 && pricing.hasValue
@@ -335,6 +335,16 @@ class _CartRow extends ConsumerWidget {
                     ],
                   ],
                 ),
+                if ((discount?.freeUnits ?? 0) > 0) ...[
+                  const Gap(2),
+                  Text(
+                    '+${discount!.freeUnits} free',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.status.success,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -434,7 +444,7 @@ class _CheckoutBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: GradientButton(
-          label: enabled ? 'Checkout' : 'Select items to checkout',
+          label: enabled ? 'Review payment method' : 'Select items to checkout',
           icon: Icons.arrow_forward_rounded,
           onPressed: enabled ? onCheckout : null,
         ),

@@ -8,9 +8,10 @@ import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
-/// Server-verified Subtotal / Discount / Tax / Total breakdown, shared by
-/// the cart and checkout pages so both always show the exact numbers
-/// checkout will charge — never a client-side guess.
+/// Server-verified Vouchers & Discounts / Subtotal / Tax / Total breakdown,
+/// shared by the cart, checkout, and order-confirmation pages so all three
+/// always show the exact numbers checkout will charge — never a
+/// client-side guess.
 class PriceBreakdownCard extends StatelessWidget {
   const PriceBreakdownCard({required this.pricing, this.onRetry, super.key});
 
@@ -38,18 +39,19 @@ class _BreakdownRows extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasDiscount = pricing.discountAmount > 0;
     return Column(
       children: [
+        _Row(
+          label: 'Vouchers & Discounts',
+          value: hasDiscount
+              ? '-${Money.peso(pricing.discountAmount)}'
+              : 'None applied',
+          icon: Icons.local_offer_rounded,
+          valueColor: hasDiscount ? AppColors.status.success : null,
+        ),
+        const Gap(AppSpacing.sm),
         _Row(label: 'Subtotal', value: Money.peso(pricing.subtotalAmount)),
-        if (pricing.discountAmount > 0) ...[
-          const Gap(AppSpacing.sm),
-          _Row(
-            label: 'Discount',
-            value: '-${Money.peso(pricing.discountAmount)}',
-            icon: Icons.local_offer_rounded,
-            valueColor: AppColors.status.success,
-          ),
-        ],
         const Gap(AppSpacing.sm),
         _Row(label: 'Tax', value: Money.peso(pricing.taxAmount)),
         const Gap(AppSpacing.sm),

@@ -156,13 +156,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RouteNames.orderConfirmation,
             builder: (context, state) {
-              final orderId = state.extra as String?;
-              if (orderId == null) {
+              final args = state.extra as OrderConfirmationArgs?;
+              if (args == null) {
                 return Scaffold(
                   body: Center(child: Text(context.l10n.errorNoOrderId)),
                 );
               }
-              return OrderConfirmationPage(orderId: orderId);
+              return OrderConfirmationPage(args: args);
             },
           ),
           GoRoute(
