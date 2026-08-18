@@ -3,7 +3,7 @@
 /// The app bar (name / location) is still static sample content — swap for
 /// real providers later. Categories and products are fetched from the API
 /// (see the category tree + home products providers); deals come from
-/// [recommendationsFeedProvider].
+/// recommendationsFeedProvider.
 library;
 
 /// Static sample content for the Home page header.

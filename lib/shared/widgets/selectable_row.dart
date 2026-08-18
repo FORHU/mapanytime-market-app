@@ -6,8 +6,8 @@ import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 /// The app's one selection rule, as a component: unselected = surface-muted
 /// fill + primary text; selected = solid ink fill + white content. Drives
-/// [CategoryChip] (pill shape) and single-select lists like Checkout's
-/// payment-method rows (via [showCheck]). Never introduce a second "this is
+/// CategoryChip (pill shape) and single-select lists like Checkout's
+/// payment-method rows (via showCheck). Never introduce a second "this is
 /// chosen" treatment — no colored border, no checkbox/radio as the primary
 /// signal. Everything that means "selected" uses this.
 class SelectableRow extends StatelessWidget {

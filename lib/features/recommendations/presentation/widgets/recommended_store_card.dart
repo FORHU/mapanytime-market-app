@@ -166,8 +166,8 @@ class _VisitButton extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: AppRadius.brPill,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
+        child: const Padding(
+          padding: EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
             vertical: 7,
           ),
