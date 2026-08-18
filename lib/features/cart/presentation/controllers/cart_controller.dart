@@ -1,10 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart'
     show apiServiceProvider;
 import 'package:mapanytime_market_app/features/cart/data/cart_remote_datasource.dart';
 import 'package:mapanytime_market_app/features/cart/domain/entities/cart_item.dart';
+import 'package:mapanytime_market_app/features/cart/domain/entities/cart_pricing.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
 
 final cartRemoteDataSourceProvider = Provider<CartRemoteDataSource>((ref) {
@@ -15,6 +14,22 @@ final cartRemoteDataSourceProvider = Provider<CartRemoteDataSource>((ref) {
 class CartNotifier extends Notifier<List<CartItem>> {
   @override
   List<CartItem> build() => const [];
+
+  // Every server write is chained onto this instead of fired independently,
+  // so (a) rapid successive writes reach the server in the order the buyer
+  // made them, and (b) there's a single future callers can await to know
+  // every write dispatched so far has actually landed — see
+  // waitForPendingSync, used by cartPricingProvider to avoid reading pricing
+  // back before the write it depends on has been applied server-side.
+  Future<void> _syncQueue = Future.value();
+
+  void _enqueueSync(Future<void> Function() write) {
+    _syncQueue = _syncQueue.then((_) => write()).catchError((_) {});
+  }
+
+  /// Resolves once every cart write dispatched so far has completed
+  /// (successfully or not — failures are still swallowed, see [_enqueueSync]).
+  Future<void> waitForPendingSync() => _syncQueue;
 
   void add({
     required StoreProduct product,
@@ -37,15 +52,14 @@ class CartNotifier extends Notifier<List<CartItem>> {
     final quantity = state
         .firstWhere((i) => i.product.id == product.id)
         .quantity;
-    unawaited(
-      ref
+    _enqueueSync(
+      () => ref
           .read(cartRemoteDataSourceProvider)
           .addToCart(
             storeId: storeId,
             productId: product.id,
             quantity: quantity,
-          )
-          .catchError((_) {}), // fire-and-forget
+          ),
     );
 
     // A newly added item is "unseen" until the buyer opens the cart.
@@ -66,11 +80,14 @@ class CartNotifier extends Notifier<List<CartItem>> {
     ];
 
     final storeId = state.firstWhere((i) => i.product.id == productId).storeId;
-    unawaited(
-      ref
+    _enqueueSync(
+      () => ref
           .read(cartRemoteDataSourceProvider)
-          .addToCart(storeId: storeId, productId: productId, quantity: quantity)
-          .catchError((_) {}),
+          .addToCart(
+            storeId: storeId,
+            productId: productId,
+            quantity: quantity,
+          ),
     );
   }
 
@@ -87,11 +104,15 @@ class CartNotifier extends Notifier<List<CartItem>> {
         if (item.product.id != productId) item,
     ];
     if (item != null) {
-      unawaited(
-        ref
+      final removed = item;
+      _enqueueSync(
+        () => ref
             .read(cartRemoteDataSourceProvider)
-            .addToCart(storeId: item.storeId, productId: productId, quantity: 0)
-            .catchError((_) {}),
+            .addToCart(
+              storeId: removed.storeId,
+              productId: productId,
+              quantity: 0,
+            ),
       );
     }
   }
@@ -109,24 +130,21 @@ class CartNotifier extends Notifier<List<CartItem>> {
         if (!ids.contains(item.product.id)) item,
     ];
     for (final item in itemsToRemove) {
-      unawaited(
-        ref
+      _enqueueSync(
+        () => ref
             .read(cartRemoteDataSourceProvider)
             .addToCart(
               storeId: item.storeId,
               productId: item.product.id,
               quantity: 0,
-            )
-            .catchError((_) {}),
+            ),
       );
     }
   }
 
   void clear() {
     state = const [];
-    unawaited(
-      ref.read(cartRemoteDataSourceProvider).clearCart().catchError((_) {}),
-    );
+    _enqueueSync(() => ref.read(cartRemoteDataSourceProvider).clearCart());
   }
 }
 
@@ -256,4 +274,25 @@ final cartSelectedSubtotalProvider = Provider<num>((ref) {
   return ref
       .watch(cartSelectedItemsProvider)
       .fold<num>(0, (sum, item) => sum + item.lineTotal);
+});
+
+/// Server-verified pricing (subtotal, auto-applied discount, tax, total) for
+/// the currently-selected items — refetches whenever selection or quantities
+/// change. `null` when nothing is selected. This is the single source of
+/// truth the cart and checkout pages both read for the breakdown, so what a
+/// buyer sees is always what checkout will actually charge.
+final cartPricingProvider = FutureProvider<CartPricing?>((ref) async {
+  final selected = ref.watch(cartSelectedItemsProvider);
+  if (selected.isEmpty) return null;
+
+  // Otherwise this can race the write it depends on: local state (and thus
+  // this provider) updates the instant the buyer taps +/-, but the server
+  // write is a separate in-flight request — reading pricing before it lands
+  // would show a discount computed from the previous quantity.
+  await ref.read(cartProvider.notifier).waitForPendingSync();
+
+  final productIds = [for (final item in selected) item.product.id];
+  return ref
+      .read(cartRemoteDataSourceProvider)
+      .getPricing(productIds: productIds);
 });

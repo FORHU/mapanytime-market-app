@@ -46,14 +46,14 @@ class _Placeholder extends StatelessWidget {
     return Container(
       width: width,
       height: height,
-      color: AppColors.ui.surfaceElevatedDark,
+      color: AppColors.ui.surfaceMuted,
       child: Center(
         child: SizedBox(
           width: 22,
           height: 22,
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            color: AppColors.text.tertiaryDark,
+            color: AppColors.text.tertiary,
           ),
         ),
       ),
@@ -72,10 +72,10 @@ class _ErrorBox extends StatelessWidget {
     return Container(
       width: width,
       height: height,
-      color: AppColors.ui.surfaceElevatedDark,
+      color: AppColors.ui.surfaceMuted,
       child: Icon(
         Icons.image_not_supported_outlined,
-        color: AppColors.text.tertiaryDark,
+        color: AppColors.text.tertiary,
       ),
     );
   }

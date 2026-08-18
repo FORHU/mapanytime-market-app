@@ -21,7 +21,9 @@ import 'package:mapanytime_market_app/features/orders/presentation/pages/order_t
 import 'package:mapanytime_market_app/features/orders/presentation/pages/pickup_pass_page.dart';
 import 'package:mapanytime_market_app/features/profile/presentation/pages/profile_page.dart';
 import 'package:mapanytime_market_app/features/recommendations/presentation/pages/recommendations_page.dart';
+import 'package:mapanytime_market_app/features/store/domain/entities/merchant_ad.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
+import 'package:mapanytime_market_app/features/store/presentation/pages/job_posting_detail_page.dart';
 import 'package:mapanytime_market_app/features/store/presentation/pages/product_detail_page.dart';
 import 'package:mapanytime_market_app/features/store/presentation/pages/storefront_page.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
@@ -154,13 +156,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RouteNames.orderConfirmation,
             builder: (context, state) {
-              final orderId = state.extra as String?;
-              if (orderId == null) {
+              final args = state.extra as OrderConfirmationArgs?;
+              if (args == null) {
                 return Scaffold(
                   body: Center(child: Text(context.l10n.errorNoOrderId)),
                 );
               }
-              return OrderConfirmationPage(orderId: orderId);
+              return OrderConfirmationPage(args: args);
             },
           ),
           GoRoute(
@@ -220,6 +222,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                         StoreProduct product,
                         String storeId,
                         String storeName,
+                        MerchantAd? promo,
                       })?;
               if (args == null) {
                 return Scaffold(
@@ -228,6 +231,25 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               }
               return ProductDetailPage(
                 product: args.product,
+                storeId: args.storeId,
+                storeName: args.storeName,
+                promo: args.promo,
+              );
+            },
+          ),
+          GoRoute(
+            path: RouteNames.jobPostingDetail,
+            builder: (context, state) {
+              final args =
+                  state.extra
+                      as ({MerchantAd ad, String storeId, String storeName})?;
+              if (args == null) {
+                return const Scaffold(
+                  body: Center(child: Text('Error: No job posting provided')),
+                );
+              }
+              return JobPostingDetailPage(
+                ad: args.ad,
                 storeId: args.storeId,
                 storeName: args.storeName,
               );

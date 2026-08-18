@@ -35,7 +35,7 @@ class WorldMapFloatingControls extends StatelessWidget {
         const Gap(AppSpacing.sm),
         PopupMenuButton<String>(
           tooltip: 'Map style',
-          color: AppColors.ui.surfaceElevatedDark,
+          color: AppColors.ui.surface,
           shape: RoundedRectangleBorder(borderRadius: AppRadius.brMd),
           onSelected: onStyleSelected,
           itemBuilder: (context) => [
@@ -44,7 +44,7 @@ class WorldMapFloatingControls extends StatelessWidget {
                 value: style.$2,
                 child: Text(
                   style.$1,
-                  style: TextStyle(color: AppColors.text.primaryDark),
+                  style: TextStyle(color: AppColors.text.primary),
                 ),
               ),
           ],
@@ -70,12 +70,11 @@ class _CircleControl extends StatelessWidget {
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: AppColors.ui.surfaceDark.withValues(alpha: 0.92),
+          color: AppColors.ui.surface,
           shape: BoxShape.circle,
-          border: Border.all(color: AppColors.ui.borderDark),
           boxShadow: AppEffects.cardShadow,
         ),
-        child: Icon(icon, color: AppColors.text.primaryDark, size: 22),
+        child: Icon(icon, color: AppColors.text.primary, size: 22),
       ),
     );
 

@@ -300,10 +300,7 @@ class MapboxStyleManager {
           ..color = Colors.black.withValues(alpha: 0.35)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
       )
-      ..drawRRect(
-        labelRRect,
-        Paint()..color = AppColors.ui.surfaceElevatedDark,
-      )
+      ..drawRRect(labelRRect, Paint()..color = AppColors.ink)
       ..drawRRect(
         labelRRect,
         Paint()
@@ -367,7 +364,7 @@ class MapboxStyleManager {
           Paint()
             ..color = isOpen
                 ? AppColors.status.success
-                : AppColors.text.tertiaryDark,
+                : AppColors.text.secondary,
         );
     }
 

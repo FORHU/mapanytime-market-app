@@ -8,14 +8,14 @@ class AppButtonTheme {
 
   static ElevatedButtonThemeData get elevated => ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      backgroundColor: AppColors.brand.primary,
-      foregroundColor: AppColors.ui.surface,
+      backgroundColor: AppColors.ink,
+      foregroundColor: AppColors.text.onInk,
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
         vertical: AppSpacing.md,
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
       ),
       elevation: 0,
     ),

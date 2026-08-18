@@ -1,17 +1,23 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
+import 'package:mapanytime_market_app/features/store/domain/entities/merchant_ad.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_details.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
 import 'package:mapanytime_market_app/features/store/presentation/controllers/store_controller.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
+import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/merchant_ad_section.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/category_chip.dart';
+import 'package:mapanytime_market_app/shared/widgets/icon_button.dart';
 import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
 import 'package:mapanytime_market_app/shared/widgets/product_card.dart';
 import 'package:mapanytime_market_app/shared/widgets/section_title.dart';
+import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
@@ -41,20 +47,32 @@ class _StorefrontPageState extends ConsumerState<StorefrontPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leading: const _CircleButton(
-          icon: Icons.arrow_back_ios_new_rounded,
-          isBack: true,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12),
+          child: AppIconButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            size: 40,
+            iconSize: 18,
+            onTap: () => context.pop(),
+          ),
         ),
-        actions: const [
-          _CircleButton(icon: Icons.share_outlined),
-          Gap(AppSpacing.md),
+        actions: [
+          AppIconButton(
+            icon: Icons.share_outlined,
+            size: 40,
+            iconSize: 18,
+            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(context.l10n.shareComingSoon)),
+            ),
+          ),
+          const Gap(AppSpacing.md),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(storeDetailsProvider(widget.store.id));
         },
-        color: AppColors.brand.primary,
+        color: AppColors.ink,
         child: detailsAsync.when(
           loading: () => ListView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -70,7 +88,7 @@ class _StorefrontPageState extends ConsumerState<StorefrontPage> {
               Center(
                 child: Text(
                   'Could not load store',
-                  style: TextStyle(color: AppColors.text.secondaryDark),
+                  style: TextStyle(color: AppColors.text.secondary),
                 ),
               ),
             ],
@@ -107,6 +125,7 @@ class _StoreBody extends StatelessWidget {
     final products = selectedLabel == 'All'
         ? details.products
         : details.products.where((p) => p.category == selectedLabel).toList();
+    final adsByProduct = details.ads.byProductId;
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -117,7 +136,7 @@ class _StoreBody extends StatelessWidget {
           offset: const Offset(0, -AppSpacing.lg),
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.ui.backgroundDark,
+              color: AppColors.ui.surface,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(AppRadius.xl),
               ),
@@ -155,30 +174,30 @@ class _StoreBody extends StatelessWidget {
                       '${details.rating}',
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
-                        color: AppColors.text.primaryDark,
+                        color: AppColors.text.primary,
                       ),
                     ),
                     Text(
                       ' (${details.ratingCount})',
-                      style: TextStyle(color: AppColors.text.tertiaryDark),
+                      style: TextStyle(color: AppColors.text.tertiary),
                     ),
                     const Gap(AppSpacing.md),
                     Icon(
                       Icons.place_outlined,
                       size: 16,
-                      color: AppColors.text.secondaryDark,
+                      color: AppColors.text.secondary,
                     ),
                     const Gap(4),
                     Text(
                       '${store.distance.toStringAsFixed(1)} km',
-                      style: TextStyle(color: AppColors.text.secondaryDark),
+                      style: TextStyle(color: AppColors.text.secondary),
                     ),
                   ],
                 ),
                 const Gap(AppSpacing.sm),
                 Text(
                   details.category,
-                  style: TextStyle(color: AppColors.text.tertiaryDark),
+                  style: TextStyle(color: AppColors.text.tertiary),
                 ),
                 const Gap(AppSpacing.md),
                 _EtaPill(label: details.etaLabel),
@@ -197,12 +216,35 @@ class _StoreBody extends StatelessWidget {
                   ),
                 ),
                 const Gap(AppSpacing.lg),
+                if (details.ads.isNotEmpty) ...[
+                  MerchantAdSection(
+                    ads: details.ads,
+                    onAdTap: (ad) {
+                      if (ad.kind == MerchantAdKind.job) {
+                        unawaited(
+                          context.push(
+                            RouteNames.jobPostingDetail,
+                            extra: (
+                              ad: ad,
+                              storeId: store.id,
+                              storeName: store.name,
+                            ),
+                          ),
+                        );
+                      } else {
+                        showTopToast(context, context.l10n.comingSoon);
+                      }
+                    },
+                  ),
+                  const Gap(AppSpacing.lg),
+                ],
                 const SectionTitle(title: 'Products'),
                 const Gap(AppSpacing.md),
                 _ProductGrid(
                   products: products,
                   storeId: store.id,
                   storeName: store.name,
+                  adsByProduct: adsByProduct,
                 ),
               ],
             ),
@@ -218,11 +260,13 @@ class _ProductGrid extends StatelessWidget {
     required this.products,
     required this.storeId,
     required this.storeName,
+    required this.adsByProduct,
   });
 
   final List<StoreProduct> products;
   final String storeId;
   final String storeName;
+  final Map<String, MerchantAd> adsByProduct;
 
   @override
   Widget build(BuildContext context) {
@@ -232,7 +276,7 @@ class _ProductGrid extends StatelessWidget {
         child: Center(
           child: Text(
             'No products in this category',
-            style: TextStyle(color: AppColors.text.tertiaryDark),
+            style: TextStyle(color: AppColors.text.tertiary),
           ),
         ),
       );
@@ -252,9 +296,15 @@ class _ProductGrid extends StatelessWidget {
                 price: p.price,
                 storeName: p.category,
                 width: itemWidth,
+                badgeLabel: adsByProduct[p.id]?.displayBadge,
                 onTap: () => context.push(
                   RouteNames.productDetail,
-                  extra: (product: p, storeId: storeId, storeName: storeName),
+                  extra: (
+                    product: p,
+                    storeId: storeId,
+                    storeName: storeName,
+                    promo: adsByProduct[p.id],
+                  ),
                 ),
               ),
           ],
@@ -307,9 +357,7 @@ class _OpenBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isOpen
-        ? AppColors.status.success
-        : AppColors.text.tertiaryDark;
+    final color = isOpen ? AppColors.status.success : AppColors.text.tertiary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
@@ -322,41 +370,6 @@ class _OpenBadge extends StatelessWidget {
           fontSize: 11,
           fontWeight: FontWeight.w700,
           color: color,
-        ),
-      ),
-    );
-  }
-}
-
-class _CircleButton extends StatelessWidget {
-  const _CircleButton({required this.icon, this.isBack = false});
-
-  final IconData icon;
-  final bool isBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: GestureDetector(
-        onTap: () {
-          if (isBack) {
-            context.pop();
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(context.l10n.shareComingSoon)),
-            );
-          }
-        },
-        child: Container(
-          width: 40,
-          height: 40,
-          margin: isBack ? const EdgeInsets.only(left: 12) : null,
-          decoration: BoxDecoration(
-            color: AppColors.ui.surfaceDark.withValues(alpha: 0.85),
-            borderRadius: AppRadius.brPill,
-            border: Border.all(color: AppColors.ui.borderDark),
-          ),
-          child: Icon(icon, size: 18, color: AppColors.text.primaryDark),
         ),
       ),
     );

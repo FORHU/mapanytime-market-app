@@ -26,10 +26,10 @@ enum OrderStatus {
   };
 
   Color get color => switch (this) {
-    OrderStatus.confirmed => AppColors.brand.primary,
+    OrderStatus.confirmed => AppColors.ink,
     OrderStatus.preparing => AppColors.status.warning,
     OrderStatus.ready => AppColors.status.success,
-    OrderStatus.pickedUp => AppColors.brand.secondary,
+    OrderStatus.pickedUp => AppColors.status.success,
     OrderStatus.cancelled => AppColors.status.error,
   };
 }

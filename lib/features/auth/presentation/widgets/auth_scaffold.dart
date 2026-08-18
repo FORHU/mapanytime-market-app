@@ -3,21 +3,14 @@ import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/widgets/auth_logo.dart';
 import 'package:mapanytime_market_app/shared/widgets/fade_slide_in.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
-import 'package:mapanytime_market_app/theme/app_theme.dart';
 import 'package:mapanytime_market_app/theme/tokens/breakpoints.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 /// Shared shell for the five auth screens (login/register/forgot/reset
-/// password/register-success): a plain flat canvas (matching the reference
-/// mocks exactly — no decorative backdrop), staggered entrance, and a
-/// single-column phone layout that switches to a two-pane brand+form layout
-/// at [AppBreakpoints.tablet] and above.
-///
-/// Renders under a **locally-scoped** light [Theme] override — this is the
-/// only place in the app that runs light; the rest of the app stays on the
-/// app-wide (dark) `MaterialApp` theme, untouched. There's no user-facing
-/// toggle; auth is always light.
+/// password/register-success): a plain flat canvas, staggered entrance, and
+/// a single-column phone layout that switches to a two-pane brand+form
+/// layout at [AppBreakpoints.tablet] and above.
 class AuthScaffold extends StatelessWidget {
   const AuthScaffold({
     required this.title,
@@ -47,48 +40,45 @@ class AuthScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: AppTheme.light,
-      child: Scaffold(
-        appBar: ModernAppBar(showBack: onBack != null, onBack: onBack),
-        body: SafeArea(
-          top: false,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final isWide = constraints.maxWidth >= AppBreakpoints.tablet;
-              final form = _FormColumn(
-                title: title,
-                subtitle: subtitle,
-                card: card,
-                footer: footer,
-                showLogo: !isWide && showLogo,
+    return Scaffold(
+      appBar: ModernAppBar(showBack: onBack != null, onBack: onBack),
+      body: SafeArea(
+        top: false,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= AppBreakpoints.tablet;
+            final form = _FormColumn(
+              title: title,
+              subtitle: subtitle,
+              card: card,
+              footer: footer,
+              showLogo: !isWide && showLogo,
+            );
+
+            if (!isWide) {
+              return SingleChildScrollView(
+                padding: AppSpacing.edgeInsetsLg,
+                child: form,
               );
+            }
 
-              if (!isWide) {
-                return SingleChildScrollView(
-                  padding: AppSpacing.edgeInsetsLg,
-                  child: form,
-                );
-              }
-
-              return Row(
-                children: [
-                  Expanded(child: _BrandPanel(taglines: wideTagline)),
-                  Expanded(
-                    child: Center(
-                      child: SingleChildScrollView(
-                        padding: AppSpacing.edgeInsetsXl,
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 440),
-                          child: form,
-                        ),
+            return Row(
+              children: [
+                Expanded(child: _BrandPanel(taglines: wideTagline)),
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      padding: AppSpacing.edgeInsetsXl,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 440),
+                        child: form,
                       ),
                     ),
                   ),
-                ],
-              );
-            },
-          ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -192,11 +182,7 @@ class _TaglineRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          Icons.check_circle_rounded,
-          size: 18,
-          color: AppColors.brand.primary,
-        ),
+        const Icon(Icons.check_circle_rounded, size: 18, color: AppColors.ink),
         AppSpacing.sm.h,
         Expanded(
           child: Text(

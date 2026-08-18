@@ -5,15 +5,20 @@ import 'package:mapanytime_market_app/features/store/domain/entities/merchant_ad
 import 'package:mapanytime_market_app/shared/widgets/section_title.dart';
 import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
-/// Merchant promo/job ad cards shown in the map bottom sheet. Renders
-/// nothing when [ads] is empty.
+/// Merchant promo/event/job ad cards, shown in both the map bottom sheet and
+/// the full storefront page. Renders nothing when [ads] is empty.
 class MerchantAdSection extends StatelessWidget {
-  const MerchantAdSection({required this.ads, super.key});
+  const MerchantAdSection({required this.ads, this.onAdTap, super.key});
 
   final List<MerchantAd> ads;
+
+  /// Called when a card is tapped. Falls back to a "coming soon" toast when
+  /// not supplied.
+  final void Function(MerchantAd ad)? onAdTap;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +35,10 @@ class MerchantAdSection extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             itemCount: ads.length,
             separatorBuilder: (_, _) => const Gap(AppSpacing.sm),
-            itemBuilder: (context, i) => _AdCard(ad: ads[i]),
+            itemBuilder: (context, i) => _AdCard(
+              ad: ads[i],
+              onTap: onAdTap == null ? null : () => onAdTap!(ads[i]),
+            ),
           ),
         ),
       ],
@@ -39,30 +47,31 @@ class MerchantAdSection extends StatelessWidget {
 }
 
 class _AdCard extends StatelessWidget {
-  const _AdCard({required this.ad});
+  const _AdCard({required this.ad, this.onTap});
 
   final MerchantAd ad;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final isJob = ad.kind == MerchantAdKind.job;
 
     return GestureDetector(
-      onTap: () => showTopToast(context, context.l10n.comingSoon),
+      onTap: onTap ?? () => showTopToast(context, context.l10n.comingSoon),
       behavior: HitTestBehavior.opaque,
       child: Container(
         width: 240,
         padding: const EdgeInsets.all(AppSpacing.sm),
         decoration: BoxDecoration(
-          color: AppColors.ui.surfaceElevatedDark,
+          color: AppColors.ui.surface,
           borderRadius: AppRadius.brLg,
-          border: Border.all(color: AppColors.ui.borderDark),
+          boxShadow: AppEffects.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (ad.badgeLabel != null)
-              _AdBadge(label: ad.badgeLabel!, isJob: isJob),
+            if (ad.displayBadge != null)
+              _AdBadge(label: ad.displayBadge!, isJob: isJob),
             const Gap(6),
             Text(
               ad.title,
@@ -78,17 +87,17 @@ class _AdCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.text.secondaryDark,
+                  color: AppColors.text.secondary,
                 ),
               ),
             ),
             if (ad.ctaLabel != null)
               Text(
                 ad.ctaLabel!,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.brand.primary,
+                  color: AppColors.ink,
                 ),
               ),
           ],
@@ -109,14 +118,13 @@ class _AdBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        gradient: isJob ? null : AppColors.primaryGradient,
-        color: isJob ? AppColors.brand.primary : null,
+        color: AppColors.ink,
         borderRadius: AppRadius.brPill,
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: AppColors.text.onInk,
           fontSize: 10,
           fontWeight: FontWeight.w800,
           letterSpacing: 0.2,

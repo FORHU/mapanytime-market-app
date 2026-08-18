@@ -8,20 +8,30 @@ import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/core/utils/currency.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart'
     show apiServiceProvider;
+import 'package:mapanytime_market_app/features/cart/domain/entities/cart_item.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart';
 import 'package:mapanytime_market_app/features/orders/data/order_remote_datasource.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/controllers/orders_controller.dart';
+import 'package:mapanytime_market_app/features/orders/presentation/pages/order_confirmation_page.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
-import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
+import 'package:mapanytime_market_app/shared/widgets/key_value_card.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
+import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
+import 'package:mapanytime_market_app/shared/widgets/price_breakdown_card.dart';
 import 'package:mapanytime_market_app/shared/widgets/section_title.dart';
+import 'package:mapanytime_market_app/shared/widgets/selectable_row.dart';
 import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
+import 'package:mapanytime_market_app/theme/tokens/breakpoints.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
-/// Mock checkout: pickup info, payment method selection and a place-order CTA.
+/// Checkout: pickup info, payment method selection, an order-items summary,
+/// a server-verified price breakdown, and a place-order CTA. Two layouts:
+/// single column on phones, a two-pane form+summary split at
+/// [AppBreakpoints.tablet] and above.
 class CheckoutPage extends ConsumerStatefulWidget {
   const CheckoutPage({super.key});
 
@@ -29,13 +39,12 @@ class CheckoutPage extends ConsumerStatefulWidget {
   ConsumerState<CheckoutPage> createState() => _CheckoutPageState();
 }
 
-class _CheckoutPageState extends ConsumerState<CheckoutPage> {
-  static const _serviceFee = 25;
-  static const _methods = <(String, IconData, String)>[
-    ('Payment on pickup', Icons.payments_rounded, 'CASH_ON_DELIVERY'),
-    ('GCash', Icons.account_balance_wallet_rounded, 'GCASH'),
-  ];
+const _paymentMethods = <(String, IconData, String)>[
+  ('Payment on pickup', Icons.payments_rounded, 'CASH_ON_DELIVERY'),
+  ('GCash', Icons.account_balance_wallet_rounded, 'GCASH'),
+];
 
+class _CheckoutPageState extends ConsumerState<CheckoutPage> {
   int _method = 0;
   TimeOfDay? _pickupTime;
   bool _isSubmitting = false;
@@ -52,177 +61,112 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
 
   @override
   Widget build(BuildContext context) {
-    final subtotal = ref.watch(cartSelectedSubtotalProvider);
     final groups = ref.watch(cartSelectedGroupsProvider);
-    final total = subtotal + _serviceFee;
+    final pricing = ref.watch(cartPricingProvider);
     final storeName = groups.isNotEmpty ? groups.first.storeName : 'Store';
+    final items = [for (final g in groups) ...g.items];
     final pickupLabel = _pickupTime == null
         ? 'Select a time'
         : MaterialLocalizations.of(context).formatTimeOfDay(_pickupTime!);
+    final canPlaceOrder =
+        !_isSubmitting && pricing.hasValue && pricing.value != null;
 
     return Stack(
       children: [
         Scaffold(
           appBar: const ModernAppBar(title: 'Checkout'),
-          body: Column(
-            children: [
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md,
-                    AppSpacing.sm,
-                    AppSpacing.md,
-                    AppSpacing.lg,
-                  ),
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= AppBreakpoints.tablet;
+              final formSections = _FormSections(
+                storeName: storeName,
+                pickupLabel: pickupLabel,
+                pickupSet: _pickupTime != null,
+                onPickTime: _pickTime,
+                method: _method,
+                onMethodChanged: (i) => setState(() => _method = i),
+                items: items,
+              );
+
+              if (!isWide) {
+                return Column(
                   children: [
-                    const SectionTitle(title: 'Pickup'),
-                    const Gap(AppSpacing.sm),
-                    GlassCard(
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: AppColors.brand.primary.withValues(
-                                alpha: 0.15,
-                              ),
-                              borderRadius: AppRadius.brMd,
-                            ),
-                            child: Icon(
-                              Icons.store_mall_directory_rounded,
-                              color: AppColors.brand.primary,
-                            ),
-                          ),
-                          const Gap(AppSpacing.sm),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  storeName,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const Gap(2),
-                                Text(
-                                  'Pick up your order at this store',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.text.tertiaryDark,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Gap(AppSpacing.sm),
-                    GestureDetector(
-                      onTap: _pickTime,
-                      behavior: HitTestBehavior.opaque,
-                      child: GlassCard(
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: AppColors.brand.primary.withValues(
-                                  alpha: 0.15,
-                                ),
-                                borderRadius: AppRadius.brMd,
-                              ),
-                              child: Icon(
-                                Icons.schedule_rounded,
-                                color: AppColors.brand.primary,
-                              ),
-                            ),
-                            const Gap(AppSpacing.sm),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Pickup time',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const Gap(2),
-                                  Text(
-                                    pickupLabel,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: _pickupTime == null
-                                          ? AppColors.text.tertiaryDark
-                                          : AppColors.brand.primary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Icon(
-                              Icons.chevron_right_rounded,
-                              color: AppColors.text.tertiaryDark,
-                            ),
-                          ],
+                    Expanded(
+                      child: ListView(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.md,
+                          AppSpacing.sm,
+                          AppSpacing.md,
+                          AppSpacing.lg,
                         ),
-                      ),
-                    ),
-                    const Gap(AppSpacing.lg),
-                    const SectionTitle(title: 'Payment method'),
-                    const Gap(AppSpacing.sm),
-                    for (var i = 0; i < _methods.length; i++) ...[
-                      _PaymentTile(
-                        label: _methods[i].$1,
-                        icon: _methods[i].$2,
-                        selected: _method == i,
-                        onTap: () => setState(() => _method = i),
-                      ),
-                      if (i < _methods.length - 1) const Gap(AppSpacing.sm),
-                    ],
-                    const Gap(AppSpacing.lg),
-                    const SectionTitle(title: 'Order summary'),
-                    const Gap(AppSpacing.sm),
-                    GlassCard(
-                      child: Column(
                         children: [
-                          _Row(label: 'Subtotal', value: Money.peso(subtotal)),
+                          formSections,
+                          const Gap(AppSpacing.lg),
+                          const SectionTitle(title: 'Order summary'),
                           const Gap(AppSpacing.sm),
-                          _Row(
-                            label: 'Service fee',
-                            value: Money.peso(_serviceFee),
-                          ),
-                          const Gap(AppSpacing.sm),
-                          Divider(color: AppColors.ui.borderDark, height: 1),
-                          const Gap(AppSpacing.sm),
-                          _Row(
-                            label: 'Total',
-                            value: Money.peso(total),
-                            bold: true,
+                          PriceBreakdownCard(
+                            pricing: pricing,
+                            onRetry: () => ref.invalidate(cartPricingProvider),
                           ),
                         ],
                       ),
+                    ),
+                    _PlaceOrderBar(
+                      enabled: canPlaceOrder,
+                      onPlaceOrder: () => unawaited(_placeOrder(context)),
                     ),
                   ],
-                ),
-              ),
-              _PlaceOrderBar(
-                total: total,
-                onPlaceOrder: _isSubmitting
-                    ? null
-                    : () => unawaited(_placeOrder(context)),
-              ),
-            ],
+                );
+              }
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      children: [formSections],
+                    ),
+                  ),
+                  SizedBox(
+                    width: 380,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        0,
+                        AppSpacing.lg,
+                        AppSpacing.lg,
+                        AppSpacing.lg,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SectionTitle(title: 'Order summary'),
+                          const Gap(AppSpacing.sm),
+                          PriceBreakdownCard(
+                            pricing: pricing,
+                            onRetry: () => ref.invalidate(cartPricingProvider),
+                          ),
+                          const Gap(AppSpacing.md),
+                          PrimaryButton(
+                            label: 'Place order',
+                            icon: Icons.lock_rounded,
+                            onPressed: canPlaceOrder
+                                ? () => unawaited(_placeOrder(context))
+                                : null,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
         if (_isSubmitting)
-          ModalBarrier(
+          const ModalBarrier(
             dismissible: false,
-            color: Colors.black.withValues(alpha: 0.6),
+            color: Color(0x99000000),
           ),
         if (_isSubmitting)
           Center(
@@ -230,21 +174,21 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
               padding: const EdgeInsets.all(AppSpacing.lg),
               margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               decoration: BoxDecoration(
-                color: AppColors.ui.surfaceDark,
-                borderRadius: AppRadius.brLg,
-                border: Border.all(color: AppColors.ui.borderDark),
+                color: AppColors.ui.surface,
+                borderRadius: AppRadius.brCard,
+                boxShadow: AppEffects.cardShadow,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(color: AppColors.brand.primary),
+                  const CircularProgressIndicator(color: AppColors.ink),
                   const Gap(AppSpacing.md),
                   Text(
                     'Placing your order...',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
-                      color: AppColors.text.primaryDark,
+                      color: AppColors.text.primary,
                     ),
                   ),
                   const Gap(4),
@@ -253,7 +197,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.text.secondaryDark,
+                      color: AppColors.text.secondary,
                     ),
                   ),
                 ],
@@ -290,35 +234,43 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
         : pickupDateTime;
     final isoPickup = finalPickup.toUtc().toIso8601String();
 
-    final paymentMethodEnum = _methods[_method].$3;
+    final paymentMethodEnum = _paymentMethods[_method].$3;
+    final orderedIds = [
+      for (final item in ref.read(cartSelectedItemsProvider)) item.product.id,
+    ];
+    // Captured before removeMany() below, which can invalidate
+    // cartPricingProvider (it re-derives from the now-changed selection).
+    final orderPricing = ref.read(cartPricingProvider).value!;
 
     try {
       final api = ref.read(apiServiceProvider);
       final remote = OrderRemoteDataSource(api);
 
-      // The order id isn't needed here — the buyer pays from the pickup pass,
-      // which reads the order back from ordersProvider.
-      await remote.createOrder(
+      // Only the selected items are charged — the backend leaves everything
+      // else in the buyer's cart.
+      final orderId = await remote.createOrder(
         type: 'PICKUP',
         paymentMethod: paymentMethodEnum,
         pickupAt: isoPickup,
+        productIds: orderedIds,
       );
 
-      // Only the selected items are ordered
-      final orderedIds = [
-        for (final item in ref.read(cartSelectedItemsProvider)) item.product.id,
-      ];
+      // Remove only what was actually ordered — deselected items stay in
+      // the cart, matching what the backend just did.
       ref.read(cartProvider.notifier).removeMany(orderedIds);
-
-      // Clear local cart and invalidate ordersProvider so the new order
-      // appears immediately
-      ref.read(cartProvider.notifier).clear();
       ref.invalidate(ordersProvider);
 
       if (!context.mounted) return;
 
-      context.go(RouteNames.orders);
-      showTopToast(context, context.l10n.orderPlacedSuccess);
+      context.go(
+        RouteNames.orderConfirmation,
+        extra: OrderConfirmationArgs(
+          orderId: orderId,
+          paymentMethodLabel: _paymentMethods[_method].$1,
+          isCashOnDelivery: paymentMethodEnum == 'CASH_ON_DELIVERY',
+          pricing: orderPricing,
+        ),
+      );
     } on Exception catch (e) {
       if (!context.mounted) return;
       showTopToast(context, context.l10n.orderPlacedFailed(e.toString()));
@@ -330,89 +282,136 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
   }
 }
 
-class _PaymentTile extends StatelessWidget {
-  const _PaymentTile({
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
+/// Pickup + payment-method + order-items sections, shared between the
+/// narrow and wide layouts (only their surrounding container differs).
+class _FormSections extends StatelessWidget {
+  const _FormSections({
+    required this.storeName,
+    required this.pickupLabel,
+    required this.pickupSet,
+    required this.onPickTime,
+    required this.method,
+    required this.onMethodChanged,
+    required this.items,
   });
 
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
+  final String storeName;
+  final String pickupLabel;
+  final bool pickupSet;
+  final VoidCallback onPickTime;
+  final int method;
+  final ValueChanged<int> onMethodChanged;
+  final List<CartItem> items;
 
   @override
   Widget build(BuildContext context) {
-    final primary = AppColors.brand.primary;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: AppColors.ui.surfaceDark,
-          borderRadius: AppRadius.brLg,
-          border: Border.all(
-            color: selected ? primary : AppColors.ui.borderDark,
-            width: selected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 20, color: AppColors.text.secondaryDark),
-            const Gap(AppSpacing.sm),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-            Icon(
-              selected
-                  ? Icons.radio_button_checked_rounded
-                  : Icons.radio_button_unchecked_rounded,
-              color: selected ? primary : AppColors.text.tertiaryDark,
-              size: 20,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionTitle(title: 'Pickup'),
+        const Gap(AppSpacing.sm),
+        KeyValueCard(
+          rows: [
+            KeyValueRow('Store', storeName),
+            KeyValueRow(
+              'Pickup time',
+              pickupLabel,
+              onTap: onPickTime,
+              valueColor: pickupSet ? AppColors.ink : null,
             ),
           ],
         ),
+        const Gap(AppSpacing.lg),
+        const SectionTitle(title: 'Payment method'),
+        const Gap(AppSpacing.sm),
+        for (var i = 0; i < _paymentMethods.length; i++) ...[
+          SelectableRow(
+            label: _paymentMethods[i].$1,
+            icon: _paymentMethods[i].$2,
+            selected: method == i,
+            showCheck: true,
+            onTap: () => onMethodChanged(i),
+          ),
+          if (i < _paymentMethods.length - 1) const Gap(AppSpacing.sm),
+        ],
+        if (items.isNotEmpty) ...[
+          const Gap(AppSpacing.lg),
+          const SectionTitle(title: 'Order items'),
+          const Gap(AppSpacing.sm),
+          _OrderItemsCard(items: items),
+        ],
+      ],
+    );
+  }
+}
+
+class _OrderItemsCard extends StatelessWidget {
+  const _OrderItemsCard({required this.items});
+
+  final List<CartItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.ui.surface,
+        borderRadius: AppRadius.brCard,
+        boxShadow: AppEffects.cardShadow,
+      ),
+      child: Column(
+        children: [
+          for (var i = 0; i < items.length; i++) ...[
+            if (i > 0) const Gap(AppSpacing.sm),
+            _OrderItemRow(item: items[i]),
+          ],
+        ],
       ),
     );
   }
 }
 
-class _Row extends StatelessWidget {
-  const _Row({required this.label, required this.value, this.bold = false});
+class _OrderItemRow extends StatelessWidget {
+  const _OrderItemRow({required this.item});
 
-  final String label;
-  final String value;
-  final bool bold;
+  final CartItem item;
 
   @override
   Widget build(BuildContext context) {
-    final style = TextStyle(
-      fontSize: bold ? 16 : 14,
-      fontWeight: bold ? FontWeight.w800 : FontWeight.w500,
-      color: bold ? AppColors.text.primaryDark : AppColors.text.secondaryDark,
-    );
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: style),
-        Text(value, style: style),
+        NetworkImageBox(
+          url: item.product.imageUrl,
+          width: 40,
+          height: 40,
+          borderRadius: AppRadius.brSm,
+        ),
+        const Gap(AppSpacing.sm),
+        Expanded(
+          child: Text(
+            item.product.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+        const Gap(AppSpacing.sm),
+        Text(
+          Money.peso(item.lineTotal),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+        ),
       ],
     );
   }
 }
 
 class _PlaceOrderBar extends StatelessWidget {
-  const _PlaceOrderBar({required this.total, required this.onPlaceOrder});
+  const _PlaceOrderBar({required this.enabled, required this.onPlaceOrder});
 
-  final num total;
-  final VoidCallback? onPlaceOrder;
+  final bool enabled;
+  final VoidCallback onPlaceOrder;
 
   @override
   Widget build(BuildContext context) {
@@ -424,15 +423,15 @@ class _PlaceOrderBar extends StatelessWidget {
         AppSpacing.md,
       ),
       decoration: BoxDecoration(
-        color: AppColors.ui.surfaceDark,
-        border: Border(top: BorderSide(color: AppColors.ui.borderDark)),
+        color: AppColors.ui.surface,
+        boxShadow: AppEffects.cardShadow,
       ),
       child: SafeArea(
         top: false,
-        child: GradientButton(
-          label: 'Place order • ${Money.peso(total)}',
+        child: PrimaryButton(
+          label: 'Place order',
           icon: Icons.lock_rounded,
-          onPressed: onPlaceOrder,
+          onPressed: enabled ? onPlaceOrder : null,
         ),
       ),
     );

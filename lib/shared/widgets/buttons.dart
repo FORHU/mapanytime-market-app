@@ -5,7 +5,9 @@ import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
-/// Solid primary-color CTA button.
+/// Solid ink CTA button — the only button fill in the system. There is no
+/// bordered/outlined variant and no gradient variant; a less-prominent
+/// action becomes a plain text button, not a different-colored pill.
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
     required this.label,
@@ -31,51 +33,17 @@ class PrimaryButton extends StatelessWidget {
       label: label,
       icon: icon,
       decoration: BoxDecoration(
-        color: AppColors.brand.primary,
-        borderRadius: AppRadius.brLg,
+        color: AppColors.ink,
+        borderRadius: AppRadius.brPill,
         boxShadow: AppEffects.softShadow,
       ),
     );
   }
 }
 
-/// Gradient (blue → purple) CTA button with a soft glow — for hero actions.
-class GradientButton extends StatelessWidget {
-  const GradientButton({
-    required this.label,
-    required this.onPressed,
-    this.icon,
-    this.expand = true,
-    this.isLoading = false,
-    super.key,
-  });
-
-  final String label;
-  final VoidCallback? onPressed;
-  final IconData? icon;
-  final bool expand;
-  final bool isLoading;
-
-  @override
-  Widget build(BuildContext context) {
-    return PressableButtonBase(
-      onPressed: onPressed,
-      expand: expand,
-      isLoading: isLoading,
-      label: label,
-      icon: icon,
-      decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: AppRadius.brLg,
-        boxShadow: AppEffects.primaryGlow,
-      ),
-    );
-  }
-}
-
 /// The shared pressable shape/interaction (scale-on-tap, disabled fade,
-/// loading spinner) behind [PrimaryButton]/[GradientButton]. Reuse this for
-/// any new button variant rather than re-implementing the press behavior.
+/// loading spinner) behind [PrimaryButton]. Reuse this for any new button
+/// variant rather than re-implementing the press behavior.
 class PressableButtonBase extends StatefulWidget {
   const PressableButtonBase({
     required this.label,

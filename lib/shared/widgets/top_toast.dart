@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
+import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 
 /// Shows a top-center toast that floats above everything and survives route
 /// changes, because it is inserted into the root [Overlay] rather than tied to
@@ -109,14 +111,8 @@ class _TopToastState extends State<_TopToast>
                       ),
                       decoration: BoxDecoration(
                         color: bg,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black38,
-                            blurRadius: 8,
-                            offset: Offset(0, 3),
-                          ),
-                        ],
+                        borderRadius: AppRadius.brLg,
+                        boxShadow: AppEffects.cardShadow,
                       ),
                       child: Text(
                         widget.message,

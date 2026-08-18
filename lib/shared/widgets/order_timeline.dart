@@ -66,7 +66,7 @@ class _Step extends StatelessWidget {
     final reached = isDone || isActive;
     final color = isActive
         ? status.color
-        : (isDone ? AppColors.status.success : AppColors.text.tertiaryDark);
+        : (isDone ? AppColors.status.success : AppColors.text.tertiary);
 
     return IntrinsicHeight(
       child: Row(
@@ -80,17 +80,17 @@ class _Step extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: reached
                       ? color.withValues(alpha: 0.18)
-                      : AppColors.ui.surfaceElevatedDark,
+                      : AppColors.ui.surfaceMuted,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: reached ? color : AppColors.ui.borderDark,
+                    color: reached ? color : AppColors.ui.borderHairline,
                     width: 1.5,
                   ),
                 ),
                 child: Icon(
                   isDone ? Icons.check_rounded : status.icon,
                   size: 15,
-                  color: reached ? color : AppColors.text.tertiaryDark,
+                  color: reached ? color : AppColors.text.tertiary,
                 ),
               ),
               if (!isLast)
@@ -100,7 +100,7 @@ class _Step extends StatelessWidget {
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     color: isDone
                         ? AppColors.status.success
-                        : AppColors.ui.borderDark,
+                        : AppColors.ui.borderHairline,
                   ),
                 ),
             ],
@@ -118,8 +118,8 @@ class _Step extends StatelessWidget {
                         fontSize: 14,
                         fontWeight: reached ? FontWeight.w700 : FontWeight.w500,
                         color: reached
-                            ? AppColors.text.primaryDark
-                            : AppColors.text.tertiaryDark,
+                            ? AppColors.text.primary
+                            : AppColors.text.tertiary,
                       ),
                     ),
                   ),
@@ -128,7 +128,7 @@ class _Step extends StatelessWidget {
                       time!,
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.text.tertiaryDark,
+                        color: AppColors.text.tertiary,
                       ),
                     ),
                 ],

@@ -86,7 +86,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                 onPressed: _finish,
                 child: Text(
                   'Skip',
-                  style: TextStyle(color: AppColors.text.secondaryDark),
+                  style: TextStyle(color: AppColors.text.secondary),
                 ),
               ),
             ),
@@ -109,8 +109,8 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                     height: 8,
                     decoration: BoxDecoration(
                       color: _page == i
-                          ? AppColors.brand.primary
-                          : AppColors.ui.borderDark,
+                          ? AppColors.ink
+                          : AppColors.ui.borderHairline,
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
@@ -124,7 +124,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                 AppSpacing.lg,
                 AppSpacing.lg,
               ),
-              child: GradientButton(
+              child: PrimaryButton(
                 label: _isLast ? 'Get Started' : 'Next',
                 icon: _isLast
                     ? Icons.check_rounded
@@ -163,11 +163,11 @@ class _SlideView extends StatelessWidget {
             width: 132,
             height: 132,
             decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
+              color: AppColors.ink,
               shape: BoxShape.circle,
-              boxShadow: AppEffects.primaryGlow,
+              boxShadow: AppEffects.cardShadow,
             ),
-            child: Icon(slide.icon, size: 60, color: Colors.white),
+            child: Icon(slide.icon, size: 60, color: AppColors.text.onInk),
           ),
           const Gap(AppSpacing.xl),
           Text(
@@ -187,7 +187,7 @@ class _SlideView extends StatelessWidget {
             style: TextStyle(
               fontSize: 15,
               height: 1.5,
-              color: AppColors.text.secondaryDark,
+              color: AppColors.text.secondary,
             ),
           ),
         ],

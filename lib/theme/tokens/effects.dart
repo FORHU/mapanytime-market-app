@@ -1,43 +1,35 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 
-/// Design tokens — elevation, shadows, blur and glow effects.
+/// Design tokens — elevation, shadows, and the one surviving gradient.
 class AppEffects {
   AppEffects._();
 
-  /// Standard blur for glassmorphic surfaces. Keep blur layers limited on
-  /// lists for performance (see docs/progress gotchas).
-  static const double glassBlur = 18;
-
-  static ImageFilter get glassFilter =>
-      ImageFilter.blur(sigmaX: glassBlur, sigmaY: glassBlur);
-
-  /// Soft, low-opacity shadow used by floating cards.
+  /// Card / floating-chrome shadow — soft and diffuse, tuned for a white
+  /// canvas rather than the old near-black one.
   static List<BoxShadow> get cardShadow => [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.35),
-      blurRadius: 24,
+      color: AppColors.ink.withValues(alpha: 0.08),
+      blurRadius: 28,
       offset: const Offset(0, 12),
     ),
   ];
 
-  /// Tighter shadow for smaller raised elements (chips, FABs).
+  /// Small raised elements — buttons, icon buttons.
   static List<BoxShadow> get softShadow => [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.25),
-      blurRadius: 12,
-      offset: const Offset(0, 6),
+      color: AppColors.ink.withValues(alpha: 0.06),
+      blurRadius: 10,
+      offset: const Offset(0, 4),
     ),
   ];
 
-  /// Colored glow for primary CTAs / active markers.
-  static List<BoxShadow> get primaryGlow => [
-    BoxShadow(
-      color: AppColors.brand.primary.withValues(alpha: 0.45),
-      blurRadius: 24,
-      offset: const Offset(0, 8),
-    ),
-  ];
+  /// Photo-legibility scrim behind text on promo/deal banners — the one
+  /// gradient in the system. Never use for a brand wash, a button fill, or
+  /// a "pop" treatment.
+  static const LinearGradient promoScrim = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0x000D0D0F), Color(0xBF0D0D0F)],
+  );
 }

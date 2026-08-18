@@ -27,7 +27,7 @@ class OrderHistoryPage extends ConsumerWidget {
         onRefresh: () async {
           ref.invalidate(ordersProvider);
         },
-        color: AppColors.brand.primary,
+        color: AppColors.ink,
         child: ordersAsync.when(
           loading: () => ListView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -43,7 +43,7 @@ class OrderHistoryPage extends ConsumerWidget {
               Center(
                 child: Text(
                   'Could not load orders',
-                  style: TextStyle(color: AppColors.text.secondaryDark),
+                  style: TextStyle(color: AppColors.text.secondary),
                 ),
               ),
             ],
@@ -114,7 +114,7 @@ class _OrderCard extends StatelessWidget {
           Text(
             '${order.placedLabel} • ${order.itemCount} '
             'item${order.itemCount == 1 ? '' : 's'}',
-            style: TextStyle(fontSize: 12, color: AppColors.text.tertiaryDark),
+            style: TextStyle(fontSize: 12, color: AppColors.text.tertiary),
           ),
           const Gap(AppSpacing.sm),
           Row(
@@ -124,22 +124,22 @@ class _OrderCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.text.primaryDark,
+                  color: AppColors.text.primary,
                 ),
               ),
               const Spacer(),
               Text(
                 order.isActive ? 'Track order' : 'View details',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.brand.primary,
+                  color: AppColors.ink,
                 ),
               ),
-              Icon(
+              const Icon(
                 Icons.chevron_right_rounded,
                 size: 18,
-                color: AppColors.brand.primary,
+                color: AppColors.ink,
               ),
             ],
           ),

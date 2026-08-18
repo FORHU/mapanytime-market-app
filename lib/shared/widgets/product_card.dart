@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:mapanytime_market_app/features/recommendations/presentation/widgets/card_badges.dart';
 import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
 import 'package:mapanytime_market_app/shared/widgets/price_tag.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
-import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
-/// A vertical product card: image, name, price and store/distance.
+/// A vertical product card: image, name, price and store/distance. Flat —
+/// no border or shadow on the card itself, per DESIGN.md; the image and
+/// text sit directly on the page's canvas.
 class ProductCard extends StatelessWidget {
   const ProductCard({
     required this.name,
@@ -17,6 +19,7 @@ class ProductCard extends StatelessWidget {
     this.distanceKm,
     this.onTap,
     this.width = 168,
+    this.badgeLabel,
     super.key,
   });
 
@@ -28,28 +31,36 @@ class ProductCard extends StatelessWidget {
   final VoidCallback? onTap;
   final double width;
 
+  /// When set (e.g. "20% OFF"), overlays a [DiscountBadge] on the image to
+  /// highlight that this product is linked to an active merchant ad.
+  final String? badgeLabel;
+
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: SizedBox(
         width: width,
-        decoration: BoxDecoration(
-          color: AppColors.ui.surfaceDark,
-          borderRadius: AppRadius.brCard,
-          border: Border.all(color: AppColors.ui.borderDark),
-          boxShadow: AppEffects.cardShadow,
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            NetworkImageBox(
-              url: imageUrl,
-              height: width * 0.9,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppRadius.card),
-              ),
+            Stack(
+              children: [
+                NetworkImageBox(
+                  url: imageUrl,
+                  height: width * 0.9,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppRadius.card),
+                  ),
+                ),
+                if (badgeLabel != null)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: DiscountBadge(label: badgeLabel!),
+                  ),
+              ],
             ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.sm + 4),
@@ -61,7 +72,7 @@ class ProductCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: tt.titleSmall?.copyWith(
-                      color: AppColors.text.primaryDark,
+                      color: AppColors.text.primary,
                     ),
                   ),
                   const Gap(6),
@@ -71,7 +82,7 @@ class ProductCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: tt.bodySmall?.copyWith(
-                        color: AppColors.text.tertiaryDark,
+                        color: AppColors.text.tertiary,
                       ),
                     ),
                   const Gap(AppSpacing.sm),
@@ -84,7 +95,7 @@ class ProductCard extends StatelessWidget {
                           '${distanceKm!.toStringAsFixed(1)} km',
                           style: tt.labelSmall?.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: AppColors.brand.primary,
+                            color: AppColors.ink,
                           ),
                         ),
                     ],

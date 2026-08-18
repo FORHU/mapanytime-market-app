@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:mapanytime_market_app/shared/widgets/icon_button.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
-import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
-/// A floating glass search bar for the map and list screens.
+/// A search pill for the home and list screens — opaque surface-muted
+/// fill, no border, no shadow, per DESIGN.md.
 ///
 /// Pass [onTap] to use it as a tappable button (e.g. opens a search screen);
-/// otherwise provide a [controller]/[onChanged] for inline editing.
+/// otherwise provide a [controller]/[onChanged] for inline editing. Pass
+/// [onFilterTap] to show a trailing icon-button — Home wires this to the
+/// map entry point rather than a filter sheet (the app has no separate
+/// product-filter feature to hang a filter icon on).
 class FloatingSearchBar extends StatelessWidget {
   const FloatingSearchBar({
     this.hint = 'Search stores or products...',
@@ -16,6 +20,7 @@ class FloatingSearchBar extends StatelessWidget {
     this.onChanged,
     this.onTap,
     this.onFilterTap,
+    this.filterIcon = Icons.tune_rounded,
     super.key,
   });
 
@@ -24,6 +29,7 @@ class FloatingSearchBar extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final VoidCallback? onTap;
   final VoidCallback? onFilterTap;
+  final IconData filterIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -38,17 +44,15 @@ class FloatingSearchBar extends StatelessWidget {
         right: hasFilter ? 6 : AppSpacing.md,
       ),
       decoration: BoxDecoration(
-        color: AppColors.ui.surfaceDark.withValues(alpha: 0.92),
+        color: AppColors.ui.surfaceMuted,
         borderRadius: AppRadius.brPill,
-        border: Border.all(color: AppColors.ui.borderDark),
-        boxShadow: AppEffects.cardShadow,
       ),
       child: Row(
         children: [
           Icon(
             Icons.search_rounded,
             size: 20,
-            color: AppColors.text.secondaryDark,
+            color: AppColors.text.secondary,
           ),
           const Gap(AppSpacing.sm),
           Expanded(
@@ -57,8 +61,8 @@ class FloatingSearchBar extends StatelessWidget {
               onChanged: onChanged,
               readOnly: readOnly,
               onTap: onTap,
-              style: baseStyle?.copyWith(color: AppColors.text.primaryDark),
-              cursorColor: AppColors.brand.primary,
+              style: baseStyle?.copyWith(color: AppColors.text.primary),
+              cursorColor: AppColors.ink,
               decoration: InputDecoration(
                 isCollapsed: true,
                 border: InputBorder.none,
@@ -67,29 +71,11 @@ class FloatingSearchBar extends StatelessWidget {
                 filled: true,
                 fillColor: Colors.transparent,
                 hintText: hint,
-                hintStyle: baseStyle?.copyWith(
-                  color: AppColors.text.tertiaryDark,
-                ),
+                hintStyle: baseStyle?.copyWith(color: AppColors.text.tertiary),
               ),
             ),
           ),
-          if (hasFilter)
-            GestureDetector(
-              onTap: onFilterTap,
-              child: Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: AppRadius.brPill,
-                ),
-                child: const Icon(
-                  Icons.tune_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-            ),
+          if (hasFilter) AppIconButton(icon: filterIcon, onTap: onFilterTap),
         ],
       ),
     );

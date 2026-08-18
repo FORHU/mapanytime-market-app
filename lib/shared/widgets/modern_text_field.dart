@@ -83,7 +83,7 @@ class _ModernTextFieldState extends State<ModernTextField> {
           onChanged: widget.onChanged,
           validator: widget.validator,
           style: TextStyle(color: colors.onSurface, fontSize: 15),
-          cursorColor: AppColors.brand.primary,
+          cursorColor: AppColors.ink,
           decoration: InputDecoration(
             hintText: widget.hint,
             hintStyle: TextStyle(
@@ -110,10 +110,7 @@ class _ModernTextFieldState extends State<ModernTextField> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: AppRadius.brXl,
-              borderSide: BorderSide(
-                color: AppColors.brand.primary,
-                width: 1.5,
-              ),
+              borderSide: const BorderSide(color: AppColors.ink, width: 1.5),
             ),
           ),
         ),

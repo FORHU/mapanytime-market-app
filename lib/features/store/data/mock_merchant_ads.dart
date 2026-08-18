@@ -1,9 +1,10 @@
 import 'package:mapanytime_market_app/features/store/domain/entities/merchant_ad.dart';
 
 /// Client-side merchant ads, deterministic per [storeId] so the same store
-/// always shows the same cards. Replace with real API-backed ads once the
-/// backend ships an `ads` field on the store detail response — callers only
-/// need to swap this function out, `StoreDetails.ads` doesn't change shape.
+/// always shows the same cards. Used only by `MockStoreRepository` for the
+/// offline/demo repository — `StoreApiRepository` uses the real
+/// `merchantAds` field from `GET /stores/:id` instead (see
+/// `store_remote_datasource.dart`).
 List<MerchantAd> mockMerchantAdsForStore(String storeId, {String? category}) {
   final seed = storeId.isEmpty ? 'store' : storeId;
   final categoryLabel = (category == null || category.isEmpty)

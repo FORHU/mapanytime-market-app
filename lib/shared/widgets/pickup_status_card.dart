@@ -19,9 +19,8 @@ class PickupStatusCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.ui.surfaceDark,
+        color: AppColors.ui.surface,
         borderRadius: AppRadius.brCard,
-        border: Border.all(color: AppColors.ui.borderDark),
         boxShadow: AppEffects.cardShadow,
       ),
       child: Row(
@@ -45,7 +44,7 @@ class PickupStatusCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.text.primaryDark,
+                    color: AppColors.text.primary,
                   ),
                 ),
                 if (etaLabel != null) ...[
@@ -54,7 +53,7 @@ class PickupStatusCard extends StatelessWidget {
                     etaLabel!,
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.text.secondaryDark,
+                      color: AppColors.text.secondary,
                     ),
                   ),
                 ],

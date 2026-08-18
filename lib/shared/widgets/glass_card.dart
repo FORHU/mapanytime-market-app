@@ -3,26 +3,25 @@ import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
-/// A floating, softly-shadowed surface — the base for most cards.
-///
-/// Set [blur] to true for true glassmorphism (use sparingly in long lists for
-/// performance). When false it renders a solid premium surface.
+/// The general-purpose card surface. Depth comes from fill contrast plus
+/// one soft shadow tier ([AppEffects.cardShadow]) — never a border by
+/// default and never glassmorphism (there is no blur mode; the system has
+/// none, per DESIGN.md). [border] exists only for the rare case a white
+/// card needs to separate from an equally-white background.
 class GlassCard extends StatelessWidget {
   const GlassCard({
     required this.child,
     this.padding = const EdgeInsets.all(AppSpacing.md),
     this.radius = AppRadius.card,
-    this.blur = false,
     this.onTap,
     this.color,
-    this.border = true,
+    this.border = false,
     super.key,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final double radius;
-  final bool blur;
   final VoidCallback? onTap;
   final Color? color;
   final bool border;
@@ -31,23 +30,16 @@ class GlassCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(radius);
     final colors = Theme.of(context).colorScheme;
-    final surface =
-        color ??
-        (blur ? colors.surface.withValues(alpha: 0.6) : colors.surface);
 
     Widget content = DecoratedBox(
       decoration: BoxDecoration(
-        color: surface,
+        color: color ?? colors.surface,
         borderRadius: borderRadius,
         border: border ? Border.all(color: colors.outline) : null,
         boxShadow: AppEffects.cardShadow,
       ),
       child: Padding(padding: padding, child: child),
     );
-
-    if (blur) {
-      content = BackdropFilter(filter: AppEffects.glassFilter, child: content);
-    }
 
     content = ClipRRect(borderRadius: borderRadius, child: content);
 
