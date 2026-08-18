@@ -12,6 +12,7 @@ import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
 import 'package:mapanytime_market_app/shared/widgets/price_tag.dart';
 import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
@@ -50,7 +51,7 @@ class ProductDetailPage extends ConsumerWidget {
                   child: Container(
                     height: 320,
                     width: double.infinity,
-                    color: AppColors.ui.surfaceElevatedDark,
+                    color: AppColors.ui.surfaceMuted,
                     child: NetworkImageBox(
                       url: product.imageUrl,
                       height: 320,
@@ -81,7 +82,7 @@ class ProductDetailPage extends ConsumerWidget {
                       Text(
                         product.description,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.text.secondaryDark,
+                          color: AppColors.text.secondary,
                           height: 1.5,
                         ),
                       ),
@@ -184,7 +185,7 @@ class _PromoBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm + 4),
       decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
+        color: AppColors.ink,
         borderRadius: AppRadius.brLg,
       ),
       child: Column(
@@ -192,9 +193,9 @@ class _PromoBanner extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.local_offer_rounded,
-                color: Colors.white,
+                color: AppColors.text.onInk,
                 size: 16,
               ),
               const Gap(6),
@@ -203,8 +204,8 @@ class _PromoBanner extends StatelessWidget {
                   promo.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.text.onInk,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -217,13 +218,13 @@ class _PromoBanner extends StatelessWidget {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: AppColors.text.onInk.withValues(alpha: 0.2),
                     borderRadius: AppRadius.brPill,
                   ),
                   child: Text(
                     promo.displayBadge!,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.text.onInk,
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
                     ),
@@ -235,14 +236,14 @@ class _PromoBanner extends StatelessWidget {
           const Gap(4),
           Text(
             promo.description,
-            style: const TextStyle(color: Colors.white, fontSize: 12),
+            style: TextStyle(color: AppColors.text.onInk, fontSize: 12),
           ),
           if (expiry != null) ...[
             const Gap(4),
             Text(
               'Valid until ${DateFormat.yMMMd().format(expiry)}',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.85),
+                color: AppColors.text.onInk.withValues(alpha: 0.85),
                 fontSize: 11,
               ),
             ),
@@ -263,15 +264,15 @@ class _CategoryPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.brand.primary.withValues(alpha: 0.15),
+        color: AppColors.ink.withValues(alpha: 0.1),
         borderRadius: AppRadius.brPill,
       ),
       child: Text(
         label,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w700,
-          color: AppColors.brand.primaryBright,
+          color: AppColors.ink,
         ),
       ),
     );
@@ -288,16 +289,12 @@ class _TagPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.ui.surfaceElevatedDark,
+        color: AppColors.ui.surfaceMuted,
         borderRadius: AppRadius.brPill,
-        border: Border.all(color: AppColors.ui.borderDark),
       ),
       child: Text(
         '#$label',
-        style: TextStyle(
-          fontSize: 12,
-          color: AppColors.text.secondaryDark,
-        ),
+        style: TextStyle(fontSize: 12, color: AppColors.text.secondary),
       ),
     );
   }
@@ -318,12 +315,12 @@ class _BottomCta extends StatelessWidget {
         AppSpacing.md,
       ),
       decoration: BoxDecoration(
-        color: AppColors.ui.surfaceDark,
-        border: Border(top: BorderSide(color: AppColors.ui.borderDark)),
+        color: AppColors.ui.surface,
+        boxShadow: AppEffects.cardShadow,
       ),
       child: SafeArea(
         top: false,
-        child: GradientButton(
+        child: PrimaryButton(
           label: 'Add to cart',
           icon: Icons.add_shopping_cart_rounded,
           onPressed: onAdd,

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
-import 'package:mapanytime_market_app/features/auth/presentation/widgets/auth_button.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/widgets/auth_scaffold.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
+import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 /// Shown right after a successful registration, replacing the old bare
@@ -27,7 +27,7 @@ class RegisterSuccessPage extends StatelessWidget {
         children: [
           const _SuccessBadge(),
           AppSpacing.xl.v,
-          AuthButton(
+          PrimaryButton(
             label: context.l10n.continueButton,
             onPressed: () => context.go(RouteNames.login),
           ),

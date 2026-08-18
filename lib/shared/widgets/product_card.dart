@@ -4,11 +4,12 @@ import 'package:mapanytime_market_app/features/recommendations/presentation/widg
 import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
 import 'package:mapanytime_market_app/shared/widgets/price_tag.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
-import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
-/// A vertical product card: image, name, price and store/distance.
+/// A vertical product card: image, name, price and store/distance. Flat —
+/// no border or shadow on the card itself, per DESIGN.md; the image and
+/// text sit directly on the page's canvas.
 class ProductCard extends StatelessWidget {
   const ProductCard({
     required this.name,
@@ -39,14 +40,8 @@ class ProductCard extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: SizedBox(
         width: width,
-        decoration: BoxDecoration(
-          color: AppColors.ui.surfaceDark,
-          borderRadius: AppRadius.brCard,
-          border: Border.all(color: AppColors.ui.borderDark),
-          boxShadow: AppEffects.cardShadow,
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -77,7 +72,7 @@ class ProductCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: tt.titleSmall?.copyWith(
-                      color: AppColors.text.primaryDark,
+                      color: AppColors.text.primary,
                     ),
                   ),
                   const Gap(6),
@@ -87,7 +82,7 @@ class ProductCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: tt.bodySmall?.copyWith(
-                        color: AppColors.text.tertiaryDark,
+                        color: AppColors.text.tertiary,
                       ),
                     ),
                   const Gap(AppSpacing.sm),
@@ -100,7 +95,7 @@ class ProductCard extends StatelessWidget {
                           '${distanceKm!.toStringAsFixed(1)} km',
                           style: tt.labelSmall?.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: AppColors.brand.primary,
+                            color: AppColors.ink,
                           ),
                         ),
                     ],

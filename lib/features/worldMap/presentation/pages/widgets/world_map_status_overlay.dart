@@ -23,7 +23,6 @@ class WorldMapStatusOverlay extends ConsumerWidget {
             left: AppSpacing.md,
             right: AppSpacing.md,
             child: GlassCard(
-              blur: true,
               child: Row(
                 children: [
                   Icon(
@@ -38,16 +37,16 @@ class WorldMapStatusOverlay extends ConsumerWidget {
                                 .failure
                                 .message
                           : storesState.error.toString(),
-                      style: TextStyle(color: AppColors.text.secondaryDark),
+                      style: TextStyle(color: AppColors.text.secondary),
                     ),
                   ),
                   TextButton(
                     onPressed: () =>
                         ref.read(worldMapControllerProvider.notifier).refresh(),
-                    child: Text(
+                    child: const Text(
                       'Retry',
                       style: TextStyle(
-                        color: AppColors.brand.primary,
+                        color: AppColors.ink,
                         fontWeight: FontWeight.w700,
                       ),
                     ),

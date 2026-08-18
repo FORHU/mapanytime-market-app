@@ -11,9 +11,7 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isOpen
-        ? AppColors.status.success
-        : AppColors.text.tertiaryDark;
+    final color = isOpen ? AppColors.status.success : AppColors.text.tertiary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -93,13 +91,13 @@ class DiscountBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
+        color: AppColors.ink,
         borderRadius: AppRadius.brPill,
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: AppColors.text.onInk,
           fontSize: 11,
           fontWeight: FontWeight.w800,
           letterSpacing: 0.2,

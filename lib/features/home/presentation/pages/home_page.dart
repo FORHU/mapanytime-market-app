@@ -5,15 +5,15 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/features/home/presentation/controllers/home_products_controller.dart';
 import 'package:mapanytime_market_app/features/home/presentation/home_mock_data.dart';
-import 'package:mapanytime_market_app/features/home/presentation/widgets/hero_banner.dart';
+import 'package:mapanytime_market_app/features/home/presentation/widgets/deals_carousel.dart';
 import 'package:mapanytime_market_app/features/home/presentation/widgets/home_app_bar.dart';
-import 'package:mapanytime_market_app/features/home/presentation/widgets/quick_category_item.dart';
 import 'package:mapanytime_market_app/features/notifications/presentation/controllers/notification_feed_controller.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/category_tree.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/controllers/world_map_controller.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/utils/category_visuals.dart';
+import 'package:mapanytime_market_app/shared/widgets/category_chip.dart';
 import 'package:mapanytime_market_app/shared/widgets/fade_slide_in.dart';
 import 'package:mapanytime_market_app/shared/widgets/floating_search_bar.dart';
 import 'package:mapanytime_market_app/shared/widgets/product_card.dart';
@@ -23,11 +23,8 @@ import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 const _hPad = EdgeInsets.symmetric(horizontal: AppSpacing.md);
 
-/// Neutral accent for the leading "All" / back chips, distinct from the
-/// colourful per-category discs.
-final Color _neutralColor = AppColors.text.tertiaryDark;
-
-/// Buyer Home (Discover) tab — hero landing plus a product search grid.
+/// Buyer Home (Discover) tab — location-led header, a real deals carousel,
+/// and a product search grid.
 ///
 /// The category filter row is driven by the backend's category tree
 /// ([categoryTreeProvider]). It starts on the root categories; tapping a root
@@ -120,7 +117,6 @@ class _HomePageState extends ConsumerState<HomePage> {
         _Chip(
           label: 'All',
           icon: Icons.grid_view_rounded,
-          color: _neutralColor,
           selected: _selectedId == null,
           onTap: () => _applyCategory(null),
         ),
@@ -128,7 +124,6 @@ class _HomePageState extends ConsumerState<HomePage> {
           _Chip(
             label: roots[i].name,
             icon: iconForCategory(roots[i].name),
-            color: colorForCategory(roots[i].name),
             selected: _selectedId == roots[i].id,
             onTap: () => _onRootTap(i, roots[i]),
           ),
@@ -141,14 +136,12 @@ class _HomePageState extends ConsumerState<HomePage> {
       _Chip(
         label: root.name,
         icon: Icons.chevron_left_rounded,
-        color: _neutralColor,
         selected: false,
         onTap: () => setState(() => _drillRootIndex = null),
       ),
       _Chip(
         label: 'All',
         icon: Icons.grid_view_rounded,
-        color: colorForCategory(root.name),
         selected: _selectedId == root.id,
         onTap: () => _applyCategory(root.id),
       ),
@@ -156,7 +149,6 @@ class _HomePageState extends ConsumerState<HomePage> {
         _Chip(
           label: root.children[i].name,
           icon: iconForCategory(root.children[i].name),
-          color: colorForCategory(root.children[i].name),
           selected: _selectedId == root.children[i].id,
           onTap: () => _applyCategory(root.children[i].id),
         ),
@@ -185,12 +177,12 @@ class _HomePageState extends ConsumerState<HomePage> {
         bottom: false,
         child: RefreshIndicator(
           onRefresh: _onRefresh,
-          color: AppColors.brand.primary,
+          color: AppColors.ink,
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             controller: _scrollController,
             slivers: [
-              // --- Scrolls away: top bar + hero ---
+              // --- Scrolls away: top bar + deals carousel ---
               SliverToBoxAdapter(
                 child: Column(
                   children: [
@@ -199,7 +191,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                       padding: _hPad,
                       child: FadeSlideIn(
                         child: HomeAppBar(
-                          greeting: HomeMock.greeting,
                           name: HomeMock.userName,
                           location: HomeMock.location,
                           unreadCount: ref.watch(
@@ -214,17 +205,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                       ),
                     ),
                     const Gap(AppSpacing.lg),
-                    Padding(
-                      padding: _hPad,
-                      child: FadeSlideIn(
-                        delay: const Duration(milliseconds: 60),
-                        child: HeroBanner(
-                          nearbyCount: HomeMock.nearbyCount,
-                          openNowCount: HomeMock.openNowCount,
-                          dealsCount: HomeMock.dealsCount,
-                          onOpenMap: _openMap,
-                        ),
-                      ),
+                    const FadeSlideIn(
+                      delay: Duration(milliseconds: 60),
+                      child: DealsCarousel(),
                     ),
                     const Gap(AppSpacing.md),
                   ],
@@ -237,6 +220,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 delegate: _StickySearchHeader(
                   controller: _searchController,
                   onChanged: _onSearchChanged,
+                  onOpenMap: _openMap,
                   chips: chips,
                   signature: signature,
                 ),
@@ -246,8 +230,8 @@ class _HomePageState extends ConsumerState<HomePage> {
               // A minimum height keeps the scrollable content taller than
               // the viewport, so the pinned filter header stays pinned when
               // the grid shrinks (e.g. while a filter reloads into a small
-              // spinner) instead of bouncing back up and revealing the hero
-              // above it.
+              // spinner) instead of bouncing back up and revealing the
+              // carousel above it.
               SliverToBoxAdapter(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
@@ -334,12 +318,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 ),
                               ),
                               if (data.isLoadingMore)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(
                                     vertical: AppSpacing.lg,
                                   ),
                                   child: CircularProgressIndicator(
-                                    color: AppColors.brand.primary,
+                                    color: AppColors.ink,
                                   ),
                                 ),
                             ],
@@ -369,14 +353,12 @@ class _Chip {
   const _Chip({
     required this.label,
     required this.icon,
-    required this.color,
     required this.selected,
     required this.onTap,
   });
 
   final String label;
   final IconData icon;
-  final Color color;
   final bool selected;
   final VoidCallback onTap;
 }
@@ -387,20 +369,22 @@ class _StickySearchHeader extends SliverPersistentHeaderDelegate {
   _StickySearchHeader({
     required this.controller,
     required this.onChanged,
+    required this.onOpenMap,
     required this.chips,
     required this.signature,
   });
 
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
+  final VoidCallback onOpenMap;
   final List<_Chip> chips;
 
   /// Cheap change key (drill index + selected id + chip count) so the header
   /// only rebuilds when the filter row actually changes.
   final String signature;
 
-  // sm(8) + search(54) + md(16) + filters(92) + sm(8)
-  static const double _height = 178;
+  // sm(8) + search(54) + md(16) + filters(48) + sm(8)
+  static const double _height = 134;
 
   @override
   double get minExtent => _height;
@@ -425,6 +409,10 @@ class _StickySearchHeader extends SliverPersistentHeaderDelegate {
               hint: 'Search products...',
               controller: controller,
               onChanged: onChanged,
+              // No separate product-filter feature exists yet, so this slot
+              // is the map entry point instead — see DESIGN.md.
+              onFilterTap: onOpenMap,
+              filterIcon: Icons.map_rounded,
             ),
           ),
           const Gap(AppSpacing.md),
@@ -449,18 +437,17 @@ class _Filters extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 92,
+      height: 48,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
         itemCount: chips.length,
-        separatorBuilder: (_, _) => const Gap(AppSpacing.md),
+        separatorBuilder: (_, _) => const Gap(AppSpacing.sm),
         itemBuilder: (context, i) {
           final c = chips[i];
-          return QuickCategoryItem(
+          return CategoryChip(
             label: c.label,
             icon: c.icon,
-            color: c.color,
             selected: c.selected,
             onTap: c.onTap,
           );
@@ -475,11 +462,9 @@ class _LoadingResults extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
-      child: Center(
-        child: CircularProgressIndicator(color: AppColors.brand.primary),
-      ),
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: AppSpacing.xxl),
+      child: Center(child: CircularProgressIndicator(color: AppColors.ink)),
     );
   }
 }
@@ -498,14 +483,14 @@ class _ErrorResults extends StatelessWidget {
             Icon(
               Icons.cloud_off_rounded,
               size: 40,
-              color: AppColors.text.tertiaryDark,
+              color: AppColors.text.tertiary,
             ),
             const Gap(AppSpacing.sm),
             Text(
               "Couldn't load products",
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.text.secondaryDark,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.text.secondary),
             ),
           ],
         ),
@@ -528,14 +513,14 @@ class _EmptyResults extends StatelessWidget {
             Icon(
               Icons.search_off_rounded,
               size: 40,
-              color: AppColors.text.tertiaryDark,
+              color: AppColors.text.tertiary,
             ),
             const Gap(AppSpacing.sm),
             Text(
               'No products found',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.text.secondaryDark,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.text.secondary),
             ),
           ],
         ),

@@ -5,6 +5,7 @@ import 'package:mapanytime_market_app/features/store/domain/entities/merchant_ad
 import 'package:mapanytime_market_app/shared/widgets/section_title.dart';
 import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
@@ -62,9 +63,9 @@ class _AdCard extends StatelessWidget {
         width: 240,
         padding: const EdgeInsets.all(AppSpacing.sm),
         decoration: BoxDecoration(
-          color: AppColors.ui.surfaceElevatedDark,
+          color: AppColors.ui.surface,
           borderRadius: AppRadius.brLg,
-          border: Border.all(color: AppColors.ui.borderDark),
+          boxShadow: AppEffects.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,17 +87,17 @@ class _AdCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.text.secondaryDark,
+                  color: AppColors.text.secondary,
                 ),
               ),
             ),
             if (ad.ctaLabel != null)
               Text(
                 ad.ctaLabel!,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.brand.primary,
+                  color: AppColors.ink,
                 ),
               ),
           ],
@@ -117,14 +118,13 @@ class _AdBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        gradient: isJob ? null : AppColors.primaryGradient,
-        color: isJob ? AppColors.brand.primary : null,
+        color: AppColors.ink,
         borderRadius: AppRadius.brPill,
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: AppColors.text.onInk,
           fontSize: 10,
           fontWeight: FontWeight.w800,
           letterSpacing: 0.2,

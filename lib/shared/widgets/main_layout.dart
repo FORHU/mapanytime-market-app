@@ -6,7 +6,7 @@ import 'package:mapanytime_market_app/features/cart/presentation/controllers/car
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/animated_bottom_navigation.dart';
 
-/// App shell: hosts the routed [child] and the premium glass bottom navigation.
+/// App shell: hosts the routed [child] and the floating bottom navigation.
 class MainLayout extends ConsumerStatefulWidget {
   const MainLayout({required this.child, super.key});
 

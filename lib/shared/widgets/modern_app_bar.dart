@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mapanytime_market_app/theme/tokens/radius.dart';
+import 'package:mapanytime_market_app/shared/widgets/icon_button.dart';
 
 /// Minimal, transparent app bar with a circular back button and optional
 /// actions. Implements [PreferredSizeWidget] for the `Scaffold.appBar` slot.
@@ -30,8 +30,10 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: showBack
           ? Padding(
               padding: const EdgeInsets.only(left: 12),
-              child: _CircleIconButton(
+              child: AppIconButton(
                 icon: Icons.arrow_back_ios_new_rounded,
+                size: 40,
+                iconSize: 18,
                 onTap: onBack ?? () => Navigator.of(context).maybePop(),
               ),
             )
@@ -45,29 +47,4 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-}
-
-class _CircleIconButton extends StatelessWidget {
-  const _CircleIconButton({required this.icon, required this.onTap});
-
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: AppRadius.brPill,
-          border: Border.all(color: colors.outline),
-        ),
-        child: Icon(icon, size: 18, color: colors.onSurface),
-      ),
-    );
-  }
 }

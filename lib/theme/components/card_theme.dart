@@ -6,9 +6,12 @@ class AppCardTheme {
 
   static CardThemeData get cardTheme => CardThemeData(
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(AppRadius.md),
+      borderRadius: BorderRadius.circular(AppRadius.card),
     ),
-    elevation: 2,
+    // Depth in this system comes from AppEffects' explicit BoxShadow tokens,
+    // not Material elevation — kept minimal here since Material's own Card
+    // widget is a fallback, not the app's primary card (see GlassCard).
+    elevation: 1,
     clipBehavior: Clip.antiAlias,
   );
 }

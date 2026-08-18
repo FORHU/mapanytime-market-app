@@ -55,7 +55,7 @@ class _BreakdownRows extends StatelessWidget {
         const Gap(AppSpacing.sm),
         _Row(label: 'Tax', value: Money.peso(pricing.taxAmount)),
         const Gap(AppSpacing.sm),
-        Divider(color: AppColors.ui.borderDark, height: 1),
+        Divider(color: AppColors.ui.borderHairline, height: 1),
         const Gap(AppSpacing.sm),
         _Row(
           label: 'Total',
@@ -87,7 +87,7 @@ class _Row extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     final labelStyle = (bold ? tt.bodyLarge : tt.bodyMedium)?.copyWith(
       fontWeight: bold ? FontWeight.w800 : FontWeight.w500,
-      color: bold ? AppColors.text.primaryDark : AppColors.text.secondaryDark,
+      color: bold ? AppColors.text.primary : AppColors.text.secondary,
     );
     final valueStyle = labelStyle?.copyWith(
       color: valueColor ?? labelStyle.color,
@@ -120,7 +120,7 @@ class _SkeletonRows extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: AppColors.ui.surfaceElevatedDark,
+        color: AppColors.ui.surfaceMuted,
         borderRadius: AppRadius.brSm,
       ),
     );
@@ -167,7 +167,7 @@ class _ErrorRows extends StatelessWidget {
         Expanded(
           child: Text(
             "Couldn't load pricing",
-            style: TextStyle(color: AppColors.text.secondaryDark),
+            style: TextStyle(color: AppColors.text.secondary),
           ),
         ),
         if (onRetry != null)

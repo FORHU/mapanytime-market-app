@@ -96,7 +96,7 @@ class _FeedList extends StatelessWidget {
               Text(
                 'Nearby merchants and deals for you',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.text.secondaryDark,
+                  color: AppColors.text.secondary,
                 ),
               ),
             ],
@@ -209,7 +209,7 @@ class _ErrorState extends StatelessWidget {
             children: [
               Text(
                 "Couldn't load your recommendations",
-                style: TextStyle(color: AppColors.text.secondaryDark),
+                style: TextStyle(color: AppColors.text.secondary),
               ),
               const Gap(AppSpacing.md),
               TextButton(onPressed: onRetry, child: const Text('Retry')),
@@ -237,7 +237,7 @@ class _EmptyState extends StatelessWidget {
               "We couldn't find anything nearby — check your location "
               'permission and try again.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.text.secondaryDark),
+              style: TextStyle(color: AppColors.text.secondary),
             ),
           ),
         ),

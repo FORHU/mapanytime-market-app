@@ -62,16 +62,16 @@ class OrderConfirmationPage extends StatelessWidget {
           Text(
             'Order ID: ${args.orderId}',
             textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.text.tertiaryDark),
+            style: TextStyle(color: AppColors.text.tertiary),
           ),
           const Gap(AppSpacing.xxl),
           if (args.isCashOnDelivery)
             GlassCard(
               child: Column(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.payments_rounded,
-                    color: AppColors.brand.primary,
+                    color: AppColors.ink,
                     size: 40,
                   ),
                   const Gap(AppSpacing.md),

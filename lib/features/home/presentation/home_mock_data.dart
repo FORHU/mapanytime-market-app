@@ -1,17 +1,13 @@
-/// Presentational dummy data for the Home page's greeting and hero stats.
+/// Presentational dummy data for the Home page's header.
 ///
-/// The app bar (greeting / name / location) and hero counters are still static
-/// sample content — swap for real providers later. Categories and products are
-/// now fetched from the API (see the category tree + home products providers).
+/// The app bar (name / location) is still static sample content — swap for
+/// real providers later. Categories and products are fetched from the API
+/// (see the category tree + home products providers); deals come from
+/// [recommendationsFeedProvider].
 library;
 
-/// Static sample content for the Home page header and hero.
+/// Static sample content for the Home page header.
 abstract final class HomeMock {
-  static const greeting = 'Good Morning,';
   static const userName = 'Sara Smith';
   static const location = 'Candon City, Ilocos Sur';
-
-  static const nearbyCount = 138;
-  static const openNowCount = 92;
-  static const dealsCount = 16;
 }

@@ -7,7 +7,8 @@ import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 /// A QR code inside a card, with the pickup [code] below. Set [glow] for the
-/// Pickup Pass hero treatment (gradient border + glow).
+/// Pickup Pass hero treatment (solid ink frame + shadow, instead of the
+/// retired gradient glow).
 class QrCard extends StatelessWidget {
   const QrCard({
     required this.data,
@@ -27,15 +28,14 @@ class QrCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        gradient: glow ? AppColors.primaryGradient : null,
-        color: glow ? null : AppColors.ui.borderDark,
+        color: glow ? AppColors.ink : AppColors.ui.borderHairline,
         borderRadius: AppRadius.brXl,
-        boxShadow: glow ? AppEffects.primaryGlow : null,
+        boxShadow: glow ? AppEffects.cardShadow : null,
       ),
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: AppColors.ui.surfaceDark,
+          color: AppColors.ui.surface,
           borderRadius: BorderRadius.circular(AppRadius.xl - 3),
         ),
         child: Column(
@@ -52,11 +52,11 @@ class QrCard extends StatelessWidget {
                 size: size,
                 eyeStyle: const QrEyeStyle(
                   eyeShape: QrEyeShape.square,
-                  color: Color(0xFF0B0D13),
+                  color: AppColors.ink,
                 ),
                 dataModuleStyle: const QrDataModuleStyle(
                   dataModuleShape: QrDataModuleShape.square,
-                  color: Color(0xFF0B0D13),
+                  color: AppColors.ink,
                 ),
               ),
             ),
@@ -67,7 +67,7 @@ class QrCard extends StatelessWidget {
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 1.5,
-                color: AppColors.text.tertiaryDark,
+                color: AppColors.text.tertiary,
               ),
             ),
             const Gap(4),
@@ -77,7 +77,7 @@ class QrCard extends StatelessWidget {
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 2,
-                color: AppColors.text.primaryDark,
+                color: AppColors.text.primary,
               ),
             ),
           ],

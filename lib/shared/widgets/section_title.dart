@@ -27,7 +27,7 @@ class SectionTitle extends StatelessWidget {
             child: Text(
               actionLabel!,
               style: theme.textTheme.labelLarge?.copyWith(
-                color: AppColors.brand.primary,
+                color: AppColors.ink,
               ),
             ),
           ),

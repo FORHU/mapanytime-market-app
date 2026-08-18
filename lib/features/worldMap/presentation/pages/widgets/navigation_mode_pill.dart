@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mapanytime_market_app/features/worldMap/data/datasources/directions_datasource.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
@@ -35,26 +36,15 @@ class NavigationModePill extends StatelessWidget {
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: AppColors.ui.surfaceDark,
+        color: AppColors.ui.surface,
         borderRadius: AppRadius.brPill,
-        border: Border.all(color: AppColors.ui.borderDark),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: AppEffects.cardShadow,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Destination label
-          Icon(
-            Icons.navigation_rounded,
-            size: 16,
-            color: AppColors.brand.primary,
-          ),
+          const Icon(Icons.navigation_rounded, size: 16, color: AppColors.ink),
           const Gap(AppSpacing.xs),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 110),
@@ -65,12 +55,12 @@ class NavigationModePill extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: AppColors.text.primaryDark,
+                color: AppColors.text.primary,
               ),
             ),
           ),
           const Gap(AppSpacing.sm),
-          Container(width: 1, height: 24, color: AppColors.ui.borderDark),
+          Container(width: 1, height: 24, color: AppColors.ui.borderHairline),
           const Gap(AppSpacing.sm),
           // Mode buttons
           for (final (mode, icon, label) in _modes) ...[
@@ -83,7 +73,7 @@ class NavigationModePill extends StatelessWidget {
             if (mode != TravelMode.cycling) const Gap(AppSpacing.xs),
           ],
           const Gap(AppSpacing.sm),
-          Container(width: 1, height: 24, color: AppColors.ui.borderDark),
+          Container(width: 1, height: 24, color: AppColors.ui.borderHairline),
           const Gap(AppSpacing.xs),
           // Cancel button
           GestureDetector(
@@ -94,7 +84,7 @@ class NavigationModePill extends StatelessWidget {
               child: Icon(
                 Icons.close_rounded,
                 size: 18,
-                color: AppColors.text.secondaryDark,
+                color: AppColors.text.secondary,
               ),
             ),
           ),
@@ -119,9 +109,7 @@ class _ModeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected
-        ? AppColors.brand.primary
-        : AppColors.text.secondaryDark;
+    final color = selected ? AppColors.ink : AppColors.text.secondary;
 
     return GestureDetector(
       onTap: onTap,
@@ -131,7 +119,7 @@ class _ModeButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: selected
-              ? AppColors.brand.primary.withValues(alpha: 0.15)
+              ? AppColors.ink.withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: AppRadius.brMd,
         ),

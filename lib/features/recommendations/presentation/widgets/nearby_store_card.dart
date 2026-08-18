@@ -27,7 +27,7 @@ class NearbyStoreCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.ui.surfaceDark,
+      color: AppColors.ui.surface,
       borderRadius: AppRadius.brCard,
       child: InkWell(
         onTap: onTap,
@@ -36,7 +36,6 @@ class NearbyStoreCard extends StatelessWidget {
           width: 260,
           decoration: BoxDecoration(
             borderRadius: AppRadius.brCard,
-            border: Border.all(color: AppColors.ui.borderDark),
             boxShadow: AppEffects.cardShadow,
           ),
           child: Column(
@@ -67,7 +66,7 @@ class NearbyStoreCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.text.tertiaryDark,
+                        color: AppColors.text.tertiary,
                       ),
                     ),
                     const Gap(AppSpacing.sm),
@@ -83,15 +82,13 @@ class NearbyStoreCard extends StatelessWidget {
                         Icon(
                           Icons.place_outlined,
                           size: 14,
-                          color: AppColors.text.tertiaryDark,
+                          color: AppColors.text.tertiary,
                         ),
                         const Gap(2),
                         Text(
                           '${store.distance.toStringAsFixed(1)} km away',
                           style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(
-                                color: AppColors.text.tertiaryDark,
-                              ),
+                              ?.copyWith(color: AppColors.text.tertiary),
                         ),
                       ],
                     ),
@@ -157,7 +154,7 @@ class _Cover extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(2),
                 decoration: BoxDecoration(
-                  color: AppColors.ui.surfaceDark,
+                  color: AppColors.ui.surface,
                   shape: BoxShape.circle,
                 ),
                 child: ClipOval(
@@ -181,7 +178,7 @@ class _VisitButton extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: Material(
-        color: AppColors.brand.primary,
+        color: AppColors.ink,
         borderRadius: AppRadius.brPill,
         child: InkWell(
           onTap: onTap,
@@ -192,7 +189,7 @@ class _VisitButton extends StatelessWidget {
             child: Text(
               'Visit Store',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: Colors.white,
+                color: AppColors.text.onInk,
               ),
             ),
           ),

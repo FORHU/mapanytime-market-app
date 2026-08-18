@@ -8,6 +8,7 @@ import 'package:mapanytime_market_app/features/notifications/presentation/contro
 import 'package:mapanytime_market_app/features/notifications/presentation/controllers/notification_providers.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/controllers/orders_controller.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 
 /// Wraps the whole app (via `MaterialApp.router`'s builder) and shows a
 /// small, top-floating compact toast whenever a realtime notification arrives.
@@ -137,20 +138,9 @@ class _CompactTopToastState extends State<_CompactTopToast>
                         vertical: 7,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.ui.surfaceElevatedDark,
+                        color: AppColors.ui.surface,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppColors.brand.primary.withValues(
-                            alpha: 0.35,
-                          ),
-                        ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black45,
-                            blurRadius: 10,
-                            offset: Offset(0, 3),
-                          ),
-                        ],
+                        boxShadow: AppEffects.cardShadow,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -159,14 +149,12 @@ class _CompactTopToastState extends State<_CompactTopToast>
                             width: 22,
                             height: 22,
                             decoration: BoxDecoration(
-                              color: AppColors.brand.primary.withValues(
-                                alpha: 0.2,
-                              ),
+                              color: AppColors.ink.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.notifications_rounded,
-                              color: AppColors.brand.primary,
+                              color: AppColors.ink,
                               size: 13,
                             ),
                           ),
@@ -177,7 +165,7 @@ class _CompactTopToastState extends State<_CompactTopToast>
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: AppColors.text.primaryDark,
+                                color: AppColors.text.primary,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 12,
                               ),

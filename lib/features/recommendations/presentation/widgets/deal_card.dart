@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:mapanytime_market_app/core/utils/currency.dart';
 import 'package:mapanytime_market_app/features/recommendations/domain/entities/nearby_deal.dart';
 import 'package:mapanytime_market_app/features/recommendations/presentation/widgets/card_badges.dart';
 import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
@@ -22,7 +23,7 @@ class DealCard extends StatelessWidget {
     final originalPrice = deal.productPrice;
 
     return Material(
-      color: AppColors.ui.surfaceDark,
+      color: AppColors.ui.surface,
       borderRadius: AppRadius.brCard,
       child: InkWell(
         onTap: onTap,
@@ -31,7 +32,6 @@ class DealCard extends StatelessWidget {
           width: 200,
           decoration: BoxDecoration(
             borderRadius: AppRadius.brCard,
-            border: Border.all(color: AppColors.ui.borderDark),
             boxShadow: AppEffects.cardShadow,
           ),
           child: Column(
@@ -79,23 +79,21 @@ class DealCard extends StatelessWidget {
                         textBaseline: TextBaseline.alphabetic,
                         children: [
                           Text(
-                            '₱${(discounted ?? originalPrice).toStringAsFixed(
-                              2,
-                            )}',
-                            style: TextStyle(
+                            Money.peso(discounted ?? originalPrice),
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.brand.primaryBright,
+                              color: AppColors.ink,
                             ),
                           ),
                           if (discounted != null) ...[
                             const Gap(6),
                             Text(
-                              '₱${originalPrice.toStringAsFixed(2)}',
+                              Money.peso(originalPrice),
                               style: TextStyle(
                                 fontSize: 12,
                                 decoration: TextDecoration.lineThrough,
-                                color: AppColors.text.tertiaryDark,
+                                color: AppColors.text.tertiary,
                               ),
                             ),
                           ],
@@ -107,14 +105,14 @@ class DealCard extends StatelessWidget {
                         Icon(
                           Icons.location_on_rounded,
                           size: 13,
-                          color: AppColors.text.tertiaryDark,
+                          color: AppColors.text.tertiary,
                         ),
                         const Gap(2),
                         Text(
                           '${deal.distanceKm.toStringAsFixed(1)} km away',
                           style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.text.tertiaryDark,
+                            color: AppColors.text.tertiary,
                           ),
                         ),
                       ],

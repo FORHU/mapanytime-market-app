@@ -1,98 +1,62 @@
 import 'package:flutter/material.dart';
 
-/// Design tokens — colors. Dark-premium marketplace palette.
-///
-/// The app runs dark-only; the light values are kept only as a fallback so the
-/// light [ThemeData] still builds. New UI should read these via the theme.
+/// Design tokens — colors. Light canvas, single ink accent (see DESIGN.md).
 class AppColors {
   AppColors._();
 
-  static const brand = _Brand();
   static const ui = _UI();
   static const text = _Text();
   static const status = _Status();
 
-  /// Primary brand gradient (blue → purple). Use for hero CTAs and accents.
-  static const LinearGradient primaryGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF4F5DFF), Color(0xFF8A5CFF)],
-  );
+  /// The app's single accent — near-black ink. Primary buttons, icon
+  /// buttons, selected chips/rows, the active nav pill.
+  static const Color ink = Color(0xFF0D0D0F);
 
-  /// Subtle surface gradient for large glass panels.
-  static const LinearGradient surfaceGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF1A1F2B), Color(0xFF12151D)],
-  );
-}
-
-class _Brand {
-  const _Brand();
-
-  /// Primary accent — #4F5DFF.
-  Color get primary => const Color(0xFF4F5DFF);
-
-  /// Gradient end / secondary accent — purple.
-  Color get secondary => const Color(0xFF8A5CFF);
-
-  /// A brighter tint for pressed/hover and glows.
-  Color get primaryBright => const Color(0xFF6B78FF);
+  /// Tap-down state for ink surfaces only.
+  static const Color inkPressed = Color(0xFF000000);
 }
 
 class _UI {
   const _UI();
 
-  // --- Dark (primary palette) ---
-  /// App background — #0B0D13.
-  Color get backgroundDark => const Color(0xFF0B0D13);
+  /// Scaffold background — #F7F7F8.
+  Color get background => const Color(0xFFF7F7F8);
 
-  /// Card / surface — #151922.
-  Color get surfaceDark => const Color(0xFF151922);
-
-  /// Slightly raised surface (nested cards, inputs).
-  Color get surfaceElevatedDark => const Color(0xFF1C212C);
-
-  /// Hairline borders / dividers (white at low opacity).
-  Color get borderDark => const Color(0x1FFFFFFF); // ~12% white
-
-  /// Translucent fill for glassmorphism.
-  Color get glassDark => const Color(0x14FFFFFF); // ~8% white
-
-  // --- Light (fallback only) ---
-  Color get background => const Color(0xFFF6F7FB);
+  /// Card/panel fill — #FFFFFF.
   Color get surface => const Color(0xFFFFFFFF);
 
-  /// Nested surface one level up from [surface] (inputs, unselected cards).
-  Color get surfaceElevated => const Color(0xFFEEF0F5);
+  /// Unselected chip/row fill, search bar fill, quantity-stepper fill —
+  /// anything "on the canvas but grouped." #F5F5F6.
+  Color get surfaceMuted => const Color(0xFFF5F5F6);
 
-  /// Border for light surfaces — the dark palette's ~12%-white border is
-  /// invisible on a light canvas, so this is a real, clearly-visible
-  /// light-neutral gray instead.
-  Color get border => const Color(0xFFC7CBD6);
+  /// Reserved for the rare white-on-white legibility case. Not a default
+  /// outline — fill contrast and shadow do the depth work in this system.
+  /// #ECEDF0.
+  Color get borderHairline => const Color(0xFFECEDF0);
 }
 
 class _Text {
   const _Text();
 
-  // --- Dark (primary) ---
-  /// Near-white primary text.
-  Color get primaryDark => const Color(0xFFF5F6FA);
+  /// Titles, body, primary labels. #14161C.
+  Color get primary => const Color(0xFF14161C);
 
-  /// Muted secondary text.
-  Color get secondaryDark => const Color(0xFF9AA0AE);
+  /// Supporting text — ratings, unselected row labels, card subtitles.
+  /// #6B7280.
+  Color get secondary => const Color(0xFF6B7280);
 
-  /// Subtle labels / captions.
-  Color get tertiaryDark => const Color(0xFF6B7280);
+  /// Least-emphasis text — hint text, muted icons. #9AA0AE.
+  Color get tertiary => const Color(0xFF9AA0AE);
 
-  // --- Light (fallback) ---
-  Color get primary => const Color(0xFF1A1C22);
-  Color get secondary => const Color(0xFF4A4E5A);
+  /// The only text color allowed on an ink-filled surface. #FFFFFF.
+  Color get onInk => const Color(0xFFFFFFFF);
 }
 
 class _Status {
   const _Status();
-  Color get error => const Color(0xFFF87171);
-  Color get success => const Color(0xFF34D399);
-  Color get warning => const Color(0xFFFBBF24);
+
+  // Reserved for order/store state — never decorative.
+  Color get error => const Color(0xFFE5484D);
+  Color get success => const Color(0xFF2FA36B);
+  Color get warning => const Color(0xFFD89614);
 }

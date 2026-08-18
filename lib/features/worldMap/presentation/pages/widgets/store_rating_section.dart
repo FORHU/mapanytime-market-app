@@ -28,7 +28,7 @@ class StoreRatingSection extends StatelessWidget {
           Text(
             'No reviews yet',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.text.secondaryDark,
+              color: AppColors.text.secondary,
             ),
           )
         else
@@ -45,7 +45,7 @@ class StoreRatingSection extends StatelessWidget {
               const Gap(AppSpacing.sm),
               Text(
                 '($ratingCount)',
-                style: TextStyle(color: AppColors.text.secondaryDark),
+                style: TextStyle(color: AppColors.text.secondary),
               ),
             ],
           ),

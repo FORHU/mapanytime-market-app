@@ -5,27 +5,33 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
+import 'package:mapanytime_market_app/core/utils/currency.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart'
     show apiServiceProvider;
+import 'package:mapanytime_market_app/features/cart/domain/entities/cart_item.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart';
 import 'package:mapanytime_market_app/features/orders/data/order_remote_datasource.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/controllers/orders_controller.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/pages/order_confirmation_page.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
-import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
+import 'package:mapanytime_market_app/shared/widgets/key_value_card.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
+import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
 import 'package:mapanytime_market_app/shared/widgets/price_breakdown_card.dart';
 import 'package:mapanytime_market_app/shared/widgets/section_title.dart';
+import 'package:mapanytime_market_app/shared/widgets/selectable_row.dart';
 import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
 import 'package:mapanytime_market_app/theme/tokens/breakpoints.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
-/// Checkout: pickup info, payment method selection, a server-verified price
-/// breakdown, and a place-order CTA. Two layouts: single column on phones,
-/// a two-pane form+summary split at [AppBreakpoints.tablet] and above.
+/// Checkout: pickup info, payment method selection, an order-items summary,
+/// a server-verified price breakdown, and a place-order CTA. Two layouts:
+/// single column on phones, a two-pane form+summary split at
+/// [AppBreakpoints.tablet] and above.
 class CheckoutPage extends ConsumerStatefulWidget {
   const CheckoutPage({super.key});
 
@@ -58,6 +64,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
     final groups = ref.watch(cartSelectedGroupsProvider);
     final pricing = ref.watch(cartPricingProvider);
     final storeName = groups.isNotEmpty ? groups.first.storeName : 'Store';
+    final items = [for (final g in groups) ...g.items];
     final pickupLabel = _pickupTime == null
         ? 'Select a time'
         : MaterialLocalizations.of(context).formatTimeOfDay(_pickupTime!);
@@ -78,6 +85,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                 onPickTime: _pickTime,
                 method: _method,
                 onMethodChanged: (i) => setState(() => _method = i),
+                items: items,
               );
 
               if (!isWide) {
@@ -139,7 +147,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                             onRetry: () => ref.invalidate(cartPricingProvider),
                           ),
                           const Gap(AppSpacing.md),
-                          GradientButton(
+                          PrimaryButton(
                             label: 'Place order',
                             icon: Icons.lock_rounded,
                             onPressed: canPlaceOrder
@@ -156,9 +164,9 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
           ),
         ),
         if (_isSubmitting)
-          ModalBarrier(
+          const ModalBarrier(
             dismissible: false,
-            color: Colors.black.withValues(alpha: 0.6),
+            color: Color(0x99000000),
           ),
         if (_isSubmitting)
           Center(
@@ -166,21 +174,21 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
               padding: const EdgeInsets.all(AppSpacing.lg),
               margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               decoration: BoxDecoration(
-                color: AppColors.ui.surfaceDark,
-                borderRadius: AppRadius.brLg,
-                border: Border.all(color: AppColors.ui.borderDark),
+                color: AppColors.ui.surface,
+                borderRadius: AppRadius.brCard,
+                boxShadow: AppEffects.cardShadow,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(color: AppColors.brand.primary),
+                  const CircularProgressIndicator(color: AppColors.ink),
                   const Gap(AppSpacing.md),
                   Text(
                     'Placing your order...',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
-                      color: AppColors.text.primaryDark,
+                      color: AppColors.text.primary,
                     ),
                   ),
                   const Gap(4),
@@ -189,7 +197,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.text.secondaryDark,
+                      color: AppColors.text.secondary,
                     ),
                   ),
                 ],
@@ -274,8 +282,8 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
   }
 }
 
-/// Pickup + payment-method sections, shared between the narrow and wide
-/// layouts (only their surrounding container differs).
+/// Pickup + payment-method + order-items sections, shared between the
+/// narrow and wide layouts (only their surrounding container differs).
 class _FormSections extends StatelessWidget {
   const _FormSections({
     required this.storeName,
@@ -284,6 +292,7 @@ class _FormSections extends StatelessWidget {
     required this.onPickTime,
     required this.method,
     required this.onMethodChanged,
+    required this.items,
   });
 
   final String storeName;
@@ -292,6 +301,7 @@ class _FormSections extends StatelessWidget {
   final VoidCallback onPickTime;
   final int method;
   final ValueChanged<int> onMethodChanged;
+  final List<CartItem> items;
 
   @override
   Widget build(BuildContext context) {
@@ -300,160 +310,99 @@ class _FormSections extends StatelessWidget {
       children: [
         const SectionTitle(title: 'Pickup'),
         const Gap(AppSpacing.sm),
-        GlassCard(
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.brand.primary.withValues(alpha: 0.15),
-                  borderRadius: AppRadius.brMd,
-                ),
-                child: Icon(
-                  Icons.store_mall_directory_rounded,
-                  color: AppColors.brand.primary,
-                ),
-              ),
-              const Gap(AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      storeName,
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    const Gap(2),
-                    Text(
-                      'Pick up your order at this store',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.text.tertiaryDark,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const Gap(AppSpacing.sm),
-        GestureDetector(
-          onTap: onPickTime,
-          behavior: HitTestBehavior.opaque,
-          child: GlassCard(
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: AppColors.brand.primary.withValues(alpha: 0.15),
-                    borderRadius: AppRadius.brMd,
-                  ),
-                  child: Icon(
-                    Icons.schedule_rounded,
-                    color: AppColors.brand.primary,
-                  ),
-                ),
-                const Gap(AppSpacing.sm),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Pickup time',
-                        style: TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      const Gap(2),
-                      Text(
-                        pickupLabel,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: pickupSet
-                              ? AppColors.brand.primary
-                              : AppColors.text.tertiaryDark,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: AppColors.text.tertiaryDark,
-                ),
-              ],
+        KeyValueCard(
+          rows: [
+            KeyValueRow('Store', storeName),
+            KeyValueRow(
+              'Pickup time',
+              pickupLabel,
+              onTap: onPickTime,
+              valueColor: pickupSet ? AppColors.ink : null,
             ),
-          ),
+          ],
         ),
         const Gap(AppSpacing.lg),
         const SectionTitle(title: 'Payment method'),
         const Gap(AppSpacing.sm),
         for (var i = 0; i < _paymentMethods.length; i++) ...[
-          _PaymentTile(
+          SelectableRow(
             label: _paymentMethods[i].$1,
             icon: _paymentMethods[i].$2,
             selected: method == i,
+            showCheck: true,
             onTap: () => onMethodChanged(i),
           ),
           if (i < _paymentMethods.length - 1) const Gap(AppSpacing.sm),
+        ],
+        if (items.isNotEmpty) ...[
+          const Gap(AppSpacing.lg),
+          const SectionTitle(title: 'Order items'),
+          const Gap(AppSpacing.sm),
+          _OrderItemsCard(items: items),
         ],
       ],
     );
   }
 }
 
-class _PaymentTile extends StatelessWidget {
-  const _PaymentTile({
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
+class _OrderItemsCard extends StatelessWidget {
+  const _OrderItemsCard({required this.items});
 
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
+  final List<CartItem> items;
 
   @override
   Widget build(BuildContext context) {
-    final primary = AppColors.brand.primary;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: AppColors.ui.surfaceDark,
-          borderRadius: AppRadius.brLg,
-          border: Border.all(
-            color: selected ? primary : AppColors.ui.borderDark,
-            width: selected ? 1.5 : 1,
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.ui.surface,
+        borderRadius: AppRadius.brCard,
+        boxShadow: AppEffects.cardShadow,
+      ),
+      child: Column(
+        children: [
+          for (var i = 0; i < items.length; i++) ...[
+            if (i > 0) const Gap(AppSpacing.sm),
+            _OrderItemRow(item: items[i]),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _OrderItemRow extends StatelessWidget {
+  const _OrderItemRow({required this.item});
+
+  final CartItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        NetworkImageBox(
+          url: item.product.imageUrl,
+          width: 40,
+          height: 40,
+          borderRadius: AppRadius.brSm,
+        ),
+        const Gap(AppSpacing.sm),
+        Expanded(
+          child: Text(
+            item.product.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
         ),
-        child: Row(
-          children: [
-            Icon(icon, size: 20, color: AppColors.text.secondaryDark),
-            const Gap(AppSpacing.sm),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-            Icon(
-              selected
-                  ? Icons.radio_button_checked_rounded
-                  : Icons.radio_button_unchecked_rounded,
-              color: selected ? primary : AppColors.text.tertiaryDark,
-              size: 20,
-            ),
-          ],
+        const Gap(AppSpacing.sm),
+        Text(
+          Money.peso(item.lineTotal),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
         ),
-      ),
+      ],
     );
   }
 }
@@ -474,12 +423,12 @@ class _PlaceOrderBar extends StatelessWidget {
         AppSpacing.md,
       ),
       decoration: BoxDecoration(
-        color: AppColors.ui.surfaceDark,
-        border: Border(top: BorderSide(color: AppColors.ui.borderDark)),
+        color: AppColors.ui.surface,
+        boxShadow: AppEffects.cardShadow,
       ),
       child: SafeArea(
         top: false,
-        child: GradientButton(
+        child: PrimaryButton(
           label: 'Place order',
           icon: Icons.lock_rounded,
           onPressed: enabled ? onPlaceOrder : null,

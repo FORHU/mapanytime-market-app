@@ -10,6 +10,7 @@ import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
 import 'package:mapanytime_market_app/shared/widgets/order_status.dart';
 import 'package:mapanytime_market_app/shared/widgets/qr_card.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
@@ -52,16 +53,16 @@ class PickupPassPage extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.xl),
                   decoration: BoxDecoration(
-                    color: AppColors.ui.surfaceDark,
+                    color: AppColors.ui.surface,
                     borderRadius: AppRadius.brLg,
-                    border: Border.all(color: AppColors.ui.borderDark),
+                    boxShadow: AppEffects.cardShadow,
                   ),
                   child: Column(
                     children: [
                       Icon(
                         Icons.qr_code_2_rounded,
                         size: 64,
-                        color: AppColors.text.tertiaryDark,
+                        color: AppColors.text.tertiary,
                       ),
                       const Gap(AppSpacing.md),
                       Text(
@@ -69,7 +70,7 @@ class PickupPassPage extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.text.primaryDark,
+                          color: AppColors.text.primary,
                         ),
                       ),
                       const Gap(AppSpacing.xs),
@@ -80,7 +81,7 @@ class PickupPassPage extends ConsumerWidget {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.text.secondaryDark,
+                          color: AppColors.text.secondary,
                         ),
                       ),
                     ],

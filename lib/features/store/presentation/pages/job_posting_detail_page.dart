@@ -11,6 +11,7 @@ import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
 import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
 import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
@@ -84,7 +85,7 @@ class JobPostingDetailPage extends StatelessWidget {
                       Text(
                         ad.description,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.text.secondaryDark,
+                          color: AppColors.text.secondary,
                           height: 1.5,
                         ),
                       ),
@@ -93,7 +94,7 @@ class JobPostingDetailPage extends StatelessWidget {
                         Text(
                           'Posted until ${DateFormat.yMMMd().format(expiry)}',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppColors.text.tertiaryDark,
+                            color: AppColors.text.tertiary,
                           ),
                         ),
                       ],
@@ -136,12 +137,12 @@ class _Header extends StatelessWidget {
     return Container(
       height: 220,
       width: double.infinity,
-      color: AppColors.brand.primary.withValues(alpha: 0.15),
+      color: AppColors.ui.surfaceMuted,
       alignment: Alignment.center,
-      child: Icon(
+      child: const Icon(
         Icons.work_outline_rounded,
         size: 56,
-        color: AppColors.brand.primary,
+        color: AppColors.ink,
       ),
     );
   }
@@ -158,20 +159,20 @@ class _Chip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.brand.primary.withValues(alpha: 0.15),
+        color: AppColors.ink.withValues(alpha: 0.1),
         borderRadius: AppRadius.brPill,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: AppColors.brand.primaryBright),
+          Icon(icon, size: 14, color: AppColors.ink),
           const Gap(6),
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: AppColors.brand.primaryBright,
+              color: AppColors.ink,
             ),
           ),
         ],
@@ -201,8 +202,8 @@ class _BottomBar extends StatelessWidget {
         AppSpacing.md,
       ),
       decoration: BoxDecoration(
-        color: AppColors.ui.surfaceDark,
-        border: Border(top: BorderSide(color: AppColors.ui.borderDark)),
+        color: AppColors.ui.surface,
+        boxShadow: AppEffects.cardShadow,
       ),
       child: SafeArea(
         top: false,
@@ -217,7 +218,7 @@ class _BottomBar extends StatelessWidget {
             ),
             const Gap(AppSpacing.md),
             Expanded(
-              child: GradientButton(
+              child: PrimaryButton(
                 label: ctaLabel,
                 icon: Icons.send_rounded,
                 onPressed: onApply,
@@ -250,19 +251,18 @@ class _SecondaryButton extends StatelessWidget {
         height: 54,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: AppColors.ui.surfaceElevatedDark,
+          color: AppColors.ui.surfaceMuted,
           borderRadius: AppRadius.brLg,
-          border: Border.all(color: AppColors.ui.borderDark),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 18, color: AppColors.text.primaryDark),
+            Icon(icon, size: 18, color: AppColors.text.primary),
             const Gap(AppSpacing.sm),
             Text(
               label,
               style: TextStyle(
-                color: AppColors.text.primaryDark,
+                color: AppColors.text.primary,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
               ),

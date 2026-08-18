@@ -29,8 +29,8 @@ class AuthSwitchLink extends StatelessWidget {
           children: [
             TextSpan(
               text: actionLabel,
-              style: TextStyle(
-                color: AppColors.brand.primary,
+              style: const TextStyle(
+                color: AppColors.ink,
                 fontWeight: FontWeight.w700,
               ),
             ),

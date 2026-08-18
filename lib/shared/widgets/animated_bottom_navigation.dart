@@ -21,8 +21,10 @@ class NavBarItem {
   final bool showBadge;
 }
 
-/// Floating glass pill bottom nav — icon-only, white scheme.
-/// Shrinks subtly when [isCompact] (user scrolling down).
+/// Floating white bottom nav pill. Icon-only — the active tab gets a solid
+/// ink pill capsule behind its icon, inactive tabs are bare icons with no
+/// container. Labels are exposed to screen readers via [Semantics], not
+/// rendered visually. Shrinks subtly when [isCompact] (user scrolling down).
 class AnimatedBottomNavigation extends StatelessWidget {
   const AnimatedBottomNavigation({
     required this.items,
@@ -56,9 +58,8 @@ class AnimatedBottomNavigation extends StatelessWidget {
             height: 72,
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
             decoration: BoxDecoration(
-              color: AppColors.ui.surfaceDark.withValues(alpha: 0.92),
+              color: AppColors.ui.surface,
               borderRadius: AppRadius.brPill,
-              border: Border.all(color: AppColors.ui.borderDark),
               boxShadow: AppEffects.cardShadow,
             ),
             child: Row(
@@ -91,57 +92,57 @@ class _NavItem extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  static const Color _activeColor = Colors.white;
-  static const Color _inactiveColor = Color(0x66FFFFFF); // white 40%
-
   @override
   Widget build(BuildContext context) {
-    final color = selected ? _activeColor : _inactiveColor;
+    final color = selected ? AppColors.text.onInk : AppColors.text.secondary;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Center(
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: 6,
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: item.label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Center(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: selected ? AppColors.ink : Colors.transparent,
+                  borderRadius: AppRadius.brPill,
+                ),
+                child: Icon(
+                  selected ? item.activeIcon : item.icon,
+                  size: 26,
+                  color: color,
+                ),
               ),
-              decoration: BoxDecoration(
-                color: selected
-                    ? Colors.white.withValues(alpha: 0.12)
-                    : Colors.transparent,
-                borderRadius: AppRadius.brPill,
-              ),
-              child: Icon(
-                selected ? item.activeIcon : item.icon,
-                size: 28,
-                color: color,
-              ),
-            ),
-            if (item.showBadge)
-              Positioned(
-                right: 6,
-                top: 0,
-                child: Container(
-                  width: 9,
-                  height: 9,
-                  decoration: BoxDecoration(
-                    color: AppColors.status.error,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.ui.surfaceDark,
-                      width: 1.5,
+              if (item.showBadge)
+                Positioned(
+                  right: 6,
+                  top: 0,
+                  child: Container(
+                    width: 9,
+                    height: 9,
+                    decoration: BoxDecoration(
+                      color: AppColors.status.error,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.ui.surface,
+                        width: 1.5,
+                      ),
                     ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

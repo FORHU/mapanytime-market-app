@@ -50,7 +50,7 @@ class _StoreListViewState extends ConsumerState<StoreListView> {
     final storesState = ref.watch(worldMapControllerProvider);
 
     return ColoredBox(
-      color: AppColors.ui.backgroundDark,
+      color: AppColors.ui.background,
       child: storesState.maybeWhen(
         data: (data) {
           final stores = data.stores;
@@ -58,10 +58,7 @@ class _StoreListViewState extends ConsumerState<StoreListView> {
             return Center(
               child: Text(
                 'No stores found near you.',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: AppColors.text.tertiaryDark,
-                ),
+                style: TextStyle(fontSize: 16, color: AppColors.text.tertiary),
               ),
             );
           }
@@ -101,12 +98,12 @@ class _StoreListViewState extends ConsumerState<StoreListView> {
                       height: 48,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: AppColors.brand.primary.withValues(alpha: 0.15),
+                        color: AppColors.ink,
                         borderRadius: AppRadius.brMd,
                       ),
                       child: Icon(
                         Icons.storefront_rounded,
-                        color: AppColors.brand.primary,
+                        color: AppColors.text.onInk,
                       ),
                     ),
                     const Gap(AppSpacing.md),
@@ -126,10 +123,10 @@ class _StoreListViewState extends ConsumerState<StoreListView> {
                           const Gap(2),
                           Text(
                             '${store.distance.toStringAsFixed(1)} km away',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.brand.primary,
+                              color: AppColors.ink,
                             ),
                           ),
                         ],
@@ -137,7 +134,7 @@ class _StoreListViewState extends ConsumerState<StoreListView> {
                     ),
                     Icon(
                       Icons.chevron_right_rounded,
-                      color: AppColors.text.tertiaryDark,
+                      color: AppColors.text.tertiary,
                     ),
                   ],
                 ),

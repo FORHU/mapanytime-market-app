@@ -8,6 +8,7 @@ import 'package:mapanytime_market_app/features/cart/domain/entities/cart_item.da
 import 'package:mapanytime_market_app/features/cart/domain/entities/cart_pricing.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
+import 'package:mapanytime_market_app/shared/widgets/badged_icon_button.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
@@ -15,6 +16,7 @@ import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
 import 'package:mapanytime_market_app/shared/widgets/price_breakdown_card.dart';
 import 'package:mapanytime_market_app/theme/tokens/breakpoints.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
@@ -44,12 +46,25 @@ class _CartPageState extends ConsumerState<CartPage> {
     final groups = ref.watch(cartGroupsProvider);
     final pricing = ref.watch(cartPricingProvider);
     final selectedCount = ref.watch(cartSelectedCountProvider);
+    final cartCount = ref.watch(cartCountProvider);
 
     return Scaffold(
-      appBar: ModernAppBar(title: context.l10n.cart, showBack: false),
+      appBar: ModernAppBar(
+        title: context.l10n.cart,
+        showBack: false,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.md),
+            child: BadgedIconButton(
+              icon: Icons.shopping_bag_outlined,
+              badgeCount: cartCount,
+            ),
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: () async => ref.invalidate(cartPricingProvider),
-        color: AppColors.brand.primary,
+        color: AppColors.ink,
         child: groups.isEmpty
             ? ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -166,7 +181,7 @@ class _WideLayout extends ConsumerWidget {
                   onRetry: () => ref.invalidate(cartPricingProvider),
                 ),
                 const Gap(AppSpacing.md),
-                GradientButton(
+                PrimaryButton(
                   label: selectedCount > 0
                       ? 'Review payment method'
                       : 'Select items to checkout',
@@ -204,10 +219,10 @@ class _StoreGroup extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.storefront_rounded,
                 size: 18,
-                color: AppColors.brand.primary,
+                color: AppColors.ink,
               ),
               const Gap(AppSpacing.sm),
               Expanded(
@@ -221,8 +236,8 @@ class _StoreGroup extends ConsumerWidget {
                 onChanged: (value) => ref
                     .read(cartDeselectedProvider.notifier)
                     .setManySelected(ids, selected: value ?? false),
-                activeColor: AppColors.brand.primary,
-                side: BorderSide(color: AppColors.ui.borderDark),
+                activeColor: AppColors.ink,
+                side: BorderSide(color: AppColors.ui.borderHairline),
                 visualDensity: VisualDensity.compact,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
@@ -230,7 +245,11 @@ class _StoreGroup extends ConsumerWidget {
           ),
           const Gap(AppSpacing.sm),
           for (final item in group.items)
-            _CartRow(item: item, discount: byProductId[item.product.id]),
+            _CartRow(
+              key: ValueKey(item.product.id),
+              item: item,
+              discount: byProductId[item.product.id],
+            ),
         ],
       ),
     );
@@ -238,7 +257,7 @@ class _StoreGroup extends ConsumerWidget {
 }
 
 class _CartRow extends ConsumerWidget {
-  const _CartRow({required this.item, this.discount});
+  const _CartRow({required this.item, this.discount, super.key});
 
   final CartItem item;
   final CartItemPricing? discount;
@@ -251,109 +270,131 @@ class _CartRow extends ConsumerWidget {
         .contains(item.product.id);
     final hasDiscount = (discount?.discountAmount ?? 0) > 0;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Checkbox(
-            value: selected,
-            onChanged: (value) => ref
-                .read(cartDeselectedProvider.notifier)
-                .setSelected(item.product.id, selected: value ?? false),
-            activeColor: AppColors.brand.primary,
-            side: BorderSide(color: AppColors.ui.borderDark),
-            visualDensity: VisualDensity.compact,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          const Gap(AppSpacing.xs),
-          Stack(
-            children: [
-              NetworkImageBox(
-                url: item.product.imageUrl,
-                width: 56,
-                height: 56,
-                borderRadius: AppRadius.brMd,
-              ),
-              if (hasDiscount)
-                Positioned(
-                  top: -4,
-                  left: -4,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5,
-                      vertical: 1,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.status.success,
-                      borderRadius: AppRadius.brPill,
-                    ),
-                    child: const Text(
-                      'SALE',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 8,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const Gap(AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Dismissible(
+      key: ValueKey(item.product.id),
+      direction: DismissDirection.endToStart,
+      onDismissed: (_) => cart.remove(item.product.id),
+      background: Container(
+        margin: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        alignment: Alignment.centerRight,
+        decoration: BoxDecoration(
+          color: AppColors.ink,
+          borderRadius: AppRadius.brMd,
+        ),
+        child: Icon(
+          Icons.delete_outline_rounded,
+          color: AppColors.text.onInk,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Checkbox(
+              value: selected,
+              onChanged: (value) => ref
+                  .read(cartDeselectedProvider.notifier)
+                  .setSelected(item.product.id, selected: value ?? false),
+              activeColor: AppColors.ink,
+              side: BorderSide(color: AppColors.ui.borderHairline),
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            const Gap(AppSpacing.xs),
+            Stack(
               children: [
-                Text(
-                  item.product.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleSmall,
+                NetworkImageBox(
+                  url: item.product.imageUrl,
+                  width: 56,
+                  height: 56,
+                  borderRadius: AppRadius.brMd,
                 ),
-                const Gap(2),
-                Row(
-                  children: [
-                    Text(
-                      Money.peso(item.product.price),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.text.secondaryDark,
-                        decoration: hasDiscount
-                            ? TextDecoration.lineThrough
-                            : null,
+                if (hasDiscount)
+                  Positioned(
+                    top: -4,
+                    left: -4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 1,
                       ),
-                    ),
-                    if (hasDiscount) ...[
-                      const Gap(6),
-                      Text(
-                        '-${Money.peso(discount!.discountAmount)}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.status.success,
-                          fontWeight: FontWeight.w700,
+                      decoration: BoxDecoration(
+                        color: AppColors.status.warning,
+                        borderRadius: AppRadius.brPill,
+                      ),
+                      child: Text(
+                        'SALE',
+                        style: TextStyle(
+                          color: AppColors.text.onInk,
+                          fontSize: 8,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
-                    ],
-                  ],
-                ),
-                if ((discount?.freeUnits ?? 0) > 0) ...[
-                  const Gap(2),
-                  Text(
-                    '+${discount!.freeUnits} free',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.status.success,
-                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                ],
               ],
             ),
-          ),
-          _QtyStepper(
-            quantity: item.quantity,
-            onMinus: () => cart.setQuantity(item.product.id, item.quantity - 1),
-            onPlus: () => cart.setQuantity(item.product.id, item.quantity + 1),
-          ),
-        ],
+            const Gap(AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.product.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const Gap(2),
+                  Row(
+                    children: [
+                      Text(
+                        Money.peso(item.product.price),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.text.secondary,
+                          decoration: hasDiscount
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                      ),
+                      if (hasDiscount) ...[
+                        const Gap(6),
+                        Text(
+                          '-${Money.peso(discount!.discountAmount)}',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(
+                            color: AppColors.status.success,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  if ((discount?.freeUnits ?? 0) > 0) ...[
+                    const Gap(2),
+                    Text(
+                      '+${discount!.freeUnits} free',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.status.success,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            _QtyStepper(
+              quantity: item.quantity,
+              onMinus: () =>
+                  cart.setQuantity(item.product.id, item.quantity - 1),
+              onPlus: () =>
+                  cart.setQuantity(item.product.id, item.quantity + 1),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -373,10 +414,10 @@ class _QtyStepper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 32,
       decoration: BoxDecoration(
-        color: AppColors.ui.surfaceElevatedDark,
+        color: AppColors.ui.surfaceMuted,
         borderRadius: AppRadius.brPill,
-        border: Border.all(color: AppColors.ui.borderDark),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -388,11 +429,11 @@ class _QtyStepper extends StatelessWidget {
             onTap: onMinus,
           ),
           SizedBox(
-            width: 28,
+            width: 24,
             child: Text(
               '$quantity',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.w700),
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
             ),
           ),
           _StepButton(icon: Icons.add_rounded, onTap: onPlus),
@@ -414,9 +455,9 @@ class _StepButton extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 34,
-        height: 34,
-        child: Icon(icon, size: 18, color: AppColors.text.primaryDark),
+        width: 30,
+        height: 32,
+        child: Icon(icon, size: 16, color: AppColors.text.primary),
       ),
     );
   }
@@ -438,12 +479,12 @@ class _CheckoutBar extends StatelessWidget {
         AppSpacing.md,
       ),
       decoration: BoxDecoration(
-        color: AppColors.ui.surfaceDark,
-        border: Border(top: BorderSide(color: AppColors.ui.borderDark)),
+        color: AppColors.ui.surface,
+        boxShadow: AppEffects.cardShadow,
       ),
       child: SafeArea(
         top: false,
-        child: GradientButton(
+        child: PrimaryButton(
           label: enabled ? 'Review payment method' : 'Select items to checkout',
           icon: Icons.arrow_forward_rounded,
           onPressed: enabled ? onCheckout : null,
@@ -465,7 +506,7 @@ class _EmptyCart extends StatelessWidget {
           Icon(
             Icons.shopping_bag_outlined,
             size: 56,
-            color: AppColors.text.tertiaryDark,
+            color: AppColors.text.tertiary,
           ),
           const Gap(AppSpacing.md),
           Text(
@@ -475,7 +516,7 @@ class _EmptyCart extends StatelessWidget {
           const Gap(AppSpacing.xs),
           Text(
             'Add products from a store to get started.',
-            style: TextStyle(color: AppColors.text.tertiaryDark),
+            style: TextStyle(color: AppColors.text.tertiary),
           ),
         ],
       ),

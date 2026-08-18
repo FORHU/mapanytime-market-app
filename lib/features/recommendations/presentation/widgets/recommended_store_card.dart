@@ -27,7 +27,7 @@ class RecommendedStoreCard extends StatelessWidget {
     final logoUrl = store.logoUrl;
 
     return Material(
-      color: AppColors.ui.surfaceDark,
+      color: AppColors.ui.surface,
       borderRadius: AppRadius.brCard,
       child: InkWell(
         onTap: onTap,
@@ -35,7 +35,6 @@ class RecommendedStoreCard extends StatelessWidget {
         child: Ink(
           decoration: BoxDecoration(
             borderRadius: AppRadius.brCard,
-            border: Border.all(color: AppColors.ui.borderDark),
             boxShadow: AppEffects.cardShadow,
           ),
           padding: const EdgeInsets.all(AppSpacing.sm),
@@ -93,7 +92,7 @@ class RecommendedStoreCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.text.tertiaryDark,
+                        color: AppColors.text.tertiary,
                       ),
                     ),
                     const Gap(AppSpacing.sm),
@@ -104,14 +103,14 @@ class RecommendedStoreCard extends StatelessWidget {
                         Icon(
                           Icons.location_on_rounded,
                           size: 13,
-                          color: AppColors.text.tertiaryDark,
+                          color: AppColors.text.tertiary,
                         ),
                         const Gap(2),
                         Text(
                           '${store.distance.toStringAsFixed(1)} km',
                           style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.text.tertiaryDark,
+                            color: AppColors.text.tertiary,
                           ),
                         ),
                         const Spacer(),
@@ -136,9 +135,7 @@ class _OpenDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isOpen
-        ? AppColors.status.success
-        : AppColors.text.tertiaryDark;
+    final color = isOpen ? AppColors.status.success : AppColors.text.tertiary;
     return Row(
       children: [
         Container(
@@ -164,7 +161,7 @@ class _VisitButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.brand.primary.withValues(alpha: 0.15),
+      color: AppColors.ink.withValues(alpha: 0.1),
       borderRadius: AppRadius.brPill,
       child: InkWell(
         onTap: onTap,
@@ -177,7 +174,7 @@ class _VisitButton extends StatelessWidget {
           child: Text(
             'Visit',
             style: TextStyle(
-              color: AppColors.brand.primaryBright,
+              color: AppColors.ink,
               fontWeight: FontWeight.w700,
               fontSize: 12,
             ),

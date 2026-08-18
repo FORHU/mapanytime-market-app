@@ -60,11 +60,11 @@ class StoreBottomSheet extends ConsumerWidget {
       maxChildSize: 0.92,
       builder: (context, scrollController) => Container(
         decoration: BoxDecoration(
-          color: AppColors.ui.surfaceDark,
+          color: AppColors.ui.surface,
           borderRadius: const BorderRadius.vertical(
             top: Radius.circular(AppRadius.xl),
           ),
-          border: Border.all(color: AppColors.ui.borderDark),
+          boxShadow: AppEffects.cardShadow,
         ),
         child: SafeArea(
           top: false,
@@ -83,7 +83,7 @@ class StoreBottomSheet extends ConsumerWidget {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: AppSpacing.md),
                   decoration: BoxDecoration(
-                    color: AppColors.ui.borderDark,
+                    color: AppColors.text.tertiary,
                     borderRadius: AppRadius.brPill,
                   ),
                 ),
@@ -122,17 +122,17 @@ class StoreBottomSheet extends ConsumerWidget {
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.place_outlined,
                                   size: 15,
-                                  color: AppColors.brand.primary,
+                                  color: AppColors.ink,
                                 ),
                                 const Gap(4),
                                 Text(
                                   '${store.distance.toStringAsFixed(1)} '
                                   'km away',
                                   style: TextStyle(
-                                    color: AppColors.text.secondaryDark,
+                                    color: AppColors.text.secondary,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -154,7 +154,7 @@ class StoreBottomSheet extends ConsumerWidget {
                                               '(${store.ratingCount})'
                                         : store.rating!.toStringAsFixed(1),
                                     style: TextStyle(
-                                      color: AppColors.text.secondaryDark,
+                                      color: AppColors.text.secondary,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -182,7 +182,7 @@ class StoreBottomSheet extends ConsumerWidget {
                   ),
                   const Gap(AppSpacing.md),
                   Expanded(
-                    child: GradientButton(
+                    child: PrimaryButton(
                       label: 'Shop Now',
                       icon: Icons.shopping_bag_rounded,
                       onPressed: () {
@@ -240,7 +240,7 @@ class StoreBottomSheet extends ConsumerWidget {
                   ),
                   child: Text(
                     'Could not load store details',
-                    style: TextStyle(color: AppColors.text.secondaryDark),
+                    style: TextStyle(color: AppColors.text.secondary),
                   ),
                 ),
               ),
@@ -263,7 +263,7 @@ class _SectionsLoadingPlaceholder extends StatelessWidget {
         Container(
           height: 160,
           decoration: BoxDecoration(
-            color: AppColors.ui.surfaceElevatedDark,
+            color: AppColors.ui.surfaceMuted,
             borderRadius: AppRadius.brLg,
           ),
         ),
@@ -274,7 +274,7 @@ class _SectionsLoadingPlaceholder extends StatelessWidget {
             height: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: AppColors.text.tertiaryDark,
+              color: AppColors.text.tertiary,
             ),
           ),
         ),
@@ -316,11 +316,11 @@ class _HeaderBadge extends StatelessWidget {
       height: 52,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
+        color: AppColors.ink,
         borderRadius: AppRadius.brMd,
-        boxShadow: AppEffects.primaryGlow,
+        boxShadow: AppEffects.cardShadow,
       ),
-      child: const Icon(Icons.storefront_rounded, color: Colors.white),
+      child: Icon(Icons.storefront_rounded, color: AppColors.text.onInk),
     );
   }
 }
@@ -352,9 +352,7 @@ class _OpenBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isOpen
-        ? AppColors.status.success
-        : AppColors.text.tertiaryDark;
+    final color = isOpen ? AppColors.status.success : AppColors.text.tertiary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -393,19 +391,18 @@ class _SecondaryButton extends StatelessWidget {
         height: 54,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: AppColors.ui.surfaceElevatedDark,
+          color: AppColors.ui.surfaceMuted,
           borderRadius: AppRadius.brLg,
-          border: Border.all(color: AppColors.ui.borderDark),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 20, color: AppColors.text.primaryDark),
+            Icon(icon, size: 20, color: AppColors.text.primary),
             const Gap(AppSpacing.sm),
             Text(
               label,
               style: TextStyle(
-                color: AppColors.text.primaryDark,
+                color: AppColors.text.primary,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),

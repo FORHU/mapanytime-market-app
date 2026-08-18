@@ -5,6 +5,7 @@ import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/notifications/domain/entities/app_notification.dart';
 import 'package:mapanytime_market_app/features/notifications/presentation/controllers/notification_feed_controller.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
@@ -40,7 +41,7 @@ class _NotificationFeedPageState extends ConsumerState<NotificationFeedPage> {
         onRefresh: () async {
           ref.invalidate(notificationFeedControllerProvider);
         },
-        color: AppColors.brand.primary,
+        color: AppColors.ink,
         child: items.isEmpty
             ? ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -71,9 +72,9 @@ class _NotificationTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.ui.surfaceDark,
+        color: AppColors.ui.surface,
         borderRadius: AppRadius.brMd,
-        border: Border.all(color: AppColors.ui.borderDark),
+        boxShadow: AppEffects.cardShadow,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,12 +83,12 @@ class _NotificationTile extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.brand.primary.withValues(alpha: 0.15),
+              color: AppColors.ink.withValues(alpha: 0.1),
               borderRadius: AppRadius.brSm,
             ),
-            child: Icon(
+            child: const Icon(
               Icons.notifications_rounded,
-              color: AppColors.brand.primary,
+              color: AppColors.ink,
               size: 20,
             ),
           ),
@@ -102,7 +103,7 @@ class _NotificationTile extends StatelessWidget {
                       child: Text(
                         notification.title,
                         style: TextStyle(
-                          color: AppColors.text.primaryDark,
+                          color: AppColors.text.primary,
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
                         ),
@@ -113,7 +114,7 @@ class _NotificationTile extends StatelessWidget {
                       Text(
                         _relativeTime(notification.sentAt!),
                         style: TextStyle(
-                          color: AppColors.text.tertiaryDark,
+                          color: AppColors.text.tertiary,
                           fontSize: 11,
                         ),
                       ),
@@ -125,7 +126,7 @@ class _NotificationTile extends StatelessWidget {
                   Text(
                     notification.body,
                     style: TextStyle(
-                      color: AppColors.text.secondaryDark,
+                      color: AppColors.text.secondary,
                       fontSize: 13,
                     ),
                   ),
@@ -159,12 +160,12 @@ class _EmptyFeed extends StatelessWidget {
           Icon(
             Icons.notifications_off_rounded,
             size: 44,
-            color: AppColors.text.tertiaryDark,
+            color: AppColors.text.tertiary,
           ),
           const Gap(AppSpacing.sm),
           Text(
             'No notifications yet',
-            style: TextStyle(color: AppColors.text.secondaryDark),
+            style: TextStyle(color: AppColors.text.secondary),
           ),
         ],
       ),

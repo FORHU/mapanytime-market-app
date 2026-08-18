@@ -13,6 +13,7 @@ import 'package:mapanytime_market_app/shared/widgets/order_timeline.dart';
 import 'package:mapanytime_market_app/shared/widgets/pickup_status_card.dart';
 import 'package:mapanytime_market_app/shared/widgets/section_title.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 /// Order Tracking: live status, timeline, items and a pickup-pass CTA.
@@ -72,7 +73,7 @@ class OrderTrackingPage extends ConsumerWidget {
                           const Gap(AppSpacing.sm),
                       ],
                       const Gap(AppSpacing.sm),
-                      Divider(color: AppColors.ui.borderDark, height: 1),
+                      Divider(color: AppColors.ui.borderHairline, height: 1),
                       const Gap(AppSpacing.sm),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -102,12 +103,12 @@ class OrderTrackingPage extends ConsumerWidget {
                 AppSpacing.md,
               ),
               decoration: BoxDecoration(
-                color: AppColors.ui.surfaceDark,
-                border: Border(top: BorderSide(color: AppColors.ui.borderDark)),
+                color: AppColors.ui.surface,
+                boxShadow: AppEffects.cardShadow,
               ),
               child: SafeArea(
                 top: false,
-                child: GradientButton(
+                child: PrimaryButton(
                   label: 'Show pickup pass',
                   icon: Icons.qr_code_rounded,
                   onPressed: () =>
@@ -138,9 +139,9 @@ class _ItemRow extends StatelessWidget {
       children: [
         Text(
           '$quantity×',
-          style: TextStyle(
+          style: const TextStyle(
             fontWeight: FontWeight.w700,
-            color: AppColors.brand.primary,
+            color: AppColors.ink,
           ),
         ),
         const Gap(AppSpacing.sm),
@@ -149,14 +150,14 @@ class _ItemRow extends StatelessWidget {
             name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: AppColors.text.secondaryDark),
+            style: TextStyle(color: AppColors.text.secondary),
           ),
         ),
         Text(
           Money.peso(total),
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            color: AppColors.text.primaryDark,
+            color: AppColors.text.primary,
           ),
         ),
       ],

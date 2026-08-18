@@ -39,8 +39,8 @@ class StoreHoursSection extends StatelessWidget {
                             ? FontWeight.w700
                             : FontWeight.w500,
                         color: dow == todayDow
-                            ? AppColors.text.primaryDark
-                            : AppColors.text.secondaryDark,
+                            ? AppColors.text.primary
+                            : AppColors.text.secondary,
                       ),
                     ),
                   ),
@@ -51,8 +51,8 @@ class StoreHoursSection extends StatelessWidget {
                           ? FontWeight.w700
                           : FontWeight.w500,
                       color: dow == todayDow
-                          ? AppColors.text.primaryDark
-                          : AppColors.text.secondaryDark,
+                          ? AppColors.text.primary
+                          : AppColors.text.secondary,
                     ),
                   ),
                 ],

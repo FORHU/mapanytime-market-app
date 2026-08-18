@@ -405,7 +405,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     _currentRoute = await polylineAnnotationManager!.create(
       PolylineAnnotationOptions(
         geometry: LineString(coordinates: routeCoords),
-        lineColor: AppColors.brand.primary.toARGB32(),
+        lineColor: AppColors.ink.toARGB32(),
         lineWidth: 5,
       ),
     );
@@ -454,10 +454,10 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     // map overlay elsewhere (web, Windows, desktop) throws. Short-circuit to a
     // standalone message so the rest of the app stays testable there.
     if (!isMapboxSupported) {
-      return const Scaffold(
+      return Scaffold(
         body: DecoratedBox(
-          decoration: BoxDecoration(gradient: AppColors.surfaceGradient),
-          child: SizedBox.expand(
+          decoration: BoxDecoration(color: AppColors.ui.background),
+          child: const SizedBox.expand(
             child: AppStateView(
               icon: Icons.map_outlined,
               title: 'Map unavailable',
@@ -502,9 +502,6 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                       FloatingSearchBar(
                         controller: _searchController,
                         onChanged: _onSearchChanged,
-                        onFilterTap: () {
-                          // TODO(Phase2): Open filter sheet
-                        },
                       ),
                       const Gap(AppSpacing.sm),
                       SizedBox(
@@ -612,22 +609,22 @@ class _InitialMapLoader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const DecoratedBox(
-      decoration: BoxDecoration(gradient: AppColors.surfaceGradient),
+    return DecoratedBox(
+      decoration: BoxDecoration(color: AppColors.ui.background),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(),
-            Gap(AppSpacing.lg),
-            Text(
+            const CircularProgressIndicator(),
+            const Gap(AppSpacing.lg),
+            const Text(
               'Finding your location…',
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
-            Gap(AppSpacing.xs),
+            const Gap(AppSpacing.xs),
             Text(
               'Loading nearby stores',
-              style: TextStyle(fontSize: 13, color: Colors.white70),
+              style: TextStyle(fontSize: 13, color: AppColors.text.secondary),
             ),
           ],
         ),

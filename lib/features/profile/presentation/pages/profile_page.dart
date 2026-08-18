@@ -32,7 +32,7 @@ class ProfilePage extends ConsumerWidget {
           ref.invalidate(profileProvider);
           await Future<void>.delayed(const Duration(milliseconds: 300));
         },
-        color: AppColors.brand.primary,
+        color: AppColors.ink,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.fromLTRB(
@@ -153,15 +153,14 @@ class _ProfileHeader extends StatelessWidget {
             width: 64,
             height: 64,
             alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: AppColors.ui.surfaceDark,
+            decoration: const BoxDecoration(
+              color: AppColors.ink,
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.brand.primary, width: 2),
             ),
             child: Text(
               initial,
               style: TextStyle(
-                color: AppColors.brand.primary,
+                color: AppColors.text.onInk,
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
               ),
@@ -179,7 +178,7 @@ class _ProfileHeader extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: tt.bodyMedium?.copyWith(
-                    color: AppColors.text.secondaryDark,
+                    color: AppColors.text.secondary,
                   ),
                 ),
                 const Gap(AppSpacing.sm),
@@ -260,13 +259,13 @@ class _StatTile extends StatelessWidget {
             value,
             style: tt.titleLarge?.copyWith(
               fontWeight: FontWeight.w800,
-              color: AppColors.text.primaryDark,
+              color: AppColors.text.primary,
             ),
           ),
           const Gap(2),
           Text(
             label,
-            style: tt.labelSmall?.copyWith(color: AppColors.text.tertiaryDark),
+            style: tt.labelSmall?.copyWith(color: AppColors.text.tertiary),
           ),
         ],
       ),
@@ -288,7 +287,11 @@ class _MenuGroup extends StatelessWidget {
           for (var i = 0; i < children.length; i++) ...[
             children[i],
             if (i < children.length - 1)
-              Divider(height: 1, indent: 56, color: AppColors.ui.borderDark),
+              Divider(
+                height: 1,
+                indent: 56,
+                color: AppColors.ui.borderHairline,
+              ),
           ],
         ],
       ),
@@ -314,7 +317,7 @@ class _MenuTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
-    final color = danger ? AppColors.status.error : AppColors.text.primaryDark;
+    final color = danger ? AppColors.status.error : AppColors.text.primary;
     return Semantics(
       button: true,
       label: label,
@@ -328,11 +331,7 @@ class _MenuTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(
-                icon,
-                size: 22,
-                color: danger ? color : AppColors.brand.primary,
-              ),
+              Icon(icon, size: 22, color: danger ? color : AppColors.ink),
               const Gap(AppSpacing.md),
               Expanded(
                 child: Column(
@@ -347,7 +346,7 @@ class _MenuTile extends StatelessWidget {
                       Text(
                         subtitle!,
                         style: tt.bodySmall?.copyWith(
-                          color: AppColors.text.tertiaryDark,
+                          color: AppColors.text.tertiary,
                         ),
                       ),
                     ],
@@ -358,7 +357,7 @@ class _MenuTile extends StatelessWidget {
                 Icon(
                   Icons.chevron_right_rounded,
                   size: 20,
-                  color: AppColors.text.tertiaryDark,
+                  color: AppColors.text.tertiary,
                 ),
             ],
           ),

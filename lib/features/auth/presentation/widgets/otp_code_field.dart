@@ -114,7 +114,7 @@ class _DigitBox extends StatelessWidget {
         color: colors.surfaceContainerHighest,
         borderRadius: AppRadius.brLg,
         border: Border.all(
-          color: isNext ? AppColors.brand.primary : colors.outline,
+          color: isNext ? AppColors.ink : colors.outline,
           width: isNext ? 1.5 : 1,
         ),
       ),
