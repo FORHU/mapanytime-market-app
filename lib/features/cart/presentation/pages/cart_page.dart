@@ -363,12 +363,13 @@ class _CartRow extends ConsumerWidget {
                         const Gap(6),
                         Text(
                           '-${Money.peso(discount!.discountAmount)}',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall?.copyWith(
-                            color: AppColors.status.success,
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style:
+                              Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.copyWith(
+                                color: AppColors.status.success,
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
                       ],
                     ],

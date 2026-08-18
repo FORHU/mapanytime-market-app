@@ -188,7 +188,10 @@ class _LoadingState extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      children: const [Gap(200), Center(child: CircularProgressIndicator())],
+      children: const [
+        Gap(200),
+        Center(child: CircularProgressIndicator()),
+      ],
     );
   }
 }
