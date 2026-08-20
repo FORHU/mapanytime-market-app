@@ -52,24 +52,26 @@ void main() {
 
     expect(find.text('Pay on pickup'), findsOneWidget);
     expect(find.textContaining('Pay ₱4.58 in cash'), findsOneWidget);
+    expect(find.text('Seller Pickup Pass'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Vouchers & Discounts'), 300);
     expect(find.text('Vouchers & Discounts'), findsOneWidget);
-    expect(find.byType(Image), findsNothing);
   });
 
-  testWidgets('shows the GCash QR card for a GCash order, no pay-on-pickup', (
-    tester,
-  ) async {
-    final args = OrderConfirmationArgs(
-      orderId: 'order-2',
-      paymentMethodLabel: 'GCash',
-      isCashOnDelivery: false,
-      pricing: CartPricing.fromJson(_pricingJson),
-    );
+  testWidgets(
+    'shows the online payment card for a GCash order, no pay-on-pickup',
+    (tester) async {
+      final args = OrderConfirmationArgs(
+        orderId: 'order-2',
+        paymentMethodLabel: 'GCash',
+        isCashOnDelivery: false,
+        pricing: CartPricing.fromJson(_pricingJson),
+      );
 
-    await tester.pumpWidget(_wrap(args));
+      await tester.pumpWidget(_wrap(args));
 
-    expect(find.text('Payment QR (GCash Mock)'), findsOneWidget);
-    expect(find.text('Scan to pay via GCash.'), findsOneWidget);
-    expect(find.text('Pay on pickup'), findsNothing);
-  });
+      expect(find.text('Online Payment (GCash)'), findsOneWidget);
+      expect(find.text('Seller Pickup Pass'), findsOneWidget);
+      expect(find.text('Pay on pickup'), findsNothing);
+    },
+  );
 }

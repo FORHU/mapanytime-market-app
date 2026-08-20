@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:mapanytime_market_app/core/utils/currency.dart';
 import 'package:mapanytime_market_app/features/cart/domain/entities/cart_pricing.dart';
+import 'package:mapanytime_market_app/features/payments/domain/entities/payment_method.dart';
 import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
@@ -16,9 +17,15 @@ import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 /// is quoted once the buyer picks one, which the card says outright rather than
 /// showing a "Total" that changes at the payment step.
 class PriceBreakdownCard extends StatelessWidget {
-  const PriceBreakdownCard({required this.pricing, this.onRetry, super.key});
+  const PriceBreakdownCard({
+    required this.pricing,
+    this.selectedMethod,
+    this.onRetry,
+    super.key,
+  });
 
   final AsyncValue<CartPricing?> pricing;
+  final PaymentMethod? selectedMethod;
   final VoidCallback? onRetry;
 
   @override
@@ -29,20 +36,25 @@ class PriceBreakdownCard extends StatelessWidget {
         error: (_, _) => _ErrorRows(onRetry: onRetry),
         data: (value) => value == null
             ? const _Row(label: 'Total', value: '—', bold: true)
-            : _BreakdownRows(pricing: value),
+            : _BreakdownRows(pricing: value, selectedMethod: selectedMethod),
       ),
     );
   }
 }
 
 class _BreakdownRows extends StatelessWidget {
-  const _BreakdownRows({required this.pricing});
+  const _BreakdownRows({required this.pricing, this.selectedMethod});
 
   final CartPricing pricing;
+  final PaymentMethod? selectedMethod;
 
   @override
   Widget build(BuildContext context) {
     final hasDiscount = pricing.discountAmount > 0;
+    final fee = selectedMethod?.feeAmount;
+    final buyerTotal = selectedMethod?.buyerTotalAmount;
+    final showsFee = fee != null && buyerTotal != null;
+
     return Column(
       children: [
         _Row(
@@ -58,24 +70,41 @@ class _BreakdownRows extends StatelessWidget {
         const Gap(AppSpacing.sm),
         Divider(color: AppColors.ui.borderHairline, height: 1),
         const Gap(AppSpacing.sm),
-        _Row(
-          label: 'Order total',
-          value: Money.peso(pricing.totalAmount),
-          bold: true,
-        ),
-        const Gap(AppSpacing.xs),
-        // The payment fee is per-method and the buyer has not picked one yet,
-        // so this is the goods total. Saying so beats showing a "Total" that
-        // changes at the payment step.
-        Align(
-          alignment: Alignment.centerRight,
-          child: Text(
-            'Payment fee added when you choose how to pay',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.text.secondary,
+        if (showsFee) ...[
+          _Row(
+            label: 'Order total',
+            value: Money.peso(pricing.totalAmount),
+          ),
+          const Gap(AppSpacing.sm),
+          _Row(
+            label: '${selectedMethod!.name} fee',
+            value: Money.peso(fee),
+          ),
+          const Gap(AppSpacing.sm),
+          Divider(color: AppColors.ui.borderHairline, height: 1),
+          const Gap(AppSpacing.sm),
+          _Row(
+            label: 'Total to pay',
+            value: Money.peso(buyerTotal),
+            bold: true,
+          ),
+        ] else ...[
+          _Row(
+            label: 'Order total',
+            value: Money.peso(pricing.totalAmount),
+            bold: true,
+          ),
+          const Gap(AppSpacing.xs),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              'Payment fee added when you choose how to pay',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.text.secondary,
+              ),
             ),
           ),
-        ),
+        ],
       ],
     );
   }

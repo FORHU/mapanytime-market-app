@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/utils/currency.dart';
 import 'package:mapanytime_market_app/features/cart/domain/entities/cart_pricing.dart';
+import 'package:mapanytime_market_app/features/payments/domain/entities/payment_method.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
@@ -24,12 +25,16 @@ class OrderConfirmationArgs {
     required this.paymentMethodLabel,
     required this.isCashOnDelivery,
     required this.pricing,
+    this.selectedMethod,
+    this.checkoutUrl,
   });
 
   final String orderId;
   final String paymentMethodLabel;
   final bool isCashOnDelivery;
   final CartPricing pricing;
+  final PaymentMethod? selectedMethod;
+  final String? checkoutUrl;
 }
 
 class OrderConfirmationPage extends StatelessWidget {
@@ -39,6 +44,9 @@ class OrderConfirmationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final paidAmount =
+        args.selectedMethod?.buyerTotalAmount ?? args.pricing.totalAmount;
+
     return Scaffold(
       appBar: const ModernAppBar(title: 'Order Confirmed'),
       body: ListView(
@@ -94,35 +102,64 @@ class OrderConfirmationPage extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    'Payment QR (${args.paymentMethodLabel} Mock)',
+                    'Online Payment (${args.paymentMethodLabel})',
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
-                  const Gap(AppSpacing.lg),
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(AppSpacing.sm),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: AppRadius.brLg,
-                      ),
-                      child: QrImageView(
-                        data: 'gcash-mock-payment-for-${args.orderId}',
-                        size: 200,
-                      ),
-                    ),
+                  const Gap(AppSpacing.md),
+                  Icon(
+                    Icons.check_circle_outline_rounded,
+                    color: AppColors.status.success,
+                    size: 40,
                   ),
-                  const Gap(AppSpacing.lg),
+                  const Gap(AppSpacing.sm),
                   Text(
-                    'Scan to pay via ${args.paymentMethodLabel}.',
+                    'Payment initiated for ${Money.peso(paidAmount)}.',
+                    textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 13),
                   ),
                 ],
               ),
             ),
+          const Gap(AppSpacing.lg),
+          GlassCard(
+            child: Column(
+              children: [
+                const Text(
+                  'Seller Pickup Pass',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const Gap(AppSpacing.md),
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: AppRadius.brLg,
+                    ),
+                    child: QrImageView(
+                      data: 'MAPANYTIME-ORDER-${args.orderId}',
+                      size: 180,
+                    ),
+                  ),
+                ),
+                const Gap(AppSpacing.sm),
+                Text(
+                  'Present this QR code to the merchant at the stall.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.text.secondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
           const Gap(AppSpacing.xxl),
           const SectionTitle(title: 'Order summary'),
           const Gap(AppSpacing.sm),
-          PriceBreakdownCard(pricing: AsyncData(args.pricing)),
+          PriceBreakdownCard(
+            pricing: AsyncData(args.pricing),
+            selectedMethod: args.selectedMethod,
+          ),
           const Gap(AppSpacing.xxl),
           PrimaryButton(
             label: 'Back to Home',
