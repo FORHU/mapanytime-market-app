@@ -69,36 +69,40 @@ void main() {
       ],
     };
 
-    test('parses provider groups and methods with fee metadata correctly',
-        () async {
-      when(() => mockApi.get(any())).thenAnswer((_) async => tResponse);
+    test(
+      'parses provider groups and methods with fee metadata correctly',
+      () async {
+        when(() => mockApi.get(any())).thenAnswer((_) async => tResponse);
 
-      final result = await paymentDataSource.fetchPaymentMethods(amount: 1000);
+        final result = await paymentDataSource.fetchPaymentMethods(
+          amount: 1000,
+        );
 
-      expect(result.length, 2);
-      expect(result.first.name, 'PayMongo');
-      expect(result.first.methods.length, 2);
+        expect(result.length, 2);
+        expect(result.first.name, 'PayMongo');
+        expect(result.first.methods.length, 2);
 
-      final gcash = result.first.methods.first;
-      expect(gcash.id, 'pm-1');
-      expect(gcash.name, 'GCash');
-      expect(gcash.code, 'GCASH');
-      expect(gcash.available, isTrue);
-      expect(gcash.feeAmount, 22.81);
-      expect(gcash.buyerTotalAmount, 1022.81);
-      expect(gcash.isCash, isFalse);
+        final gcash = result.first.methods.first;
+        expect(gcash.id, 'pm-1');
+        expect(gcash.name, 'GCash');
+        expect(gcash.code, 'GCASH');
+        expect(gcash.available, isTrue);
+        expect(gcash.feeAmount, 22.81);
+        expect(gcash.buyerTotalAmount, 1022.81);
+        expect(gcash.isCash, isFalse);
 
-      final card = result.first.methods[1];
-      expect(card.available, isFalse);
-      expect(
-        card.unavailableReason,
-        'Minimum order amount for cards is ₱500.00',
-      );
+        final card = result.first.methods[1];
+        expect(card.available, isFalse);
+        expect(
+          card.unavailableReason,
+          'Minimum order amount for cards is ₱500.00',
+        );
 
-      final cash = result[1].methods.first;
-      expect(cash.isCash, isTrue);
-      expect(cash.feeAmount, 0.0);
-    });
+        final cash = result[1].methods.first;
+        expect(cash.isCash, isTrue);
+        expect(cash.feeAmount, 0.0);
+      },
+    );
   });
 
   group('OrderRemoteDataSource.createOrder', () {
@@ -115,8 +119,9 @@ void main() {
     };
 
     test('returns OrderCreationResult with checkoutUrl and orderId', () async {
-      when(() => mockApi.post(any(), any()))
-          .thenAnswer((_) async => tCreateOrderResponse);
+      when(
+        () => mockApi.post(any(), any()),
+      ).thenAnswer((_) async => tCreateOrderResponse);
 
       final result = await orderDataSource.createOrder(
         type: 'PICKUP',

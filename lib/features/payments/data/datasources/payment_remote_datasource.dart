@@ -26,8 +26,9 @@ class PaymentRemoteDataSource {
   Future<List<PaymentProviderGroup>> fetchPaymentMethods({
     double? amount,
   }) async {
-    final encodedAmount =
-        amount != null && amount > 0 ? Uri.encodeComponent('$amount') : null;
+    final encodedAmount = amount != null && amount > 0
+        ? Uri.encodeComponent('$amount')
+        : null;
     final endpoint = encodedAmount != null
         ? '${ApiEndpoints.paymentMethods}?amount=$encodedAmount'
         : ApiEndpoints.paymentMethods;
@@ -48,8 +49,9 @@ class PaymentRemoteDataSource {
       final pMap = (pJson as Map).cast<String, dynamic>();
       final providerName = pMap['name'] as String? ?? '';
       final rawMethods = pMap['methods'];
-      final methodList =
-          (rawMethods is List ? rawMethods : <dynamic>[]).map((mJson) {
+      final methodList = (rawMethods is List ? rawMethods : <dynamic>[]).map((
+        mJson,
+      ) {
         final mMap = (mJson as Map).cast<String, dynamic>();
         return PaymentMethod.fromJson(mMap, providerName: providerName);
       }).toList();

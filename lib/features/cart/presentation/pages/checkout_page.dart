@@ -75,11 +75,13 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
     ref.listen(paymentMethodsProvider(goodsTotal), (prev, next) {
       next.whenData((methods) {
         if (methods.isNotEmpty) {
-          final currentValid = _selectedMethod != null &&
+          final currentValid =
+              _selectedMethod != null &&
               methods.any((m) => m.id == _selectedMethod!.id && m.available);
           if (!currentValid) {
-            final firstAvailable =
-                methods.where((m) => m.available).firstOrNull;
+            final firstAvailable = methods
+                .where((m) => m.available)
+                .firstOrNull;
             if (firstAvailable != null &&
                 _selectedMethod?.id != firstAvailable.id) {
               setState(() => _selectedMethod = firstAvailable);
@@ -89,7 +91,8 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       });
     });
 
-    final canPlaceOrder = !_isSubmitting &&
+    final canPlaceOrder =
+        !_isSubmitting &&
         pricing.hasValue &&
         pricing.value != null &&
         _selectedMethod != null &&
@@ -546,8 +549,8 @@ class _PaymentMethodRow extends StatelessWidget {
                 selected
                     ? Icons.check_circle_rounded
                     : (isAvailable
-                        ? Icons.circle_outlined
-                        : Icons.block_rounded),
+                          ? Icons.circle_outlined
+                          : Icons.block_rounded),
                 size: 20,
                 color: contentColor,
               ),

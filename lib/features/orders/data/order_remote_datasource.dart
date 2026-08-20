@@ -44,8 +44,9 @@ class OrderRemoteDataSource {
     final response = await _api.post(ApiEndpoints.ordersCreate, payload);
 
     final data = response is Map ? response['data'] : null;
-    final map =
-        data is Map ? data.cast<String, dynamic>() : <String, dynamic>{};
+    final map = data is Map
+        ? data.cast<String, dynamic>()
+        : <String, dynamic>{};
     return OrderCreationResult(
       orderId: map['id'] as String? ?? '',
       checkoutUrl: map['checkoutUrl'] as String?,
