@@ -26,15 +26,20 @@ class CartItemPricing {
   final int freeUnits;
 }
 
-/// Server-verified pricing breakdown for the cart (or a selected subset of
-/// it) — the exact numbers `POST /orders` will charge for the same
-/// selection, per `mapanytime-api`'s `CartService.previewPricing`.
+/// Server-verified pricing breakdown for the cart (or a selected subset of it),
+/// per `mapanytime-api`'s `CartService.previewPricing`.
+///
+/// [totalAmount] is the cost of the **goods**, not the final charge. The
+/// payment fee depends on the method the buyer has not chosen yet and really
+/// does differ per method — GCash 2.23%, Maya 1.79%, card 3.125% + ₱13.39 — so
+/// there is no honest single number to add here. `GET /payments/methods`
+/// quotes the fee and final total for each method once one is selected. Never
+/// present [totalAmount] as the amount that will be charged.
 class CartPricing {
   const CartPricing({
     required this.items,
     required this.subtotalAmount,
     required this.discountAmount,
-    required this.taxAmount,
     required this.totalAmount,
   });
 
@@ -52,7 +57,6 @@ class CartPricing {
           : const [],
       subtotalAmount: _numOf(json['subtotalAmount']),
       discountAmount: _numOf(json['discountAmount']),
-      taxAmount: _numOf(json['taxAmount']),
       totalAmount: _numOf(json['totalAmount']),
     );
   }
@@ -60,7 +64,6 @@ class CartPricing {
   final List<CartItemPricing> items;
   final num subtotalAmount;
   final num discountAmount;
-  final num taxAmount;
   final num totalAmount;
 
   Map<String, CartItemPricing> get byProductId => {

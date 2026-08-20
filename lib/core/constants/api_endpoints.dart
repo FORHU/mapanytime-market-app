@@ -9,13 +9,16 @@ class ApiEndpoints {
   static const String refresh = '/auth/refresh-token';
   static const String logout = '/auth/logout';
 
-  /// Sends a one-time reset code to the given email.
-  /// NOT YET IMPLEMENTED on the backend — request body `{ email }`.
+  /// Sends a one-time 4-digit reset code to the given email.
+  /// Request body `{ email }`. Always answers 200 with the same message
+  /// whether or not the address exists, so it cannot be used to discover
+  /// which addresses are registered.
   static const String forgotPassword = '/auth/forgot-password';
 
-  /// Verifies the code and sets a new password.
-  /// NOT YET IMPLEMENTED on the backend — request body
-  /// `{ email, code, newPassword }`.
+  /// Verifies the code and sets a new password. Request body
+  /// `{ email, code, newPassword }`. The code expires 15 minutes after it is
+  /// issued and is burned after 5 wrong guesses. A successful reset signs the
+  /// user out of every device.
   static const String resetPassword = '/auth/reset-password';
 
   // Users
@@ -56,7 +59,7 @@ class ApiEndpoints {
   /// Add / update an item in the cart.  `POST /cart/add`.
   static const String cartAdd = '/cart/add';
 
-  /// Server-verified pricing preview (subtotal, auto-applied discounts, tax,
+  /// Server-verified pricing preview (subtotal, auto-applied discounts,
   /// total) for the cart or a selected subset of it.  `POST /cart/pricing`.
   static const String cartPricing = '/cart/pricing';
 
@@ -70,10 +73,17 @@ class ApiEndpoints {
 
   // ── Payments ──────────────────────────────────────────────────────────────
 
-  /// Fetch QR payload for GCash/Bank payment.  Append `/<orderId>`.
-  static const String paymentQr = '/payments/qr-payload';
+  /// Payment methods available for a basket, each with its real fee, the buyer
+  /// total, and a reason when the basket falls outside the method's bounds.
+  /// `GET /payments/methods?amount=<goodsTotal>`.
+  static const String paymentMethods = '/payments/methods';
+
+  /// Start payment for an order with the chosen method.
+  /// `POST /orders/<orderId>/payment`. Returns a `checkoutUrl` to present.
+  static String orderPayment(String orderId) => '/orders/$orderId/payment';
 
   /// Simulate payment settlement (mock webhook).  `POST /payments/mock-webhook`.
+  /// Development only — the mock provider is refused in production.
   static const String paymentWebhook = '/payments/mock-webhook';
 
   // ── Inventory reservations ────────────────────────────────────────────────

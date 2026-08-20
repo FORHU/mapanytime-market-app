@@ -25,7 +25,6 @@ CartPricing _pricingFor(int quantity) => CartPricing(
   ],
   subtotalAmount: 10 * quantity,
   discountAmount: 0,
-  taxAmount: 0,
   totalAmount: 10 * quantity,
 );
 

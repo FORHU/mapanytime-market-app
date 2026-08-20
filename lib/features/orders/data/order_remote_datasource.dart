@@ -3,26 +3,55 @@ import 'package:mapanytime_market_app/core/services/api_service.dart';
 import 'package:mapanytime_market_app/features/orders/domain/entities/buyer_order.dart';
 import 'package:mapanytime_market_app/shared/widgets/order_status.dart';
 
+class OrderCreationResult {
+  const OrderCreationResult({
+    required this.orderId,
+    this.checkoutUrl,
+    this.expiresAt,
+  });
+
+  final String orderId;
+  final String? checkoutUrl;
+  final String? expiresAt;
+}
+
 class OrderRemoteDataSource {
   const OrderRemoteDataSource(this._api);
 
   final ApiService _api;
 
-  Future<String> createOrder({
+  Future<OrderCreationResult> createOrder({
     required String type,
-    required String paymentMethod,
     required String pickupAt,
+    String? paymentMethodId,
+    String? paymentMethod,
     List<String>? productIds,
   }) async {
-    final response = await _api.post(ApiEndpoints.ordersCreate, {
+    final payload = <String, dynamic>{
       'type': type,
-      'paymentMethod': paymentMethod,
       'pickupAt': pickupAt,
-      if (productIds != null && productIds.isNotEmpty) 'productIds': productIds,
-    });
+    };
+    if (paymentMethodId != null) {
+      payload['paymentMethodId'] = paymentMethodId;
+    }
+    if (paymentMethod != null) {
+      payload['paymentMethod'] = paymentMethod;
+    }
+    if (productIds != null && productIds.isNotEmpty) {
+      payload['productIds'] = productIds;
+    }
+
+    final response = await _api.post(ApiEndpoints.ordersCreate, payload);
 
     final data = response is Map ? response['data'] : null;
-    return (data as Map)['id'] as String;
+    final map = data is Map
+        ? data.cast<String, dynamic>()
+        : <String, dynamic>{};
+    return OrderCreationResult(
+      orderId: map['id'] as String? ?? '',
+      checkoutUrl: map['checkoutUrl'] as String?,
+      expiresAt: map['expiresAt'] as String?,
+    );
   }
 
   Future<List<BuyerOrder>> fetchMyOrders() async {
