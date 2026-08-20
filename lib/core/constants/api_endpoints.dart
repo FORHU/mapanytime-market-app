@@ -56,7 +56,7 @@ class ApiEndpoints {
   /// Add / update an item in the cart.  `POST /cart/add`.
   static const String cartAdd = '/cart/add';
 
-  /// Server-verified pricing preview (subtotal, auto-applied discounts, tax,
+  /// Server-verified pricing preview (subtotal, auto-applied discounts,
   /// total) for the cart or a selected subset of it.  `POST /cart/pricing`.
   static const String cartPricing = '/cart/pricing';
 

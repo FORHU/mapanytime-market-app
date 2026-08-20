@@ -8,10 +8,13 @@ import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
-/// Server-verified Vouchers & Discounts / Subtotal / Tax / Total breakdown,
-/// shared by the cart, checkout, and order-confirmation pages so all three
-/// always show the exact numbers checkout will charge — never a
-/// client-side guess.
+/// Server-verified Vouchers & Discounts / Subtotal / Order total breakdown,
+/// shared by the cart, checkout, and order-confirmation pages so all three read
+/// the same server figures — never a client-side guess.
+///
+/// The order total is the cost of the goods. The payment fee is per-method and
+/// is quoted once the buyer picks one, which the card says outright rather than
+/// showing a "Total" that changes at the payment step.
 class PriceBreakdownCard extends StatelessWidget {
   const PriceBreakdownCard({required this.pricing, this.onRetry, super.key});
 
@@ -53,14 +56,25 @@ class _BreakdownRows extends StatelessWidget {
         const Gap(AppSpacing.sm),
         _Row(label: 'Subtotal', value: Money.peso(pricing.subtotalAmount)),
         const Gap(AppSpacing.sm),
-        _Row(label: 'Tax', value: Money.peso(pricing.taxAmount)),
-        const Gap(AppSpacing.sm),
         Divider(color: AppColors.ui.borderHairline, height: 1),
         const Gap(AppSpacing.sm),
         _Row(
-          label: 'Total',
+          label: 'Order total',
           value: Money.peso(pricing.totalAmount),
           bold: true,
+        ),
+        const Gap(AppSpacing.xs),
+        // The payment fee is per-method and the buyer has not picked one yet,
+        // so this is the goods total. Saying so beats showing a "Total" that
+        // changes at the payment step.
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text(
+            'Payment fee added when you choose how to pay',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.text.secondary,
+            ),
+          ),
         ),
       ],
     );

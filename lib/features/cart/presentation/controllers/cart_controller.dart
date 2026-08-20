@@ -276,7 +276,7 @@ final cartSelectedSubtotalProvider = Provider<num>((ref) {
       .fold<num>(0, (sum, item) => sum + item.lineTotal);
 });
 
-/// Server-verified pricing (subtotal, auto-applied discount, tax, total) for
+/// Server-verified pricing (subtotal, auto-applied discount, total) for
 /// the currently-selected items — refetches whenever selection or quantities
 /// change. `null` when nothing is selected. This is the single source of
 /// truth the cart and checkout pages both read for the breakdown, so what a
