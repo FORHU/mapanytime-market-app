@@ -14,6 +14,7 @@ void main() {
           'province': 'Metro Manila',
           'country': 'PH',
         },
+        'markerPhotoUrl': 'https://cdn.example.com/stores/store-1/banner.jpg',
       };
 
       final model = StoreModel.fromJson(json);
@@ -23,6 +24,16 @@ void main() {
       expect(model.lat, 14.5995);
       expect(model.lng, 120.9842);
       expect(model.distance, 2.3);
+      expect(
+        model.markerPhotoUrl,
+        'https://cdn.example.com/stores/store-1/banner.jpg',
+      );
+    });
+
+    test('defaults markerPhotoUrl to null when absent', () {
+      final model = StoreModel.fromJson(const {'id': 'store-4'});
+
+      expect(model.markerPhotoUrl, isNull);
     });
 
     test('coerces integer coordinates and distance to double', () {
@@ -66,6 +77,7 @@ void main() {
       'categoryId': null,
       'categoryName': null,
       'logoUrl': null,
+      'markerPhotoUrl': null,
       'rating': null,
       'ratingCount': null,
       'isOpen': null,
