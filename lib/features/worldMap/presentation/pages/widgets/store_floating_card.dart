@@ -59,8 +59,7 @@ class _StoreFloatingCardState extends ConsumerState<StoreFloatingCard> {
     final slides = <_Slide>[
       _Slide(
         imageUrl: details.heroImageUrl,
-        onTap: () =>
-            context.push(RouteNames.storefront, extra: widget.store),
+        onTap: () => context.push(RouteNames.storefront, extra: widget.store),
       ),
     ];
     for (final product in details.products) {
