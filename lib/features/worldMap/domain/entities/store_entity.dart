@@ -12,6 +12,7 @@ class StoreEntity extends Equatable {
     this.categoryId,
     this.categoryName,
     this.logoUrl,
+    this.markerPhotoUrl,
     this.rating,
     this.ratingCount,
     this.isOpen,
@@ -31,6 +32,7 @@ class StoreEntity extends Equatable {
   final String? categoryId;
   final String? categoryName;
   final String? logoUrl;
+  final String? markerPhotoUrl;
   final double? rating;
   final int? ratingCount;
   final bool? isOpen;
@@ -45,6 +47,7 @@ class StoreEntity extends Equatable {
     categoryId,
     categoryName,
     logoUrl,
+    markerPhotoUrl,
     rating,
     ratingCount,
     isOpen,

@@ -13,7 +13,7 @@ import 'package:mapanytime_market_app/features/worldMap/presentation/controllers
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/components/mapbox_style_manager.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/components/user_location_manager.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/navigation_mode_pill.dart';
-import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_bottom_sheet.dart';
+import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_floating_card.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_list_view.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/world_map_floating_controls.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/world_map_status_overlay.dart';
@@ -41,7 +41,6 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
   // Custom UI State
   String? _selectedStoreId;
-  bool _sheetOpen = false;
   final bool _showListView = false;
   int _selectedCategory = 0;
 
@@ -96,7 +95,15 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
   Future<void> _onMapCreated(MapboxMap mapboxMap) async {
     this.mapboxMap = mapboxMap;
-    _styleManager = MapboxStyleManager(mapboxMap, onStoreTap: _selectStore);
+    _styleManager = MapboxStyleManager(
+      mapboxMap,
+      screenWidth: MediaQuery.sizeOf(context).width,
+      onStoreTap: _selectStore,
+    );
+
+    unawaited(
+      mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false)),
+    );
 
     try {
       if (!mounted) return;
@@ -207,27 +214,18 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   }
 
   void _selectStore(String storeId) {
-    if (_sheetOpen) {
-      // A sheet (and its details fetch) is already open — ignore rapid
-      // re-taps rather than stacking sheets on top of each other.
-      return;
-    }
-
     if (mounted) {
       setState(() {
         _selectedStoreId = storeId;
       });
-      unawaited(_styleManager?.updateSelectedStore(_selectedStoreId));
     }
 
     final stores = ref.read(worldMapControllerProvider).value?.stores ?? [];
     final store = stores.where((s) => s.id == storeId).firstOrNull;
     if (store != null) {
-      // Switch markers to their expanded (icon + label) form immediately
-      // rather than waiting for the camera-change listener to notice we've
-      // crossed the zoom threshold mid-flight — avoids a re-render hitch
-      // partway through the animation.
-      unawaited(_styleManager?.updateZoom(17));
+      // Marker scale now tracks the live camera zoom on every frame via a
+      // cheap native call (no bitmap swap), so it eases in smoothly as this
+      // flyTo animates in rather than needing a pre-emptive jump here.
       unawaited(
         mapboxMap?.flyTo(
           CameraOptions(
@@ -237,23 +235,12 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
           MapAnimationOptions(duration: 900),
         ),
       );
-      _sheetOpen = true;
-      unawaited(
-        StoreBottomSheet.show(
-          context,
-          store,
-          onNavigate: () => _startNavigationTo(store),
-        ).whenComplete(() {
-          _sheetOpen = false;
-          if (mounted) {
-            setState(() {
-              _selectedStoreId = null;
-            });
-            unawaited(_styleManager?.updateSelectedStore(null));
-          }
-        }),
-      );
     }
+  }
+
+  void _deselectStore() {
+    if (!mounted) return;
+    setState(() => _selectedStoreId = null);
   }
 
   Future<void> _renderMarkers() async {
@@ -314,16 +301,6 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       if (!mounted) return;
       unawaited(_refetchForCurrentCamera());
     });
-  }
-
-  /// Switches markers between the expanded (icon + name label) and
-  /// collapsed (plain dot) representation as the camera crosses the zoom
-  /// threshold. Runs on every camera tick — cheap, since
-  /// [MapboxStyleManager.updateZoom] only re-renders when the bucket flips.
-  Future<void> _updateMarkerZoomLevel() async {
-    if (mapboxMap == null || _styleManager == null) return;
-    final cameraState = await mapboxMap!.getCameraState();
-    await _styleManager!.updateZoom(cameraState.zoom);
   }
 
   Future<void> _onCameraIdle() async {
@@ -470,6 +447,12 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       );
     }
 
+    // Scaffold's extendBody:true already reports the floating bottom nav
+    // pill's rendered height as this body's MediaQuery.padding.bottom —
+    // that's the mechanism extendBody exists for. Add just a small gap on
+    // top so overlays sit right above the pill instead of behind it.
+    final navClearance = MediaQuery.of(context).padding.bottom + AppSpacing.sm;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -484,7 +467,6 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                   onStyleLoadedListener: _onStyleLoaded,
                   onCameraChangeListener: (_) {
                     unawaited(_onCameraIdle());
-                    unawaited(_updateMarkerZoomLevel());
                   },
                 ),
 
@@ -548,7 +530,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                 // Navigation mode pill — shown while a route is active.
                 if (_navigatingTo != null)
                   Positioned(
-                    bottom: 88,
+                    bottom: navClearance,
                     left: 0,
                     right: 0,
                     child: Center(
@@ -562,8 +544,35 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                     ),
                   ),
 
+                if (_selectedStoreId != null)
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: navClearance,
+                    child: Builder(
+                      builder: (context) {
+                        final stores =
+                            ref
+                                .watch(worldMapControllerProvider)
+                                .value
+                                ?.stores ??
+                            [];
+                        final store = stores
+                            .where((s) => s.id == _selectedStoreId)
+                            .firstOrNull;
+                        if (store == null) return const SizedBox.shrink();
+                        return StoreFloatingCard(
+                          key: ValueKey(store.id),
+                          store: store,
+                          onClose: _deselectStore,
+                          onNavigate: () => _startNavigationTo(store),
+                        );
+                      },
+                    ),
+                  ),
+
                 Positioned(
-                  bottom: 16,
+                  bottom: navClearance,
                   right: 16,
                   child: WorldMapFloatingControls(
                     onLocateMe: () {
