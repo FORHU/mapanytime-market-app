@@ -239,9 +239,7 @@ class MapboxStyleManager {
     final removedIds = _liveSignatures.keys
         .where((id) => !newIds.contains(id))
         .toList();
-    for (final id in removedIds) {
-      _liveSignatures.remove(id);
-    }
+    removedIds.forEach(_liveSignatures.remove);
 
     try {
       // Register every new/changed bitmap concurrently — a cache miss means
