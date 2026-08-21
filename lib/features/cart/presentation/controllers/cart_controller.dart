@@ -262,6 +262,17 @@ final cartSelectedGroupsProvider = Provider<List<CartStoreGroup>>((ref) {
   ];
 });
 
+/// How many distinct stores the current selection spans.
+///
+/// The cart may hold several stores, but an order may not: the API's
+/// `Orders.storeId` is singular and each order settles to exactly one seller,
+/// so checkout is one store at a time. Anything above 1 here is rejected by
+/// `POST /orders` — the cart gates on it rather than letting the buyer reach
+/// the payment step and fail there.
+final cartSelectedStoreCountProvider = Provider<int>((ref) {
+  return ref.watch(cartSelectedGroupsProvider).length;
+});
+
 /// Number of selected items (summed by quantity).
 final cartSelectedCountProvider = Provider<int>((ref) {
   return ref

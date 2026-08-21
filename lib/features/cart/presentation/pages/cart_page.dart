@@ -46,6 +46,7 @@ class _CartPageState extends ConsumerState<CartPage> {
     final groups = ref.watch(cartGroupsProvider);
     final pricing = ref.watch(cartPricingProvider);
     final selectedCount = ref.watch(cartSelectedCountProvider);
+    final selectedStoreCount = ref.watch(cartSelectedStoreCountProvider);
     final cartCount = ref.watch(cartCountProvider);
 
     return Scaffold(
@@ -78,11 +79,13 @@ class _CartPageState extends ConsumerState<CartPage> {
                           groups: groups,
                           pricing: pricing,
                           selectedCount: selectedCount,
+                          selectedStoreCount: selectedStoreCount,
                         )
                       : _NarrowLayout(
                           groups: groups,
                           pricing: pricing,
                           selectedCount: selectedCount,
+                          selectedStoreCount: selectedStoreCount,
                         );
                 },
               ),
@@ -96,11 +99,15 @@ class _NarrowLayout extends ConsumerWidget {
     required this.groups,
     required this.pricing,
     required this.selectedCount,
+    required this.selectedStoreCount,
   });
 
   final List<CartStoreGroup> groups;
   final AsyncValue<CartPricing?> pricing;
   final int selectedCount;
+
+  /// Above 1, checkout is blocked: an order cannot span stores.
+  final int selectedStoreCount;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -128,7 +135,9 @@ class _NarrowLayout extends ConsumerWidget {
           ),
         ),
         _CheckoutBar(
-          enabled: selectedCount > 0 && pricing.hasValue,
+          enabled:
+              selectedCount > 0 && pricing.hasValue && selectedStoreCount <= 1,
+          spansMultipleStores: selectedStoreCount > 1,
           onCheckout: () => context.push(RouteNames.checkout),
         ),
       ],
@@ -141,11 +150,15 @@ class _WideLayout extends ConsumerWidget {
     required this.groups,
     required this.pricing,
     required this.selectedCount,
+    required this.selectedStoreCount,
   });
 
   final List<CartStoreGroup> groups;
   final AsyncValue<CartPricing?> pricing;
   final int selectedCount;
+
+  /// Above 1, checkout is blocked: an order cannot span stores.
+  final int selectedStoreCount;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -182,11 +195,15 @@ class _WideLayout extends ConsumerWidget {
                 ),
                 const Gap(AppSpacing.md),
                 PrimaryButton(
-                  label: selectedCount > 0
-                      ? 'Review payment method'
-                      : 'Select items to checkout',
+                  label: checkoutCtaLabel(
+                    selectedCount: selectedCount,
+                    spansMultipleStores: selectedStoreCount > 1,
+                  ),
                   icon: Icons.arrow_forward_rounded,
-                  onPressed: selectedCount > 0 && pricing.hasValue
+                  onPressed:
+                      selectedCount > 0 &&
+                          pricing.hasValue &&
+                          selectedStoreCount <= 1
                       ? () => context.push(RouteNames.checkout)
                       : null,
                 ),
@@ -464,10 +481,28 @@ class _StepButton extends StatelessWidget {
   }
 }
 
+/// Label for the checkout CTA, which doubles as the reason when the CTA is
+/// disabled — a selection spanning stores reads differently from an empty one,
+/// and the buyer needs to know which of the two is blocking them.
+@visibleForTesting
+String checkoutCtaLabel({
+  required int selectedCount,
+  required bool spansMultipleStores,
+}) {
+  if (spansMultipleStores) return 'Select items from one store';
+  if (selectedCount > 0) return 'Review payment method';
+  return 'Select items to checkout';
+}
+
 class _CheckoutBar extends StatelessWidget {
-  const _CheckoutBar({required this.enabled, required this.onCheckout});
+  const _CheckoutBar({
+    required this.enabled,
+    required this.spansMultipleStores,
+    required this.onCheckout,
+  });
 
   final bool enabled;
+  final bool spansMultipleStores;
   final VoidCallback onCheckout;
 
   @override
@@ -486,7 +521,10 @@ class _CheckoutBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: PrimaryButton(
-          label: enabled ? 'Review payment method' : 'Select items to checkout',
+          label: checkoutCtaLabel(
+            selectedCount: enabled ? 1 : 0,
+            spansMultipleStores: spansMultipleStores,
+          ),
           icon: Icons.arrow_forward_rounded,
           onPressed: enabled ? onCheckout : null,
         ),
