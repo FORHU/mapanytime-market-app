@@ -108,12 +108,21 @@ class OrderTrackingPage extends ConsumerWidget {
               ),
               child: SafeArea(
                 top: false,
-                child: PrimaryButton(
-                  label: 'Show pickup pass',
-                  icon: Icons.qr_code_rounded,
-                  onPressed: () =>
-                      context.push(RouteNames.pickupPass, extra: order),
-                ),
+                child: currentOrder.isCashOnPickup
+                    ? PrimaryButton(
+                        label: 'Scan to confirm pickup',
+                        icon: Icons.qr_code_scanner_rounded,
+                        onPressed: () => context.push(
+                          RouteNames.cashPickupScan,
+                          extra: order,
+                        ),
+                      )
+                    : PrimaryButton(
+                        label: 'Show pickup pass',
+                        icon: Icons.qr_code_rounded,
+                        onPressed: () =>
+                            context.push(RouteNames.pickupPass, extra: order),
+                      ),
               ),
             ),
         ],

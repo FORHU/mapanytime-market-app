@@ -30,6 +30,7 @@ class BuyerOrder {
     this.subtotalAmount,
     this.taxAmount,
     this.sellerNetAmount,
+    this.isCashOnPickup = false,
   });
 
   final String id;
@@ -44,6 +45,11 @@ class BuyerOrder {
   final num? subtotalAmount;
   final num? taxAmount;
   final num? sellerNetAmount;
+
+  /// True when the order's payment method is Cash on Pickup — its
+  /// completion flow uses a seller-shown code the buyer scans instead of
+  /// the buyer's own pickup pass QR.
+  final bool isCashOnPickup;
 
   bool get isActive =>
       status != OrderStatus.pickedUp && status != OrderStatus.cancelled;

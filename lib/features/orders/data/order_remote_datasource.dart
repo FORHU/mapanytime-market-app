@@ -121,12 +121,20 @@ class OrderRemoteDataSource {
           ? rawId.substring(0, 8).toUpperCase()
           : rawId.toUpperCase();
 
+      final rawPayments = map['payment'];
+      final latestPaymentMethod =
+          (rawPayments is List && rawPayments.isNotEmpty)
+          ? ((rawPayments.first as Map?)?['paymentMethod'] as Map?)
+          : null;
+      final isCashOnPickup = latestPaymentMethod?['type'] == 'CASH';
+
       return BuyerOrder(
         id: rawId,
         code: code,
         storeName:
             (map['store'] as Map?)?['storeName'] as String? ?? 'Unknown Store',
         status: status,
+        isCashOnPickup: isCashOnPickup,
         placedLabel: createdAt != null
             ? '${createdAt.month}/${createdAt.day}'
             : '',
@@ -146,6 +154,20 @@ class OrderRemoteDataSource {
         },
       );
     }).toList();
+  }
+
+  /// Redeems a seller-shown Cash on Pickup code — the buyer's counterpart of
+  /// the seller scanning a buyer's pass for every other payment method.
+  /// Throws on a wrong/expired code or if this buyer doesn't own the order;
+  /// the server is the only source of truth for whether the code is valid.
+  Future<void> confirmCashPickup({
+    required String orderId,
+    required String code,
+  }) {
+    return _api.post(ApiEndpoints.cashPickupConfirm, {
+      'orderId': orderId,
+      'code': code,
+    });
   }
 
   Future<bool> simulateMockPayment(String orderId) async {

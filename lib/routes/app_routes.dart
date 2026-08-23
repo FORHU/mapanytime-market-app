@@ -15,6 +15,7 @@ import 'package:mapanytime_market_app/features/home/presentation/pages/home_page
 import 'package:mapanytime_market_app/features/notifications/presentation/pages/notification_feed_page.dart';
 import 'package:mapanytime_market_app/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:mapanytime_market_app/features/orders/domain/entities/buyer_order.dart';
+import 'package:mapanytime_market_app/features/orders/presentation/pages/cash_pickup_scan_page.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/pages/order_confirmation_page.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/pages/order_history_page.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/pages/order_tracking_page.dart';
@@ -192,6 +193,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 );
               }
               return PickupPassPage(order: order);
+            },
+          ),
+          GoRoute(
+            path: RouteNames.cashPickupScan,
+            builder: (context, state) {
+              final order = state.extra as BuyerOrder?;
+              if (order == null) {
+                return Scaffold(
+                  body: Center(child: Text(context.l10n.errorNoOrder)),
+                );
+              }
+              return CashPickupScanPage(order: order);
             },
           ),
           GoRoute(

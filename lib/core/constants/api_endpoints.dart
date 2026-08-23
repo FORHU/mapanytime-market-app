@@ -71,6 +71,10 @@ class ApiEndpoints {
   /// Cancel an existing order.  `PATCH /orders/cancel`.
   static const String ordersCancel = '/orders/cancel';
 
+  /// Redeem a seller-shown Cash on Pickup code to complete the order.
+  /// `POST /orders/cash-pickup/confirm`.
+  static const String cashPickupConfirm = '/orders/cash-pickup/confirm';
+
   // ── Payments ──────────────────────────────────────────────────────────────
 
   /// Payment methods available for a basket, each with its real fee, the buyer
