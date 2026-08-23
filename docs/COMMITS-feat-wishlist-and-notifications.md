@@ -121,4 +121,5 @@ Formatting-only, caught by `dart format --set-exit-if-changed`.
 - `flutter analyze` — 0 issues
 - `dart format --set-exit-if-changed lib test` — clean
 - `flutter test` — all pass (34 test groups)
-- `flutter build apk --debug` — in progress at time of writing
+- `flutter build apk --debug` — succeeds, `build/app/outputs/flutter-apk/app-debug.apk`
+  (699s — first build after the AGP/Gradle/Kotlin bump above)
