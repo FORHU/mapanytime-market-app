@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:mapanytime_market_app/features/orders/presentation/controllers/orders_controller.dart';
 import 'package:mapanytime_market_app/features/profile/presentation/controllers/profile_controller.dart';
+import 'package:mapanytime_market_app/features/wishlist/presentation/controllers/wishlist_controller.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
@@ -61,8 +63,10 @@ class ProfilePage extends ConsumerWidget {
                 _MenuTile(
                   icon: Icons.favorite_outline_rounded,
                   label: 'Saved',
+                  // FIXME: subtitle promises saved stores, but only product
+                  // wishlisting is wired up — no store-saving exists yet.
                   subtitle: 'Your favourite stores & products',
-                  onTap: () => _soon(context),
+                  onTap: () => context.push(RouteNames.saved),
                 ),
                 _MenuTile(
                   icon: Icons.location_on_outlined,
@@ -82,7 +86,7 @@ class ProfilePage extends ConsumerWidget {
                 _MenuTile(
                   icon: Icons.notifications_none_rounded,
                   label: 'Notifications',
-                  onTap: () => _soon(context),
+                  onTap: () => context.push(RouteNames.notifications),
                 ),
                 _MenuTile(
                   icon: Icons.help_outline_rounded,
@@ -181,35 +185,9 @@ class _ProfileHeader extends StatelessWidget {
                     color: AppColors.text.secondary,
                   ),
                 ),
-                const Gap(AppSpacing.sm),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.status.warning.withValues(alpha: 0.15),
-                    borderRadius: AppRadius.brPill,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.workspace_premium_rounded,
-                        size: 14,
-                        color: AppColors.status.warning,
-                      ),
-                      const Gap(4),
-                      Text(
-                        'Gold member',
-                        style: tt.labelSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.status.warning,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                // "Gold member" badge removed — it was a hardcoded literal;
+                // no loyalty/membership-tier concept exists anywhere in the
+                // API. See docs/PICKUP-NEXT.md.
               ],
             ),
           ),
@@ -219,27 +197,33 @@ class _ProfileHeader extends StatelessWidget {
   }
 }
 
-class _StatsRow extends StatelessWidget {
+/// Was three hardcoded literals (`'8'`, `'320'`, `'12'`) shown to every user
+/// regardless of their real data. Orders and Saved now read real counts;
+/// Points has no backing concept anywhere in the API (no loyalty/points
+/// system exists) so it's left out entirely rather than kept as fake data —
+/// see docs/PICKUP-NEXT.md.
+class _StatsRow extends ConsumerWidget {
   const _StatsRow();
 
   @override
-  Widget build(BuildContext context) {
-    return const Row(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ordersCount = ref.watch(ordersProvider).value?.length;
+    final savedCount = ref.watch(wishlistCountProvider);
+
+    return Row(
       children: [
         Expanded(
-          child: _StatTile(value: '8', label: 'Orders'),
+          child: _StatTile(value: _display(ordersCount), label: 'Orders'),
         ),
-        Gap(AppSpacing.sm),
+        const Gap(AppSpacing.sm),
         Expanded(
-          child: _StatTile(value: '320', label: 'Points'),
-        ),
-        Gap(AppSpacing.sm),
-        Expanded(
-          child: _StatTile(value: '12', label: 'Saved'),
+          child: _StatTile(value: _display(savedCount), label: 'Saved'),
         ),
       ],
     );
   }
+
+  static String _display(int? value) => value?.toString() ?? '–';
 }
 
 class _StatTile extends StatelessWidget {
