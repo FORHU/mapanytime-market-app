@@ -67,8 +67,9 @@ class _SavedGrid extends ConsumerWidget {
           storeName: product.storeName,
           width: double.infinity,
           isSaved: true,
-          onToggleSave: () =>
-              ref.read(wishlistControllerProvider.notifier).remove(
+          onToggleSave: () => ref
+              .read(wishlistControllerProvider.notifier)
+              .remove(
                 product.id,
               ),
           onTap: () {

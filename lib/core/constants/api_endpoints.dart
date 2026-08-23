@@ -132,6 +132,5 @@ class ApiEndpoints {
   static const String wishlistItems = '/wishlist/items';
 
   /// Remove a saved product.  `DELETE /wishlist/items/<productId>`.
-  static String wishlistItem(String productId) =>
-      '/wishlist/items/$productId';
+  static String wishlistItem(String productId) => '/wishlist/items/$productId';
 }
