@@ -21,52 +21,57 @@ void main() {
     const tResponse = {
       'statusCode': 200,
       'message': 'Active payment methods retrieved successfully',
-      'data': [
-        {
-          'id': 'prov-1',
-          'code': 'PAYMONGO',
-          'name': 'PayMongo',
-          'description': 'Online payments',
-          'methods': [
-            {
-              'id': 'pm-1',
-              'code': 'GCASH',
-              'name': 'GCash',
-              'type': 'E_WALLET',
-              'available': true,
-              'feeAmount': 22.81,
-              'buyerTotalAmount': 1022.81,
-            },
-            {
-              'id': 'pm-2',
-              'code': 'CARD',
-              'name': 'Credit / Debit Card',
-              'type': 'CARD',
-              'available': false,
-              'unavailableReason': 'Minimum order amount for cards is ₱500.00',
-              'feeAmount': 46.08,
-              'buyerTotalAmount': 1046.08,
-            },
-          ],
-        },
-        {
-          'id': 'prov-2',
-          'code': 'CASH',
-          'name': 'Cash',
-          'description': 'Pay at stall',
-          'methods': [
-            {
-              'id': 'pm-3',
-              'code': 'COD',
-              'name': 'Cash on Pickup',
-              'type': 'CASH',
-              'available': true,
-              'feeAmount': 0.0,
-              'buyerTotalAmount': 1000.0,
-            },
-          ],
-        },
-      ],
+      // Real API envelope from payment.controller.ts:17-21 is
+      // { data: { providers: [...] } }, not a bare list under `data`.
+      'data': {
+        'providers': [
+          {
+            'id': 'prov-1',
+            'code': 'PAYMONGO',
+            'name': 'PayMongo',
+            'description': 'Online payments',
+            'methods': [
+              {
+                'id': 'pm-1',
+                'code': 'GCASH',
+                'name': 'GCash',
+                'type': 'E_WALLET',
+                'available': true,
+                'feeAmount': 22.81,
+                'buyerTotalAmount': 1022.81,
+              },
+              {
+                'id': 'pm-2',
+                'code': 'CARD',
+                'name': 'Credit / Debit Card',
+                'type': 'CARD',
+                'available': false,
+                'unavailableReason':
+                    'Minimum order amount for cards is ₱500.00',
+                'feeAmount': 46.08,
+                'buyerTotalAmount': 1046.08,
+              },
+            ],
+          },
+          {
+            'id': 'prov-2',
+            'code': 'CASH',
+            'name': 'Cash',
+            'description': 'Pay at stall',
+            'methods': [
+              {
+                'id': 'pm-3',
+                'code': 'COD',
+                'name': 'Cash on Pickup',
+                'type': 'CASH',
+                'available': true,
+                'feeAmount': 0.0,
+                'buyerTotalAmount': 1000.0,
+              },
+            ],
+          },
+        ],
+      },
     };
 
     test(

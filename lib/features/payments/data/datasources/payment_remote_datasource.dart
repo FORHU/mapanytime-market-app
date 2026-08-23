@@ -38,7 +38,11 @@ class PaymentRemoteDataSource {
 
     if (response is Map) {
       final resData = response['data'];
-      if (resData is List) {
+      if (resData is Map) {
+        // Real API envelope: { data: { providers: [...] } }.
+        final providers = resData['providers'];
+        if (providers is List) rawList = providers;
+      } else if (resData is List) {
         rawList = resData;
       }
     } else if (response is List) {
