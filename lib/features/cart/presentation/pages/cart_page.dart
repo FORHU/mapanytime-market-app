@@ -11,6 +11,7 @@ import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/badged_icon_button.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
+import 'package:mapanytime_market_app/shared/widgets/icon_button.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
 import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
 import 'package:mapanytime_market_app/shared/widgets/price_breakdown_card.dart';
@@ -41,10 +42,45 @@ class _CartPageState extends ConsumerState<CartPage> {
     });
   }
 
+  Future<void> _confirmDeleteSelected(
+    BuildContext context,
+    List<CartItem> selected,
+  ) async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove selected items?'),
+        content: Text(
+          selected.length == 1
+              ? 'This removes "${selected.first.product.name}" '
+                    'from your cart.'
+              : 'This removes ${selected.length} selected items '
+                    'from your cart.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ref
+                  .read(cartProvider.notifier)
+                  .removeMany(selected.map((item) => item.product.id));
+            },
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final groups = ref.watch(cartGroupsProvider);
     final pricing = ref.watch(cartPricingProvider);
+    final selectedItems = ref.watch(cartSelectedItemsProvider);
     final selectedCount = ref.watch(cartSelectedCountProvider);
     final cartCount = ref.watch(cartCountProvider);
 
@@ -53,6 +89,19 @@ class _CartPageState extends ConsumerState<CartPage> {
         title: context.l10n.cart,
         showBack: false,
         actions: [
+          if (cartCount > 0) ...[
+            Opacity(
+              opacity: selectedItems.isEmpty ? 0.4 : 1,
+              child: AppIconButton(
+                icon: Icons.delete_outline_rounded,
+                iconSize: 18,
+                onTap: selectedItems.isEmpty
+                    ? null
+                    : () => _confirmDeleteSelected(context, selectedItems),
+              ),
+            ),
+            const Gap(AppSpacing.sm),
+          ],
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.md),
             child: BadgedIconButton(
@@ -334,57 +383,77 @@ class _CartRow extends ConsumerWidget {
                       ),
                     ),
                   ),
+                Positioned(
+                  top: -6,
+                  right: -6,
+                  child: _DeleteButton(
+                    onTap: () => cart.remove(item.product.id),
+                  ),
+                ),
               ],
             ),
             const Gap(AppSpacing.sm),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.product.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  const Gap(2),
-                  Row(
-                    children: [
-                      Text(
-                        Money.peso(item.product.price),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.text.secondary,
-                          decoration: hasDiscount
-                              ? TextDecoration.lineThrough
-                              : null,
-                        ),
-                      ),
-                      if (hasDiscount) ...[
-                        const Gap(6),
-                        Text(
-                          '-${Money.peso(discount!.discountAmount)}',
-                          style:
-                              Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.copyWith(
-                                color: AppColors.status.success,
-                                fontWeight: FontWeight.w700,
-                              ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  if ((discount?.freeUnits ?? 0) > 0) ...[
-                    const Gap(2),
+              // The discount/free-units lines below only exist once
+              // `cartPricingProvider` resolves, so this row's height changes
+              // out from under the layout a moment after first paint —
+              // AnimatedSize turns that snap into a smooth grow/shrink
+              // instead of the whole list jumping.
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                alignment: Alignment.topLeft,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     Text(
-                      '+${discount!.freeUnits} free',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.status.success,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      item.product.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleSmall,
                     ),
+                    const Gap(2),
+                    Row(
+                      children: [
+                        Text(
+                          Money.peso(item.product.price),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(
+                            color: AppColors.text.secondary,
+                            decoration: hasDiscount
+                                ? TextDecoration.lineThrough
+                                : null,
+                          ),
+                        ),
+                        if (hasDiscount) ...[
+                          const Gap(6),
+                          Text(
+                            '-${Money.peso(discount!.discountAmount)}',
+                            style:
+                                Theme.of(
+                                  context,
+                                ).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.status.success,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    if ((discount?.freeUnits ?? 0) > 0) ...[
+                      const Gap(2),
+                      Text(
+                        '+${discount!.freeUnits} free',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.status.success,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
             _QtyStepper(
@@ -395,6 +464,36 @@ class _CartRow extends ConsumerWidget {
                   cart.setQuantity(item.product.id, item.quantity + 1),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Explicit remove control anchored on the product thumbnail — swiping the
+/// row still works (see the `Dismissible` above), but a corner button makes
+/// removal discoverable without teaching buyers a swipe gesture, and keeps
+/// it out of the qty stepper, whose minus button only ever changes quantity.
+class _DeleteButton extends StatelessWidget {
+  const _DeleteButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.ink,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(4),
+          child: Icon(
+            Icons.delete_outline_rounded,
+            size: 12,
+            color: AppColors.text.onInk,
+          ),
         ),
       ),
     );
@@ -424,10 +523,11 @@ class _QtyStepper extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _StepButton(
-            icon: quantity <= 1
-                ? Icons.delete_outline_rounded
-                : Icons.remove_rounded,
-            onTap: onMinus,
+            icon: Icons.remove_rounded,
+            // Disabled at 1 rather than turning into delete — removing a
+            // line is swipe-to-dismiss's job (see the Dismissible wrapping
+            // this row), not a side effect of tapping minus once too often.
+            onTap: quantity <= 1 ? null : onMinus,
           ),
           SizedBox(
             width: 24,
@@ -448,17 +548,22 @@ class _StepButton extends StatelessWidget {
   const _StepButton({required this.icon, required this.onTap});
 
   final IconData icon;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final enabled = onTap != null;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
         width: 30,
         height: 32,
-        child: Icon(icon, size: 16, color: AppColors.text.primary),
+        child: Icon(
+          icon,
+          size: 16,
+          color: enabled ? AppColors.text.primary : AppColors.text.tertiary,
+        ),
       ),
     );
   }
