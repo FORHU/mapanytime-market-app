@@ -15,6 +15,7 @@ class RouteNames {
   static const String orderTracking = '/orders/track';
   static const String pickupPass = '/orders/pass';
   static const String notifications = '/notifications';
+  static const String saved = '/saved';
   static const String profile = '/profile';
   static const String login = '/login';
   static const String register = '/register';

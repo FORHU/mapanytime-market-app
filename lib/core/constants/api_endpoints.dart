@@ -109,4 +109,29 @@ class ApiEndpoints {
 
   /// The caller's return requests.  `GET /returns/buyer`.
   static const String buyerReturns = '/returns/buyer';
+
+  // ── Notifications ─────────────────────────────────────────────────────────
+
+  /// The caller's persisted notification feed, newest first.
+  /// `GET /notifications`.
+  static const String notifications = '/notifications';
+
+  /// Mark every notification as read.  `PATCH /notifications/read-all`.
+  static const String notificationsMarkAllRead = '/notifications/read-all';
+
+  /// Badge count, cheaper than fetching the whole feed.
+  /// `GET /notifications/unread-count`.
+  static const String notificationsUnreadCount = '/notifications/unread-count';
+
+  // ── Wishlist ──────────────────────────────────────────────────────────────
+
+  /// The caller's saved products.  `GET /wishlist`.
+  static const String wishlist = '/wishlist';
+
+  /// Save a product.  `POST /wishlist/items`.
+  static const String wishlistItems = '/wishlist/items';
+
+  /// Remove a saved product.  `DELETE /wishlist/items/<productId>`.
+  static String wishlistItem(String productId) =>
+      '/wishlist/items/$productId';
 }

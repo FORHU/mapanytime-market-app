@@ -26,6 +26,7 @@ import 'package:mapanytime_market_app/features/store/domain/entities/store_produ
 import 'package:mapanytime_market_app/features/store/presentation/pages/job_posting_detail_page.dart';
 import 'package:mapanytime_market_app/features/store/presentation/pages/product_detail_page.dart';
 import 'package:mapanytime_market_app/features/store/presentation/pages/storefront_page.dart';
+import 'package:mapanytime_market_app/features/wishlist/presentation/pages/saved_page.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/world_map_page.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
@@ -196,6 +197,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RouteNames.notifications,
             builder: (context, state) => const NotificationFeedPage(),
+          ),
+          GoRoute(
+            path: RouteNames.saved,
+            builder: (context, state) => const SavedPage(),
           ),
           GoRoute(
             path: RouteNames.profile,
