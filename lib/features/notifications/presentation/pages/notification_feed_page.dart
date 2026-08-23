@@ -34,6 +34,9 @@ class _NotificationFeedPageState extends ConsumerState<NotificationFeedPage> {
     final items = ref.watch(
       notificationFeedControllerProvider.select((s) => s.items),
     );
+    final isLoading = ref.watch(
+      notificationFeedControllerProvider.select((s) => s.isLoadingHistory),
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.notifications)),
@@ -42,7 +45,15 @@ class _NotificationFeedPageState extends ConsumerState<NotificationFeedPage> {
           ref.invalidate(notificationFeedControllerProvider);
         },
         color: AppColors.ink,
-        child: items.isEmpty
+        child: isLoading && items.isEmpty
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [
+                  Gap(200),
+                  Center(child: CircularProgressIndicator()),
+                ],
+              )
+            : items.isEmpty
             ? ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: const [
