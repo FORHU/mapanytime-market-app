@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -6,6 +8,7 @@ import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/merchant_ad.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
+import 'package:mapanytime_market_app/features/wishlist/presentation/controllers/wishlist_controller.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
 import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
@@ -36,26 +39,56 @@ class ProductDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isSaved = ref.watch(savedProductIdsProvider).contains(product.id);
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: const ModernAppBar(),
+      appBar: ModernAppBar(
+        actions: [
+          IconButton(
+            icon: Icon(
+              isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+              color: isSaved ? Colors.red : null,
+            ),
+            onPressed: () {
+              final notifier = ref.read(wishlistControllerProvider.notifier);
+              if (isSaved) {
+                unawaited(notifier.remove(product.id));
+              } else {
+                unawaited(notifier.add(product));
+              }
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                Hero(
-                  tag: 'product-${product.id}',
-                  child: Container(
-                    height: 320,
-                    width: double.infinity,
-                    color: AppColors.ui.surfaceMuted,
-                    child: NetworkImageBox(
-                      url: product.imageUrl,
+                const Gap(AppSpacing.sm),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                  ),
+                  child: Hero(
+                    tag: 'product-${product.id}',
+                    child: Container(
                       height: 320,
-                      fit: BoxFit.contain,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: AppColors.ui.surfaceMuted,
+                        borderRadius: AppRadius.brXl,
+                        border: Border.all(
+                          color: AppColors.ink.withValues(alpha: 0.08),
+                        ),
+                      ),
+                      child: NetworkImageBox(
+                        url: product.imageUrl,
+                        height: 320,
+                        borderRadius: AppRadius.brXl,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                 ),
