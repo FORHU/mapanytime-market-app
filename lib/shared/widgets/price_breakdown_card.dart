@@ -31,12 +31,22 @@ class PriceBreakdownCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassCard(
-      child: pricing.when(
-        loading: () => const _SkeletonRows(),
-        error: (_, _) => _ErrorRows(onRetry: onRetry),
-        data: (value) => value == null
-            ? const _Row(label: 'Total', value: '—', bold: true)
-            : _BreakdownRows(pricing: value, selectedMethod: selectedMethod),
+      // The skeleton, error, and real breakdown all have different heights
+      // (and the breakdown itself grows once a payment method adds its fee
+      // rows), so this swaps abruptly without AnimatedSize — most visibly
+      // right after the cart loads, when this snaps from skeleton to the
+      // real total and shoves the checkout button below it down.
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        alignment: Alignment.topCenter,
+        child: pricing.when(
+          loading: () => const _SkeletonRows(),
+          error: (_, _) => _ErrorRows(onRetry: onRetry),
+          data: (value) => value == null
+              ? const _Row(label: 'Total', value: '—', bold: true)
+              : _BreakdownRows(pricing: value, selectedMethod: selectedMethod),
+        ),
       ),
     );
   }

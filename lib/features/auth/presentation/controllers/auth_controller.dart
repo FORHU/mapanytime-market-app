@@ -13,6 +13,8 @@ import 'package:mapanytime_market_app/features/auth/domain/usecases/refresh_auth
 import 'package:mapanytime_market_app/features/auth/domain/usecases/register_usecase.dart';
 import 'package:mapanytime_market_app/features/auth/domain/usecases/request_password_reset_usecase.dart';
 import 'package:mapanytime_market_app/features/auth/domain/usecases/reset_password_usecase.dart';
+import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart'
+    show cartProvider;
 
 // --- Dependency wiring (Riverpod providers) ---
 
@@ -89,6 +91,7 @@ class AuthController extends Notifier<AuthState> {
   Future<void> onUnauthenticated() async {
     await ref.read(storageServiceProvider).clearSession();
     state = const AuthState();
+    ref.read(cartProvider.notifier).reset();
   }
 
   Future<void> refreshAuth() async {
@@ -96,7 +99,10 @@ class AuthController extends Notifier<AuthState> {
     result.fold(
       // If failed (e.g. token expired), log out
       (failure) => state = const AuthState(),
-      (user) => state = AuthState(user: user),
+      (user) {
+        state = AuthState(user: user);
+        unawaited(ref.read(cartProvider.notifier).hydrate());
+      },
     );
   }
 
@@ -112,6 +118,7 @@ class AuthController extends Notifier<AuthState> {
       },
       (user) {
         state = AuthState(user: user);
+        unawaited(ref.read(cartProvider.notifier).hydrate());
         return true;
       },
     );
@@ -148,6 +155,7 @@ class AuthController extends Notifier<AuthState> {
       },
       (_) {
         state = const AuthState();
+        ref.read(cartProvider.notifier).reset();
         return true;
       },
     );

@@ -5,6 +5,8 @@ import 'package:mapanytime_market_app/features/cart/data/cart_remote_datasource.
 import 'package:mapanytime_market_app/features/cart/domain/entities/cart_item.dart';
 import 'package:mapanytime_market_app/features/cart/domain/entities/cart_pricing.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
+import 'package:mapanytime_market_app/features/store/presentation/controllers/store_controller.dart'
+    show storeRepositoryProvider;
 
 final cartRemoteDataSourceProvider = Provider<CartRemoteDataSource>((ref) {
   return CartRemoteDataSource(ref.watch(apiServiceProvider));
@@ -30,6 +32,57 @@ class CartNotifier extends Notifier<List<CartItem>> {
   /// Resolves once every cart write dispatched so far has completed
   /// (successfully or not — failures are still swallowed, see [_enqueueSync]).
   Future<void> waitForPendingSync() => _syncQueue;
+
+  /// Rebuilds local state from the server's cart (Redis) — the only source
+  /// of truth for what's actually in the cart, since [build] always starts
+  /// from empty and nothing else reads it back. Without this, a fresh app
+  /// launch or a freshly-restored session shows an empty cart even when the
+  /// server still holds real items. The server only stores bare product ids,
+  /// so each id is resolved against the store's catalog to get a full
+  /// [StoreProduct]; a since-removed product is dropped rather than crash.
+  Future<void> hydrate() async {
+    try {
+      final raw = await ref.read(cartRemoteDataSourceProvider).getCart();
+      final storeId = raw['storeId'] as String?;
+      final rawItems = raw['items'] as List?;
+      if (storeId == null || rawItems == null || rawItems.isEmpty) {
+        state = const [];
+        return;
+      }
+
+      final details = await ref
+          .read(storeRepositoryProvider)
+          .getStoreDetails(storeId);
+      final productsById = {for (final p in details.products) p.id: p};
+
+      final items = <CartItem>[];
+      for (final entry in rawItems) {
+        final map = entry as Map;
+        final product = productsById[map['productId']];
+        if (product == null) continue;
+        items.add(
+          CartItem(
+            product: product,
+            storeId: storeId,
+            storeName: product.storeName,
+            quantity: (map['quantity'] as num).toInt(),
+          ),
+        );
+      }
+      state = items;
+    } on Object catch (_) {
+      // Network hiccup or the store is no longer resolvable — leave local
+      // state as-is rather than crash startup; the next successful sync
+      // (or a later hydrate call) will heal it.
+    }
+  }
+
+  /// Drops local cart state without calling the server — for switching
+  /// accounts, where the previous session's items must not bleed into the
+  /// next one and must not be deleted from the *new* user's server cart.
+  void reset() {
+    state = const [];
+  }
 
   void add({
     required StoreProduct product,

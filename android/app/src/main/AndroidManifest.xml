@@ -4,6 +4,8 @@
     <!-- Required to show the user's current location on the map. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Required by mobile_scanner to confirm Cash on Pickup orders. -->
+    <uses-permission android:name="android.permission.CAMERA" />
     <application
         android:label="MapAnytime Market"
         android:name="${applicationName}"
