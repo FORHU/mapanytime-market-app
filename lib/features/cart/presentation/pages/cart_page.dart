@@ -418,14 +418,15 @@ class _CartRow extends ConsumerWidget {
                       children: [
                         Text(
                           Money.peso(item.product.price),
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall?.copyWith(
-                            color: AppColors.text.secondary,
-                            decoration: hasDiscount
-                                ? TextDecoration.lineThrough
-                                : null,
-                          ),
+                          style:
+                              Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.copyWith(
+                                color: AppColors.text.secondary,
+                                decoration: hasDiscount
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                              ),
                         ),
                         if (hasDiscount) ...[
                           const Gap(6),

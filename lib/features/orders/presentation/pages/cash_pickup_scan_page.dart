@@ -26,8 +26,7 @@ class CashPickupScanPage extends ConsumerStatefulWidget {
   final BuyerOrder order;
 
   @override
-  ConsumerState<CashPickupScanPage> createState() =>
-      _CashPickupScanPageState();
+  ConsumerState<CashPickupScanPage> createState() => _CashPickupScanPageState();
 }
 
 class _CashPickupScanPageState extends ConsumerState<CashPickupScanPage> {
