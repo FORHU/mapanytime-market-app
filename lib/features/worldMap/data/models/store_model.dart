@@ -27,6 +27,9 @@ class StoreModel extends StoreEntity {
     super.rating,
     super.ratingCount,
     super.isOpen,
+    super.markerDisplayMode,
+    super.markerPrice,
+    super.markerSubtitle,
   });
 
   // categoryId/categoryName/logoUrl/rating/ratingCount/isOpen aren't sent by
@@ -48,7 +51,26 @@ class StoreModel extends StoreEntity {
       rating: (json['rating'] as num?)?.toDouble(),
       ratingCount: (json['ratingCount'] as num?)?.toInt(),
       isOpen: json['isOpen'] as bool?,
+      markerDisplayMode: _markerDisplayModeFromJson(
+        json['markerDisplayMode'] as String?,
+      ),
+      markerPrice: (json['markerPrice'] as num?)?.toDouble(),
+      markerSubtitle: json['markerSubtitle'] as String?,
     );
+  }
+
+  // Unknown/missing mode falls back to photoCard — matches the backend's
+  // own column default, so an old client talking to a new API (or a
+  // temporary bad value) degrades to today's behavior rather than crashing.
+  static MarkerDisplayMode _markerDisplayModeFromJson(String? value) {
+    switch (value) {
+      case 'PRICE_CARD':
+        return MarkerDisplayMode.priceCard;
+      case 'LABEL_CARD':
+        return MarkerDisplayMode.labelCard;
+      default:
+        return MarkerDisplayMode.photoCard;
+    }
   }
 
   Map<String, dynamic> toJson() => {
@@ -63,5 +85,8 @@ class StoreModel extends StoreEntity {
     'rating': rating,
     'ratingCount': ratingCount,
     'isOpen': isOpen,
+    'markerDisplayMode': markerDisplayMode.name,
+    'markerPrice': markerPrice,
+    'markerSubtitle': markerSubtitle,
   };
 }
