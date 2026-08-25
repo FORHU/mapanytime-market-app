@@ -3,22 +3,22 @@ import 'package:mapanytime_market_app/features/worldMap/presentation/pages/compo
 
 void main() {
   group('MapboxStyleManager.sizeFor', () {
-    test('lands on a ~56dp square for a typical phone width', () {
+    test('lands on a ~79dp square for a typical phone width', () {
       final size = MapboxStyleManager.sizeFor(375);
-      expect(size.width, closeTo(56.25, 0.01));
+      expect(size.width, closeTo(78.75, 0.01));
       expect(size.height, size.width);
     });
 
     test('clamps to the minimum card width on very small screens', () {
       final size = MapboxStyleManager.sizeFor(200);
-      expect(size.width, 48);
-      expect(size.height, 48);
+      expect(size.width, 64);
+      expect(size.height, 64);
     });
 
     test('clamps to the maximum card width on very large screens', () {
       final size = MapboxStyleManager.sizeFor(1000);
-      expect(size.width, 68);
-      expect(size.height, 68);
+      expect(size.width, 92);
+      expect(size.height, 92);
     });
   });
 
