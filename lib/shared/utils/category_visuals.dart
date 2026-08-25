@@ -48,37 +48,40 @@ IconData iconForCategory(String name) {
 // Colors
 // ---------------------------------------------------------------------------
 
-/// One distinct color per known category name. Chosen to be visually
-/// separable from each other, from the brand gradient (indigo → violet), and
-/// from the status palette (error red, success green, warning amber).
+/// One distinct color per known category name. A shared tone family
+/// (consistent saturation/lightness, hues spread around the wheel) rather
+/// than each hue at its own max-saturation "brand" tint — a map scattered
+/// with a dozen neon dots reads as confetti, not as a legible category key.
+/// Kept confident/legible rather than fully desaturated — too muted reads
+/// as dull/lifeless at marker scale.
 const _categoryColors = <String, Color>{
-  'Food & Beverage': Color(0xFFF97316), // orange
-  'Shopping & Retail': Color(0xFFEC4899), // hot pink
-  'Electronics': Color(0xFF38BDF8), // sky blue
-  'Home & Living': Color(0xFF14B8A6), // teal
-  'Health & Wellness': Color(0xFF84CC16), // lime
-  'Automotive': Color(0xFFEF4444), // red
-  'Pets': Color(0xFFCD7C3A), // warm brown
-  'Sports & Outdoors': Color(0xFF06B6D4), // cyan
-  'Entertainment': Color(0xFFA855F7), // purple
-  'Baby & Kids': Color(0xFFF472B6), // light pink
-  'Services': Color(0xFF3B82F6), // royal blue
-  'Agriculture': Color(0xFF22C55E), // green
-  'Industrial & Business': Color(0xFF94A3B8), // steel
+  'Food & Beverage': Color(0xFFD97C3A), // warm terracotta
+  'Shopping & Retail': Color(0xFFD2567F), // rose
+  'Electronics': Color(0xFF498AD4), // steel blue
+  'Home & Living': Color(0xFF30A68E), // teal
+  'Health & Wellness': Color(0xFF3AA64C), // sage green
+  'Automotive': Color(0xFFD94A3A), // brick red
+  'Pets': Color(0xFFB87A3D), // warm taupe
+  'Sports & Outdoors': Color(0xFF309BB5), // teal-blue
+  'Entertainment': Color(0xFF905EC9), // plum
+  'Baby & Kids': Color(0xFFE08594), // dusty pink
+  'Services': Color(0xFF4165C8), // denim
+  'Agriculture': Color(0xFF579438), // olive
+  'Industrial & Business': Color(0xFF858FA3), // steel gray
 };
 
 /// Fallback palette for arbitrary keys (store IDs, unknown category IDs).
-/// Uses the first 8 colors from [_categoryColors] so the visual language stays
+/// Uses 8 colors from [_categoryColors] so the visual language stays
 /// consistent even for unrecognised categories.
 const _fallbackPalette = <Color>[
-  Color(0xFFF97316),
-  Color(0xFF38BDF8),
-  Color(0xFF84CC16),
-  Color(0xFFEC4899),
-  Color(0xFFA855F7),
-  Color(0xFF14B8A6),
-  Color(0xFFCD7C3A),
-  Color(0xFF06B6D4),
+  Color(0xFFD97C3A),
+  Color(0xFF498AD4),
+  Color(0xFF3AA64C),
+  Color(0xFFD2567F),
+  Color(0xFF905EC9),
+  Color(0xFF30A68E),
+  Color(0xFFB87A3D),
+  Color(0xFF309BB5),
 ];
 
 /// Returns the canonical color for a known category [name].

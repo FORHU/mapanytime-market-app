@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/shared/utils/category_visuals.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
@@ -82,9 +85,9 @@ class MapboxStyleManager {
   // size for every device. This is the single bitmap size every store's
   // card is drawn at; the icon layer's iconSizeExpression scales it from
   // there per zoom level.
-  static const double _widthFraction = 0.21;
-  static const double _minCardWidth = 64;
-  static const double _maxCardWidth = 92;
+  static const double _widthFraction = 0.15;
+  static const double _minCardWidth = 48;
+  static const double _maxCardWidth = 68;
 
   @visibleForTesting
   static ({double width, double height}) sizeFor(double screenWidth) {
@@ -138,7 +141,7 @@ class MapboxStyleManager {
       CircleLayer(
         id: _dotLayerId,
         sourceId: _sourceId,
-        circleRadius: 4,
+        circleRadius: 6,
         circleColorExpression: ['get', 'color'],
         circleStrokeWidth: 1,
         circleStrokeColor: Colors.white.toARGB32(),
@@ -221,7 +224,7 @@ class MapboxStyleManager {
 
     for (final store in stores) {
       newIds.add(store.id);
-      final iconId = _iconIdFor(store);
+      final iconId = iconIdFor(store);
       if (!_registeredImageIds.contains(iconId)) {
         toRegister.add((iconId, store));
       }
@@ -269,18 +272,34 @@ class MapboxStyleManager {
     properties: {
       'storeId': store.id,
       'iconId': iconId,
-      'color': colorForStore(store).toARGB32(),
+      'color': _hexColor(colorForStore(store)),
     },
   );
+
+  // `circleColorExpression: ['get', 'color']` is a Style Spec data
+  // expression — it needs a CSS color string, not a raw packed int. A bare
+  // int silently fails to parse and circle-color falls back to its Style
+  // Spec default (black), which is why every dot used to render black
+  // regardless of category.
+  String _hexColor(Color color) =>
+      '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
 
   String _renderSignatureFor(StoreEntity s, String iconId) =>
       '$iconId|${s.lat}|${s.lng}';
 
-  String _iconIdFor(StoreEntity s) => [
+  /// Content signature a registered bitmap is cached under — includes every
+  /// field any `_paint*Card` method reads, so a change to any of them (e.g.
+  /// switching marker display mode) invalidates the cache instead of
+  /// leaving a stale bitmap on screen.
+  @visibleForTesting
+  static String iconIdFor(StoreEntity s) => [
     s.id,
     s.markerPhotoUrl ?? '',
     s.isOpen?.toString() ?? '',
     s.categoryId ?? s.name,
+    s.markerDisplayMode.name,
+    s.markerPrice?.toString() ?? '',
+    s.markerSubtitle ?? '',
   ].join('|');
 
   Future<void> _registerImage(String iconId, StoreEntity store) async {
@@ -341,26 +360,36 @@ class MapboxStyleManager {
     );
   }
 
-  /// Rounded-square photo card, registered once per distinct visual
-  /// signature via `addStyleImage`. Shows the merchant's photo when it has
-  /// one, center-cropped to fill the card; otherwise a colored monogram
-  /// card so every merchant is still identifiable at a glance. Selection is
-  /// handled by a separate halo layer, not baked in here.
-  Future<MbxImage> _createCardImage(StoreEntity store) async {
-    final cardSize = _cardSize;
-    const radius = _cardRadius;
-    const badgeRadius = _statusBadgeRadius;
+  // Fixed-pixel shadow blur doesn't scale with card size, so this padding
+  // (reserved on every side of every bitmap so the blur has room) doesn't
+  // either.
+  static const double _shadowPadding = AppSpacing.sm;
 
-    final photoUrl = store.markerPhotoUrl;
-    final photoImage = photoUrl == null
-        ? null
-        : await _loadPhotoImage(photoUrl);
+  /// Marker card dispatcher — [StoreEntity.markerDisplayMode] picks which
+  /// renderer runs. Each renderer sizes its own bitmap (a fixed square for
+  /// [_renderPhotoCard], auto-width pills for the other two, since Mapbox's
+  /// `addStyleImage` takes each icon's native size independently — there's
+  /// no shared canvas dimension to agree on).
+  Future<MbxImage> _createCardImage(StoreEntity store) {
+    switch (store.markerDisplayMode) {
+      case MarkerDisplayMode.priceCard:
+        return _renderPriceCard(store);
+      case MarkerDisplayMode.labelCard:
+        return _renderLabelCard(store);
+      case MarkerDisplayMode.photoCard:
+        return _renderPhotoCard(store);
+    }
+  }
 
-    // Pads for the fixed-pixel shadow blur below — that amount doesn't
-    // scale with card size, so neither does this.
-    const padding = AppSpacing.sm;
-    final canvasWidth = cardSize.width + padding;
-    final canvasHeight = cardSize.height + padding;
+  /// Rasterizes a [logicalSize] card into an [MbxImage], with [_dpr]-aware
+  /// pixel scaling and shadow padding shared by every display mode. [paint]
+  /// draws into a card-space `Rect` positioned inside that padding.
+  Future<MbxImage> _rasterize(
+    ui.Size logicalSize,
+    FutureOr<void> Function(Canvas canvas, Rect cardRect) paint,
+  ) async {
+    final canvasWidth = logicalSize.width + _shadowPadding;
+    final canvasHeight = logicalSize.height + _shadowPadding;
     final pixelWidth = (canvasWidth * _dpr).ceil();
     final pixelHeight = (canvasHeight * _dpr).ceil();
 
@@ -370,89 +399,14 @@ class MapboxStyleManager {
       Rect.fromLTWH(0, 0, pixelWidth.toDouble(), pixelHeight.toDouble()),
     )..scale(_dpr);
 
-    final center = Offset(canvasWidth / 2, canvasHeight / 2);
-    final cardRect = Rect.fromCenter(
-      center: center,
-      width: cardSize.width,
-      height: cardSize.height,
-    );
-    final cardRRect = RRect.fromRectAndRadius(
-      cardRect,
-      const Radius.circular(radius),
+    final cardRect = Rect.fromLTWH(
+      _shadowPadding / 2,
+      _shadowPadding / 2,
+      logicalSize.width,
+      logicalSize.height,
     );
 
-    // Drop shadow.
-    canvas.drawRRect(
-      cardRRect.shift(const Offset(0, 2)),
-      Paint()
-        ..color = Colors.black.withValues(alpha: 0.35)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
-    );
-
-    if (photoImage != null) {
-      canvas
-        ..save()
-        ..clipRRect(cardRRect);
-
-      // Crop-to-cover the destination (like CSS object-fit: cover): trim
-      // the source's wider dimension so it fills the card without
-      // stretching.
-      final destAspect = cardRect.width / cardRect.height;
-      final srcAspect = photoImage.width / photoImage.height;
-      double srcWidth;
-      double srcHeight;
-      if (srcAspect > destAspect) {
-        srcHeight = photoImage.height.toDouble();
-        srcWidth = srcHeight * destAspect;
-      } else {
-        srcWidth = photoImage.width.toDouble();
-        srcHeight = srcWidth / destAspect;
-      }
-      final src = Rect.fromCenter(
-        center: Offset(photoImage.width / 2, photoImage.height / 2),
-        width: srcWidth,
-        height: srcHeight,
-      );
-      canvas
-        ..drawImageRect(photoImage, src, cardRect, Paint())
-        ..restore();
-    } else {
-      canvas.drawRRect(cardRRect, Paint()..color = colorForStore(store));
-      _paintMonogram(canvas, store, center, cardSize.height);
-    }
-
-    canvas.drawRRect(
-      cardRRect,
-      Paint()
-        ..color = Colors.white
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
-    );
-
-    // Open/closed indicator, upper-right corner. Inset proportionally
-    // (rather than pinned to the literal bounding-box corner) so it sits
-    // near the rounded corner's curve instead of floating past it.
-    // Omitted entirely when unknown — never fabricate a status.
-    final isOpen = store.isOpen;
-    if (isOpen != null) {
-      final statusCenter =
-          center +
-          Offset(cardSize.width / 2 * 0.75, -cardSize.height / 2 * 0.75);
-      canvas
-        ..drawCircle(
-          statusCenter,
-          badgeRadius + 1.5,
-          Paint()..color = Colors.white,
-        )
-        ..drawCircle(
-          statusCenter,
-          badgeRadius,
-          Paint()
-            ..color = isOpen
-                ? AppColors.status.success
-                : AppColors.text.secondary,
-        );
-    }
+    await paint(canvas, cardRect);
 
     final picture = recorder.endRecording();
     final image = await picture.toImage(pixelWidth, pixelHeight);
@@ -468,6 +422,277 @@ class MapboxStyleManager {
       width: pixelWidth,
       height: pixelHeight,
       data: byteData!.buffer.asUint8List(),
+    );
+  }
+
+  // Reuses the app's own small-raised-element shadow token instead of a
+  // bespoke blur, so a marker's shadow matches the rest of the app's
+  // floating chrome (search bar, chips, nav pill) instead of a harsher,
+  // one-off value.
+  void _drawCardShadow(Canvas canvas, RRect cardRRect) {
+    final shadow = AppEffects.softShadow.first;
+    canvas.drawRRect(cardRRect.shift(shadow.offset), shadow.toPaint());
+  }
+
+  void _drawCardStroke(Canvas canvas, RRect cardRRect, Color color) {
+    canvas.drawRRect(
+      cardRRect,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+  }
+
+  // Open/closed indicator, upper-right corner. Inset proportionally (rather
+  // than pinned to the literal bounding-box corner) so it sits near the
+  // rounded corner's curve instead of floating past it. Omitted entirely
+  // when unknown — never fabricate a status. Photo-card only: a price or
+  // label listing (a rental night, a single car) doesn't carry the same
+  // "open now" meaning a storefront does.
+  void _paintStatusDot(
+    Canvas canvas,
+    StoreEntity store,
+    Offset center,
+    ({double width, double height}) cardSize,
+  ) {
+    final isOpen = store.isOpen;
+    if (isOpen == null) return;
+    final statusCenter =
+        center + Offset(cardSize.width / 2 * 0.75, -cardSize.height / 2 * 0.75);
+    canvas
+      ..drawCircle(
+        statusCenter,
+        _statusBadgeRadius + 1.5,
+        Paint()..color = Colors.white,
+      )
+      ..drawCircle(
+        statusCenter,
+        _statusBadgeRadius,
+        Paint()
+          ..color = isOpen
+              ? AppColors.status.success
+              : AppColors.text.secondary,
+      );
+  }
+
+  /// Rounded-square photo card, fixed at [_cardSize]. Shows the merchant's
+  /// photo, center-cropped to fill the card; otherwise a colored monogram
+  /// card so every merchant is still identifiable at a glance.
+  Future<MbxImage> _renderPhotoCard(StoreEntity store) {
+    final size = ui.Size(_cardSize.width, _cardSize.height);
+    return _rasterize(size, (canvas, cardRect) async {
+      final cardRRect = RRect.fromRectAndRadius(
+        cardRect,
+        const Radius.circular(_cardRadius),
+      );
+      final center = cardRect.center;
+      _drawCardShadow(canvas, cardRRect);
+
+      final photoUrl = store.markerPhotoUrl;
+      final photoImage = photoUrl == null
+          ? null
+          : await _loadPhotoImage(photoUrl);
+
+      if (photoImage != null) {
+        canvas
+          ..save()
+          ..clipRRect(cardRRect);
+
+        // Crop-to-cover the destination (like CSS object-fit: cover): trim
+        // the source's wider dimension so it fills the card without
+        // stretching.
+        final destAspect = cardRect.width / cardRect.height;
+        final srcAspect = photoImage.width / photoImage.height;
+        double srcWidth;
+        double srcHeight;
+        if (srcAspect > destAspect) {
+          srcHeight = photoImage.height.toDouble();
+          srcWidth = srcHeight * destAspect;
+        } else {
+          srcWidth = photoImage.width.toDouble();
+          srcHeight = srcWidth / destAspect;
+        }
+        final src = Rect.fromCenter(
+          center: Offset(photoImage.width / 2, photoImage.height / 2),
+          width: srcWidth,
+          height: srcHeight,
+        );
+        canvas
+          ..drawImageRect(photoImage, src, cardRect, Paint())
+          ..restore();
+      } else {
+        canvas.drawRRect(cardRRect, Paint()..color = colorForStore(store));
+        _paintMonogram(canvas, store, center, cardRect.height);
+      }
+
+      _drawCardStroke(canvas, cardRRect, Colors.white);
+      _paintStatusDot(canvas, store, center, _cardSize);
+    });
+  }
+
+  static final _priceFormat = NumberFormat.decimalPattern();
+
+  /// Airbnb-style price pill for rentals/hotels: a white pill sized to fit
+  /// the price text (not the square photo-card footprint), bold dark text,
+  /// no photo. Falls back to the store name if a price hasn't been set, so
+  /// a misconfigured store never renders blank.
+  Future<MbxImage> _renderPriceCard(StoreEntity store) {
+    final price = store.markerPrice;
+    final label = price == null ? store.name : '₱${_priceFormat.format(price)}';
+
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: TextStyle(
+          fontSize: _cardSize.height * 0.24,
+          fontWeight: FontWeight.w700,
+          color: AppColors.text.primary,
+          letterSpacing: -0.2,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+
+    const paddingH = AppSpacing.sm + AppSpacing.xs;
+    const paddingV = AppSpacing.xs + 2;
+    final size = ui.Size(
+      textPainter.width + paddingH * 2,
+      textPainter.height + paddingV * 2,
+    );
+
+    return _rasterize(size, (canvas, cardRect) {
+      final cardRRect = RRect.fromRectAndRadius(
+        cardRect,
+        Radius.circular(cardRect.height / 2),
+      );
+      _drawCardShadow(canvas, cardRRect);
+      canvas.drawRRect(cardRRect, Paint()..color = AppColors.ui.surface);
+      _drawCardStroke(canvas, cardRRect, AppColors.ui.borderHairline);
+      textPainter.paint(
+        canvas,
+        cardRect.center - Offset(textPainter.width / 2, textPainter.height / 2),
+      );
+    });
+  }
+
+  /// Classifieds-style label card for second-hand marketplace items: a
+  /// category-colored icon badge beside the item's own name (for a
+  /// single-item listing, `storeName` *is* the item, e.g. "Toyota Vios
+  /// 2021") over a smaller spec/year subtitle. Auto-sized to fit both
+  /// lines rather than the square photo-card footprint, visually distinct
+  /// from the plain white price pill.
+  Future<MbxImage> _renderLabelCard(StoreEntity store) {
+    final badgeDiameter = _cardSize.height * 0.5;
+    final maxTextWidth = _cardSize.width * 1.6;
+
+    final titlePainter = TextPainter(
+      text: TextSpan(
+        text: store.name,
+        style: TextStyle(
+          fontSize: _cardSize.height * 0.19,
+          fontWeight: FontWeight.w700,
+          color: AppColors.text.primary,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+      ellipsis: '…',
+    )..layout(maxWidth: maxTextWidth);
+
+    final subtitle = store.markerSubtitle;
+    final subtitlePainter = subtitle == null
+        ? null
+        : (TextPainter(
+            text: TextSpan(
+              text: subtitle,
+              style: TextStyle(
+                fontSize: _cardSize.height * 0.15,
+                fontWeight: FontWeight.w500,
+                color: AppColors.text.secondary,
+              ),
+            ),
+            textDirection: TextDirection.ltr,
+            maxLines: 1,
+            ellipsis: '…',
+          )..layout(maxWidth: maxTextWidth));
+
+    const paddingH = AppSpacing.sm;
+    const gapIconText = AppSpacing.xs + 2;
+    const textGap = 2.0;
+
+    final textBlockWidth = subtitlePainter == null
+        ? titlePainter.width
+        : (titlePainter.width > subtitlePainter.width
+              ? titlePainter.width
+              : subtitlePainter.width);
+    final textBlockHeight =
+        titlePainter.height +
+        (subtitlePainter == null ? 0 : textGap + subtitlePainter.height);
+
+    final size = ui.Size(
+      paddingH * 2 + badgeDiameter + gapIconText + textBlockWidth,
+      (badgeDiameter > textBlockHeight ? badgeDiameter : textBlockHeight) +
+          AppSpacing.xs * 2,
+    );
+
+    return _rasterize(size, (canvas, cardRect) {
+      final cardRRect = RRect.fromRectAndRadius(
+        cardRect,
+        Radius.circular(cardRect.height / 2),
+      );
+      _drawCardShadow(canvas, cardRRect);
+      canvas.drawRRect(cardRRect, Paint()..color = AppColors.ui.surface);
+      _drawCardStroke(canvas, cardRRect, AppColors.ui.borderHairline);
+
+      final badgeCenter = Offset(
+        cardRect.left + paddingH + badgeDiameter / 2,
+        cardRect.center.dy,
+      );
+      canvas.drawCircle(
+        badgeCenter,
+        badgeDiameter / 2,
+        Paint()..color = colorForStore(store),
+      );
+      _paintCategoryGlyph(canvas, store, badgeCenter, badgeDiameter);
+
+      final textLeft = cardRect.left + paddingH + badgeDiameter + gapIconText;
+      var y = cardRect.center.dy - textBlockHeight / 2;
+      titlePainter.paint(canvas, Offset(textLeft, y));
+      if (subtitlePainter != null) {
+        y += titlePainter.height + textGap;
+        subtitlePainter.paint(canvas, Offset(textLeft, y));
+      }
+    });
+  }
+
+  /// Paints a category glyph (e.g. the automotive/electronics icon) centered
+  /// in the label card's badge — the same trick `Icon` widgets use
+  /// internally, painting the icon font's glyph directly via `TextPainter`
+  /// since there's no widget tree here, only a raw `Canvas`.
+  void _paintCategoryGlyph(
+    Canvas canvas,
+    StoreEntity store,
+    Offset center,
+    double diameter,
+  ) {
+    final icon = iconForStore(store);
+    final painter = TextPainter(
+      text: TextSpan(
+        text: String.fromCharCode(icon.codePoint),
+        style: TextStyle(
+          fontSize: diameter * 0.55,
+          fontFamily: icon.fontFamily,
+          package: icon.fontPackage,
+          color: AppColors.text.onInk,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    painter.paint(
+      canvas,
+      center - Offset(painter.width / 2, painter.height / 2),
     );
   }
 
