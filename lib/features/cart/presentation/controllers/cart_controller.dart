@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mapanytime_market_app/core/utils/logger.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart'
     show apiServiceProvider;
 import 'package:mapanytime_market_app/features/cart/data/cart_remote_datasource.dart';
@@ -26,7 +27,20 @@ class CartNotifier extends Notifier<List<CartItem>> {
   Future<void> _syncQueue = Future.value();
 
   void _enqueueSync(Future<void> Function() write) {
-    _syncQueue = _syncQueue.then((_) => write()).catchError((_) {});
+    _syncQueue = _syncQueue.then((_) => write()).catchError((
+      Object error,
+      StackTrace stackTrace,
+    ) {
+      // Still swallowed: cart writes are fire-and-forget against optimistic
+      // local state, and a failed sync must not break the UI. Logged, though —
+      // total silence here is what let `DELETE /cart` 404 against an endpoint
+      // that was never registered, unnoticed (F45).
+      appLogger.w(
+        'Cart sync write failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    });
   }
 
   /// Resolves once every cart write dispatched so far has completed

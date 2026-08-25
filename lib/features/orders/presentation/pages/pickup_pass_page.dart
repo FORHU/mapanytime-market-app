@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:mapanytime_market_app/core/config/app_config.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/orders/data/order_remote_datasource.dart';
 import 'package:mapanytime_market_app/features/orders/domain/entities/buyer_order.dart';
@@ -116,7 +117,11 @@ class PickupPassPage extends ConsumerWidget {
                   ],
                 ),
               ),
-              if (currentOrder.status == OrderStatus.confirmed) ...[
+              // Dev-only. The mock-webhook endpoint behind this button is
+              // gated on NODE_ENV in payment.controller.ts; this guard is the
+              // client half of that, so the control never ships to a buyer.
+              if (AppConfig.instance.isDev &&
+                  currentOrder.status == OrderStatus.confirmed) ...[
                 const Gap(AppSpacing.xl),
                 PrimaryButton(
                   label: 'Simulate Mock Payment',

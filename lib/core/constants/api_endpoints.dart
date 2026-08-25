@@ -63,6 +63,10 @@ class ApiEndpoints {
   /// total) for the cart or a selected subset of it.  `POST /cart/pricing`.
   static const String cartPricing = '/cart/pricing';
 
+  /// Empty the cart.  `DELETE /cart/clear` — note the suffix: the API does not
+  /// register a bare `DELETE /cart`.
+  static const String cartClear = '/cart/clear';
+
   // ── Orders ────────────────────────────────────────────────────────────────
 
   /// Create a new order from the Redis cart.  `POST /orders`.
