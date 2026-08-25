@@ -81,6 +81,9 @@ void main() {
       'rating': null,
       'ratingCount': null,
       'isOpen': null,
+      'markerDisplayMode': 'photoCard',
+      'markerPrice': null,
+      'markerSubtitle': null,
     });
   });
 }
