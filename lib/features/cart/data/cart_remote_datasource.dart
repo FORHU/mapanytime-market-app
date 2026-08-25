@@ -37,7 +37,7 @@ class CartRemoteDataSource {
 
   /// Empties the server-side cart (called after order placement).
   Future<void> clearCart() async {
-    await _api.delete(ApiEndpoints.cart);
+    await _api.delete(ApiEndpoints.cartClear);
   }
 
   /// Fetches a server-verified pricing breakdown for the cart, or just

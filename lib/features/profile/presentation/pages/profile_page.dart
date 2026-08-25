@@ -187,7 +187,8 @@ class _ProfileHeader extends StatelessWidget {
                 ),
                 // "Gold member" badge removed — it was a hardcoded literal;
                 // no loyalty/membership-tier concept exists anywhere in the
-                // API. See docs/PICKUP-NEXT.md.
+                // API. (MapPoints would be that concept, but it is still
+                // unbuilt — see F39-F42 in the register.)
               ],
             ),
           ),
@@ -200,8 +201,9 @@ class _ProfileHeader extends StatelessWidget {
 /// Was three hardcoded literals (`'8'`, `'320'`, `'12'`) shown to every user
 /// regardless of their real data. Orders and Saved now read real counts;
 /// Points has no backing concept anywhere in the API (no loyalty/points
-/// system exists) so it's left out entirely rather than kept as fake data —
-/// see docs/PICKUP-NEXT.md.
+/// system exists) so it's left out entirely rather than kept as fake data.
+/// MapPoints is the intended concept and remains unbuilt — see F39-F42 in
+/// mapanytime-api/docs/specs/OPEN-FLAGS.md.
 class _StatsRow extends ConsumerWidget {
   const _StatsRow();
 
