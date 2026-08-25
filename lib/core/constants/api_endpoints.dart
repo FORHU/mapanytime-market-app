@@ -87,8 +87,12 @@ class ApiEndpoints {
   static const String paymentMethods = '/payments/methods';
 
   /// Start payment for an order with the chosen method.
-  /// `POST /orders/<orderId>/payment`. Returns a `checkoutUrl` to present.
-  static String orderPayment(String orderId) => '/orders/$orderId/payment';
+  /// `POST /payments/orders/<orderId>/payment`. Returns a `checkoutUrl` to
+  /// present. Note the `/payments` prefix — the route is registered on the
+  /// payments router, not the orders one, and this constant pointed at the
+  /// bare `/orders/...` path, which 404s.
+  static String orderPayment(String orderId) =>
+      '/payments/orders/$orderId/payment';
 
   /// Simulate payment settlement (mock webhook).  `POST /payments/mock-webhook`.
   /// Development only — the mock provider is refused in production.
