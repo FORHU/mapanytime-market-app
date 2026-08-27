@@ -26,6 +26,7 @@ class OrderRemoteDataSource {
     String? paymentMethodId,
     String? paymentMethod,
     List<String>? productIds,
+    String? userVoucherId,
   }) async {
     final payload = <String, dynamic>{
       'type': type,
@@ -39,6 +40,9 @@ class OrderRemoteDataSource {
     }
     if (productIds != null && productIds.isNotEmpty) {
       payload['productIds'] = productIds;
+    }
+    if (userVoucherId != null) {
+      payload['userVoucherId'] = userVoucherId;
     }
 
     final response = await _api.post(ApiEndpoints.ordersCreate, payload);

@@ -21,12 +21,26 @@ class PriceBreakdownCard extends StatelessWidget {
     required this.pricing,
     this.selectedMethod,
     this.onRetry,
+    this.voucherDiscountAmount,
+    this.pointsToEarn,
     super.key,
   });
 
   final AsyncValue<CartPricing?> pricing;
   final PaymentMethod? selectedMethod;
   final VoidCallback? onRetry;
+
+  /// A claimed MapPoints voucher's estimated discount, if one is applied.
+  /// Kept separate from [CartPricing.discountAmount] — that field is
+  /// seller-funded merchant/ad discounts, this is a platform-funded MapPoints
+  /// redemption, and the two must not be conflated (see OPEN-FLAGS.md
+  /// F39/F40). An estimate only; the order response is the source of truth.
+  final num? voucherDiscountAmount;
+
+  /// Estimated MapPoints the buyer will earn if this order completes. Points
+  /// are only actually credited when the order reaches COMPLETED, not at
+  /// checkout — shown as an estimate for that reason.
+  final int? pointsToEarn;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +59,12 @@ class PriceBreakdownCard extends StatelessWidget {
           error: (_, _) => _ErrorRows(onRetry: onRetry),
           data: (value) => value == null
               ? const _Row(label: 'Total', value: '—', bold: true)
-              : _BreakdownRows(pricing: value, selectedMethod: selectedMethod),
+              : _BreakdownRows(
+                  pricing: value,
+                  selectedMethod: selectedMethod,
+                  voucherDiscountAmount: voucherDiscountAmount,
+                  pointsToEarn: pointsToEarn,
+                ),
         ),
       ),
     );
@@ -53,14 +72,27 @@ class PriceBreakdownCard extends StatelessWidget {
 }
 
 class _BreakdownRows extends StatelessWidget {
-  const _BreakdownRows({required this.pricing, this.selectedMethod});
+  const _BreakdownRows({
+    required this.pricing,
+    this.selectedMethod,
+    this.voucherDiscountAmount,
+    this.pointsToEarn,
+  });
 
   final CartPricing pricing;
   final PaymentMethod? selectedMethod;
+  final num? voucherDiscountAmount;
+  final int? pointsToEarn;
+
+  num _lessVoucher(num amount) {
+    final result = amount - (voucherDiscountAmount ?? 0);
+    return result < 0 ? 0 : result;
+  }
 
   @override
   Widget build(BuildContext context) {
     final hasDiscount = pricing.discountAmount > 0;
+    final hasVoucher = (voucherDiscountAmount ?? 0) > 0;
     final fee = selectedMethod?.feeAmount;
     final buyerTotal = selectedMethod?.buyerTotalAmount;
     final showsFee = fee != null && buyerTotal != null;
@@ -75,15 +107,40 @@ class _BreakdownRows extends StatelessWidget {
           icon: Icons.local_offer_rounded,
           valueColor: hasDiscount ? AppColors.status.success : null,
         ),
+        if (hasVoucher) ...[
+          const Gap(AppSpacing.sm),
+          _Row(
+            label: 'MapPoints voucher',
+            value: '-${Money.peso(voucherDiscountAmount!)}',
+            icon: Icons.toll_rounded,
+            valueColor: AppColors.status.success,
+          ),
+        ],
         const Gap(AppSpacing.sm),
         _Row(label: 'Subtotal', value: Money.peso(pricing.subtotalAmount)),
+        if ((pointsToEarn ?? 0) > 0) ...[
+          const Gap(AppSpacing.sm),
+          _Row(
+            label: "You'll earn",
+            value: '~$pointsToEarn pts',
+            icon: Icons.add_circle_outline_rounded,
+          ),
+        ],
         const Gap(AppSpacing.sm),
         Divider(color: AppColors.ui.borderHairline, height: 1),
         const Gap(AppSpacing.sm),
+        // ponytail: the payment-method fee/total below is quoted by
+        // `GET /payments/methods` against the pre-voucher goods total (this
+        // widget has no way to re-quote it), so only the two totals are
+        // adjusted here by subtracting the voucher — the fee itself is a
+        // small approximation until the order is actually created. The order
+        // response is the source of truth; upgrade path is threading
+        // voucherAmount into the payment-methods quote if this drifts enough
+        // to matter.
         if (showsFee) ...[
           _Row(
             label: 'Order total',
-            value: Money.peso(pricing.totalAmount),
+            value: Money.peso(_lessVoucher(pricing.totalAmount)),
           ),
           const Gap(AppSpacing.sm),
           _Row(
@@ -95,13 +152,13 @@ class _BreakdownRows extends StatelessWidget {
           const Gap(AppSpacing.sm),
           _Row(
             label: 'Total to pay',
-            value: Money.peso(buyerTotal),
+            value: Money.peso(_lessVoucher(buyerTotal)),
             bold: true,
           ),
         ] else ...[
           _Row(
             label: 'Order total',
-            value: Money.peso(pricing.totalAmount),
+            value: Money.peso(_lessVoucher(pricing.totalAmount)),
             bold: true,
           ),
           const Gap(AppSpacing.xs),

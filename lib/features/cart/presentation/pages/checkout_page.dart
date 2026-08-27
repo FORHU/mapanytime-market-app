@@ -15,6 +15,9 @@ import 'package:mapanytime_market_app/features/orders/presentation/controllers/o
 import 'package:mapanytime_market_app/features/orders/presentation/pages/order_confirmation_page.dart';
 import 'package:mapanytime_market_app/features/payments/domain/entities/payment_method.dart';
 import 'package:mapanytime_market_app/features/payments/presentation/controllers/payment_controller.dart';
+import 'package:mapanytime_market_app/features/rewards/domain/entities/user_voucher.dart';
+import 'package:mapanytime_market_app/features/rewards/presentation/controllers/rewards_controller.dart';
+import 'package:mapanytime_market_app/features/rewards/presentation/widgets/claimed_voucher_card.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/key_value_card.dart';
@@ -44,6 +47,32 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
   PaymentMethod? _selectedMethod;
   TimeOfDay? _pickupTime;
   bool _isSubmitting = false;
+  UserVoucher? _selectedVoucher;
+
+  Future<void> _pickVoucher(num eligibleSubtotal) async {
+    final usable = ref
+        .read(usableVouchersProvider)
+        .where((v) => v.voucher.meetsMinimum(eligibleSubtotal))
+        .toList();
+
+    // Wrapped in [_VoucherPickResult] so a swipe-to-dismiss (no explicit
+    // choice, resolves to plain `null`) is distinguishable from an explicit
+    // "Remove applied voucher" tap (resolves to a result wrapping `null`) —
+    // otherwise dismissing the sheet would silently clear an already-applied
+    // voucher.
+    final result = await showModalBottomSheet<_VoucherPickResult>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _VoucherPickerSheet(
+        vouchers: usable,
+        selected: _selectedVoucher,
+      ),
+    );
+
+    if (result != null) {
+      setState(() => _selectedVoucher = result.voucher);
+    }
+  }
 
   Future<void> _pickTime() async {
     final now = TimeOfDay.now();
@@ -71,6 +100,20 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
         ? pricing.value!.totalAmount.toDouble()
         : 0.0;
     final methodsAsync = ref.watch(paymentMethodsProvider(goodsTotal));
+
+    // Eligible base for both the voucher discount preview and the points-to-
+    // earn estimate: subtotal net of merchant discounts, matching what the
+    // backend uses for each (RewardService reads the same base; a MapPoints
+    // voucher deliberately does not shrink it further — see F39/F40).
+    final eligibleSubtotal = pricing.hasValue && pricing.value != null
+        ? (pricing.value!.subtotalAmount - pricing.value!.discountAmount)
+        : 0;
+    final selectedVoucher = _selectedVoucher;
+    final voucherDiscount = selectedVoucher != null
+        ? selectedVoucher.voucher.estimateDiscount(eligibleSubtotal)
+        : 0;
+    final rewardsConfig = ref.watch(rewardsConfigProvider).value;
+    final pointsToEarn = rewardsConfig?.estimatePoints(eligibleSubtotal) ?? 0;
 
     ref.listen(paymentMethodsProvider(goodsTotal), (prev, next) {
       next.whenData((methods) {
@@ -119,6 +162,8 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                   ref.invalidate(paymentMethodsProvider(goodsTotal));
                 },
                 items: items,
+                selectedVoucher: selectedVoucher,
+                onPickVoucher: () => unawaited(_pickVoucher(eligibleSubtotal)),
               );
 
               if (!isWide) {
@@ -141,6 +186,12 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                             pricing: pricing,
                             selectedMethod: _selectedMethod,
                             onRetry: () => ref.invalidate(cartPricingProvider),
+                            voucherDiscountAmount: voucherDiscount > 0
+                                ? voucherDiscount
+                                : null,
+                            pointsToEarn: pointsToEarn > 0
+                                ? pointsToEarn
+                                : null,
                           ),
                         ],
                       ),
@@ -180,6 +231,12 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                             pricing: pricing,
                             selectedMethod: _selectedMethod,
                             onRetry: () => ref.invalidate(cartPricingProvider),
+                            voucherDiscountAmount: voucherDiscount > 0
+                                ? voucherDiscount
+                                : null,
+                            pointsToEarn: pointsToEarn > 0
+                                ? pointsToEarn
+                                : null,
                           ),
                           const Gap(AppSpacing.md),
                           PrimaryButton(
@@ -289,10 +346,16 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
         paymentMethodId: method.id,
         paymentMethod: method.code,
         productIds: orderedIds,
+        userVoucherId: _selectedVoucher?.id,
       );
 
       ref.read(cartProvider.notifier).removeMany(orderedIds);
       ref.invalidate(ordersProvider);
+      if (_selectedVoucher != null) {
+        // The voucher is now USED server-side — refresh so it stops
+        // appearing as applicable on the next checkout.
+        ref.invalidate(myVouchersControllerProvider);
+      }
 
       if (result.checkoutUrl != null && result.checkoutUrl!.isNotEmpty) {
         final uri = Uri.parse(result.checkoutUrl!);
@@ -340,6 +403,8 @@ class _FormSections extends StatelessWidget {
     required this.onMethodChanged,
     required this.onRetryMethods,
     required this.items,
+    required this.selectedVoucher,
+    required this.onPickVoucher,
   });
 
   final String storeName;
@@ -351,6 +416,8 @@ class _FormSections extends StatelessWidget {
   final ValueChanged<PaymentMethod> onMethodChanged;
   final VoidCallback onRetryMethods;
   final List<CartItem> items;
+  final UserVoucher? selectedVoucher;
+  final VoidCallback onPickVoucher;
 
   @override
   Widget build(BuildContext context) {
@@ -415,6 +482,43 @@ class _FormSections extends StatelessWidget {
             ],
           ),
         ),
+        const Gap(AppSpacing.lg),
+        const SectionTitle(title: 'MapPoints voucher'),
+        const Gap(AppSpacing.sm),
+        if (selectedVoucher != null)
+          ClaimedVoucherCard(
+            userVoucher: selectedVoucher!,
+            selected: true,
+            onApply: onPickVoucher,
+          )
+        else
+          GestureDetector(
+            onTap: onPickVoucher,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.ui.surfaceMuted,
+                borderRadius: AppRadius.brLg,
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.local_offer_outlined, size: 20),
+                  const Gap(AppSpacing.sm),
+                  const Expanded(
+                    child: Text(
+                      'Apply a MapPoints voucher',
+                      style: TextStyle(fontSize: 13),
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.text.tertiary,
+                  ),
+                ],
+              ),
+            ),
+          ),
         if (items.isNotEmpty) ...[
           const Gap(AppSpacing.lg),
           const SectionTitle(title: 'Order items'),
@@ -422,6 +526,78 @@ class _FormSections extends StatelessWidget {
           _OrderItemsCard(items: items),
         ],
       ],
+    );
+  }
+}
+
+/// Wraps the sheet's explicit result — see [_CheckoutPageState._pickVoucher]
+/// for why this can't just be a bare `UserVoucher?`.
+class _VoucherPickResult {
+  const _VoucherPickResult(this.voucher);
+  final UserVoucher? voucher;
+}
+
+/// Bottom sheet listing claimed vouchers usable on this basket (ACTIVE,
+/// unexpired, and meeting the voucher's own minimum spend — already filtered
+/// by the caller). Returns the picked voucher, `null` to clear a selection,
+/// or nothing (sheet dismissed) to leave the current selection untouched.
+class _VoucherPickerSheet extends StatelessWidget {
+  const _VoucherPickerSheet({required this.vouchers, this.selected});
+
+  final List<UserVoucher> vouchers;
+  final UserVoucher? selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Choose a MapPoints voucher',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const Gap(AppSpacing.sm),
+            if (selected != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: TextButton.icon(
+                  onPressed: () => Navigator.of(
+                    context,
+                  ).pop(const _VoucherPickResult(null)),
+                  icon: const Icon(Icons.close_rounded, size: 18),
+                  label: const Text('Remove applied voucher'),
+                ),
+              ),
+            if (vouchers.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                child: Text(
+                  'No claimed vouchers apply to this order.',
+                  style: TextStyle(color: AppColors.text.secondary),
+                ),
+              )
+            else
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: vouchers.length,
+                  separatorBuilder: (_, _) => const Gap(AppSpacing.sm),
+                  itemBuilder: (context, i) => ClaimedVoucherCard(
+                    userVoucher: vouchers[i],
+                    selected: selected?.id == vouchers[i].id,
+                    onApply: () => Navigator.of(
+                      context,
+                    ).pop(_VoucherPickResult(vouchers[i])),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

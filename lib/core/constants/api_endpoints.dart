@@ -145,4 +145,27 @@ class ApiEndpoints {
 
   /// Remove a saved product.  `DELETE /wishlist/items/<productId>`.
   static String wishlistItem(String productId) => '/wishlist/items/$productId';
+
+  // ── Rewards (MapPoints) ───────────────────────────────────────────────────
+
+  /// Balance, estimated ₱ value, and lifetime stats.  `GET /rewards/wallet`.
+  static const String rewardsWallet = '/rewards/wallet';
+
+  /// Display-safe earn rate (not the full admin config).
+  /// `GET /rewards/config`.
+  static const String rewardsConfig = '/rewards/config';
+
+  /// Active, in-stock voucher catalog.  `GET /rewards/vouchers`.
+  static const String rewardsVouchers = '/rewards/vouchers';
+
+  /// Spend points to claim a voucher.  `POST /rewards/vouchers/<id>/claim`.
+  static String rewardsVoucherClaim(String voucherId) =>
+      '/rewards/vouchers/$voucherId/claim';
+
+  /// The caller's claimed vouchers, optionally filtered by
+  /// `?status=ACTIVE|USED|EXPIRED`.  `GET /rewards/my-vouchers`.
+  static const String rewardsMyVouchers = '/rewards/my-vouchers';
+
+  /// Paginated MapPoints ledger.  `GET /rewards/transactions`.
+  static const String rewardsTransactions = '/rewards/transactions';
 }
