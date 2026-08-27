@@ -17,6 +17,7 @@ class RouteNames {
   static const String cashPickupScan = '/orders/cash-pickup-scan';
   static const String notifications = '/notifications';
   static const String saved = '/saved';
+  static const String rewards = '/rewards';
   static const String profile = '/profile';
   static const String login = '/login';
   static const String register = '/register';
