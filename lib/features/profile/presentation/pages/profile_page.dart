@@ -7,6 +7,7 @@ import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/controllers/orders_controller.dart';
 import 'package:mapanytime_market_app/features/profile/presentation/controllers/profile_controller.dart';
+import 'package:mapanytime_market_app/features/rewards/presentation/controllers/rewards_controller.dart';
 import 'package:mapanytime_market_app/features/wishlist/presentation/controllers/wishlist_controller.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
@@ -67,6 +68,12 @@ class ProfilePage extends ConsumerWidget {
                   // wishlisting is wired up — no store-saving exists yet.
                   subtitle: 'Your favourite stores & products',
                   onTap: () => context.push(RouteNames.saved),
+                ),
+                _MenuTile(
+                  icon: Icons.toll_rounded,
+                  label: 'MapPoints',
+                  subtitle: 'Earn points, claim vouchers',
+                  onTap: () => context.push(RouteNames.rewards),
                 ),
                 _MenuTile(
                   icon: Icons.location_on_outlined,
@@ -186,9 +193,9 @@ class _ProfileHeader extends StatelessWidget {
                   ),
                 ),
                 // "Gold member" badge removed — it was a hardcoded literal;
-                // no loyalty/membership-tier concept exists anywhere in the
-                // API. (MapPoints would be that concept, but it is still
-                // unbuilt — see F39-F42 in the register.)
+                // no membership-tier concept exists in the API. MapPoints
+                // (see the "Points" stat below) is the loyalty concept that
+                // does exist.
               ],
             ),
           ),
@@ -199,11 +206,9 @@ class _ProfileHeader extends StatelessWidget {
 }
 
 /// Was three hardcoded literals (`'8'`, `'320'`, `'12'`) shown to every user
-/// regardless of their real data. Orders and Saved now read real counts;
-/// Points has no backing concept anywhere in the API (no loyalty/points
-/// system exists) so it's left out entirely rather than kept as fake data.
-/// MapPoints is the intended concept and remains unbuilt — see F39-F42 in
-/// mapanytime-api/docs/specs/OPEN-FLAGS.md.
+/// regardless of their real data. Orders, Saved and Points now all read real
+/// counts — Points was left out until MapPoints existed anywhere in the API;
+/// it now does (`mapanytime-api/src/modules/rewards/`).
 class _StatsRow extends ConsumerWidget {
   const _StatsRow();
 
@@ -211,6 +216,7 @@ class _StatsRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ordersCount = ref.watch(ordersProvider).value?.length;
     final savedCount = ref.watch(wishlistCountProvider);
+    final pointsBalance = ref.watch(walletControllerProvider).value?.balance;
 
     return Row(
       children: [
@@ -220,6 +226,10 @@ class _StatsRow extends ConsumerWidget {
         const Gap(AppSpacing.sm),
         Expanded(
           child: _StatTile(value: _display(savedCount), label: 'Saved'),
+        ),
+        const Gap(AppSpacing.sm),
+        Expanded(
+          child: _StatTile(value: _display(pointsBalance), label: 'Points'),
         ),
       ],
     );
