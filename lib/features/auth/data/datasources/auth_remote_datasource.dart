@@ -8,7 +8,9 @@ abstract class AuthRemoteDataSource {
   Future<void> register(
     String email,
     String password, {
-    String? name,
+    required String firstName,
+    required String lastName,
+    String? middleName,
     String? countryCode,
     String roleName,
   });
@@ -44,7 +46,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<void> register(
     String email,
     String password, {
-    String? name,
+    required String firstName,
+    required String lastName,
+    String? middleName,
     String? countryCode,
     String roleName = 'BUYER',
   }) async {
@@ -52,7 +56,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       'email': email,
       'password': password,
       'roleName': roleName,
-      if (name != null && name.isNotEmpty) 'name': name,
+      'firstName': firstName,
+      'lastName': lastName,
+      if (middleName != null && middleName.isNotEmpty) 'middleName': middleName,
       if (countryCode != null && countryCode.isNotEmpty)
         'countryCode': countryCode,
     });

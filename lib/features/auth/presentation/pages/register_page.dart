@@ -28,16 +28,22 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   var _step = 0;
   var _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  final _nameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _middleNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   var _acceptedTerms = false;
   var _isLoading = false;
 
   @override
   void dispose() {
     _emailController.dispose();
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _middleNameController.dispose();
+    _lastNameController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -74,9 +80,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         .register(
           _emailController.text,
           _passwordController.text,
-          name: _nameController.text.trim().isEmpty
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+          middleName: _middleNameController.text.trim().isEmpty
               ? null
-              : _nameController.text.trim(),
+              : _middleNameController.text.trim(),
         );
     if (!mounted) return;
     setState(() => _isLoading = false);
@@ -162,18 +170,52 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           validator: Validators.email,
         );
       case 1:
-        return ModernTextField(
-          key: const ValueKey('name'),
-          hint: context.l10n.fullNameOptional,
-          controller: _nameController,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ModernTextField(
+              key: const ValueKey('firstName'),
+              hint: context.l10n.firstName,
+              controller: _firstNameController,
+              validator: Validators.notEmpty,
+            ),
+            AppSpacing.md.v,
+            ModernTextField(
+              key: const ValueKey('middleName'),
+              hint: context.l10n.middleName,
+              controller: _middleNameController,
+            ),
+            AppSpacing.md.v,
+            ModernTextField(
+              key: const ValueKey('lastName'),
+              hint: context.l10n.lastName,
+              controller: _lastNameController,
+              validator: Validators.notEmpty,
+            ),
+          ],
         );
       default:
-        return ModernTextField(
-          key: const ValueKey('password'),
-          hint: context.l10n.password,
-          controller: _passwordController,
-          obscureText: true,
-          validator: Validators.password,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ModernTextField(
+              key: const ValueKey('password'),
+              hint: context.l10n.password,
+              controller: _passwordController,
+              obscureText: true,
+              validator: Validators.password,
+            ),
+            AppSpacing.md.v,
+            ModernTextField(
+              key: const ValueKey('confirmPassword'),
+              hint: context.l10n.confirmPassword,
+              controller: _confirmPasswordController,
+              obscureText: true,
+              validator: (v) => v != _passwordController.text
+                  ? context.l10n.passwordsDoNotMatch
+                  : null,
+            ),
+          ],
         );
     }
   }

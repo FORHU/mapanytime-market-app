@@ -142,13 +142,21 @@ class AuthController extends Notifier<AuthState> {
     );
   }
 
-  Future<bool> register(String email, String password, {String? name}) async {
+  Future<bool> register(
+    String email,
+    String password, {
+    required String firstName,
+    required String lastName,
+    String? middleName,
+  }) async {
     state = state.copyWith(isLoading: true);
 
     final result = await ref.read(registerUseCaseProvider)(
       email,
       password,
-      name: name,
+      firstName: firstName,
+      lastName: lastName,
+      middleName: middleName,
     );
 
     return result.fold(

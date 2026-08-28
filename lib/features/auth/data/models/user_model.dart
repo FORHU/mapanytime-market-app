@@ -39,8 +39,13 @@ class UserModel extends UserEntity {
         : payload;
 
     final firstName = userMap['firstName'] as String? ?? '';
+    final middleName = userMap['middleName'] as String? ?? '';
     final lastName = userMap['lastName'] as String? ?? '';
-    final fullName = '$firstName $lastName'.trim();
+    final fullName = [
+      firstName,
+      middleName,
+      lastName,
+    ].where((s) => s.isNotEmpty).join(' ');
 
     return UserModel(
       id: userMap['id'] as String,

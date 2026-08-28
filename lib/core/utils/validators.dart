@@ -16,7 +16,13 @@ class Validators {
   static String? password(String? value) {
     final v = value ?? '';
     if (v.isEmpty) return 'Password is required';
-    if (v.length < 6) return 'Password must be at least 6 characters';
+    if (v.length < 8) return 'Password must be at least 8 characters';
+    if (v.length > 128) return 'Password must be 128 characters or fewer';
+    return null;
+  }
+
+  static String? notEmpty(String? value) {
+    if ((value ?? '').trim().isEmpty) return 'This field is required';
     return null;
   }
 }
