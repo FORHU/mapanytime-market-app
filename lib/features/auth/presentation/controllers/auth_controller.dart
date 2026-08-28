@@ -15,6 +15,23 @@ import 'package:mapanytime_market_app/features/auth/domain/usecases/request_pass
 import 'package:mapanytime_market_app/features/auth/domain/usecases/reset_password_usecase.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart'
     show cartProvider;
+import 'package:mapanytime_market_app/features/home/presentation/controllers/home_products_controller.dart'
+    show homeProductsControllerProvider;
+import 'package:mapanytime_market_app/features/notifications/presentation/controllers/notification_feed_controller.dart'
+    show notificationFeedControllerProvider;
+import 'package:mapanytime_market_app/features/orders/presentation/controllers/reservation_controller.dart'
+    show reservationControllerProvider;
+import 'package:mapanytime_market_app/features/orders/presentation/controllers/returns_controller.dart'
+    show returnsControllerProvider;
+import 'package:mapanytime_market_app/features/rewards/presentation/controllers/rewards_controller.dart'
+    show
+        myVouchersControllerProvider,
+        voucherCatalogControllerProvider,
+        walletControllerProvider;
+import 'package:mapanytime_market_app/features/wishlist/presentation/controllers/wishlist_controller.dart'
+    show wishlistControllerProvider;
+import 'package:mapanytime_market_app/features/worldMap/presentation/controllers/world_map_controller.dart'
+    show worldMapControllerProvider;
 
 // --- Dependency wiring (Riverpod providers) ---
 
@@ -92,6 +109,7 @@ class AuthController extends Notifier<AuthState> {
     await ref.read(storageServiceProvider).clearSession();
     state = const AuthState();
     ref.read(cartProvider.notifier).reset();
+    _invalidateUserScopedProviders();
   }
 
   Future<void> refreshAuth() async {
@@ -156,9 +174,26 @@ class AuthController extends Notifier<AuthState> {
       (_) {
         state = const AuthState();
         ref.read(cartProvider.notifier).reset();
+        _invalidateUserScopedProviders();
         return true;
       },
     );
+  }
+
+  // Drops cached state for every other per-user provider so a different
+  // user logging in on the same app instance never sees the previous
+  // user's wishlist/rewards/orders/notifications data.
+  void _invalidateUserScopedProviders() {
+    ref
+      ..invalidate(wishlistControllerProvider)
+      ..invalidate(walletControllerProvider)
+      ..invalidate(voucherCatalogControllerProvider)
+      ..invalidate(myVouchersControllerProvider)
+      ..invalidate(notificationFeedControllerProvider)
+      ..invalidate(homeProductsControllerProvider)
+      ..invalidate(returnsControllerProvider)
+      ..invalidate(reservationControllerProvider)
+      ..invalidate(worldMapControllerProvider);
   }
 }
 
