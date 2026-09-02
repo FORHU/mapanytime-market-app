@@ -106,6 +106,12 @@ abstract class AppLocalizations {
   /// **'MapAnytime Market'**
   String get appName;
 
+  /// No description provided for @wordmark.
+  ///
+  /// In en, this message translates to:
+  /// **'MapAnytime'**
+  String get wordmark;
+
   /// No description provided for @login.
   ///
   /// In en, this message translates to:
@@ -124,11 +130,35 @@ abstract class AppLocalizations {
   /// **'Email'**
   String get email;
 
+  /// No description provided for @emailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'you@example.com'**
+  String get emailHint;
+
   /// No description provided for @password.
   ///
   /// In en, this message translates to:
   /// **'Password'**
   String get password;
+
+  /// No description provided for @enterPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get enterPasswordHint;
+
+  /// No description provided for @createPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'8+ characters'**
+  String get createPasswordHint;
+
+  /// No description provided for @confirmPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter password'**
+  String get confirmPasswordHint;
 
   /// No description provided for @welcomeBack.
   ///
@@ -139,7 +169,7 @@ abstract class AppLocalizations {
   /// No description provided for @signInToContinue.
   ///
   /// In en, this message translates to:
-  /// **'Sign in to continue'**
+  /// **'Sign in to pick up where you left off.'**
   String get signInToContinue;
 
   /// No description provided for @forgotPassword.
@@ -178,17 +208,35 @@ abstract class AppLocalizations {
   /// **'First name'**
   String get firstName;
 
+  /// No description provided for @firstNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Juan'**
+  String get firstNameHint;
+
   /// No description provided for @middleName.
   ///
   /// In en, this message translates to:
   /// **'Middle name (optional)'**
   String get middleName;
 
+  /// No description provided for @middleNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Santos'**
+  String get middleNameHint;
+
   /// No description provided for @lastName.
   ///
   /// In en, this message translates to:
   /// **'Last name'**
   String get lastName;
+
+  /// No description provided for @lastNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Dela Cruz'**
+  String get lastNameHint;
 
   /// No description provided for @createAccountCta.
   ///
@@ -223,7 +271,7 @@ abstract class AppLocalizations {
   /// No description provided for @forgotPasswordSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Enter your email and we\'ll send you a verification code'**
+  /// **'Enter your email and we\'ll send a 6-digit code.'**
   String get forgotPasswordSubtitle;
 
   /// No description provided for @sendCode.
@@ -295,7 +343,7 @@ abstract class AppLocalizations {
   /// No description provided for @registerStepEmailSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'We\'ll use this to keep your account secure.'**
+  /// **'We\'ll send pickup updates and receipts here.'**
   String get registerStepEmailSubtitle;
 
   /// No description provided for @registerStepNameTitle.
@@ -307,7 +355,7 @@ abstract class AppLocalizations {
   /// No description provided for @registerStepNameSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'This helps personalize your experience.'**
+  /// **'Stores use this to hand over your order.'**
   String get registerStepNameSubtitle;
 
   /// No description provided for @registerStepPasswordTitle.
@@ -319,7 +367,7 @@ abstract class AppLocalizations {
   /// No description provided for @registerStepPasswordSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Use at least 8 characters — 15 or more is even stronger.'**
+  /// **'At least 8 characters. Longer is stronger.'**
   String get registerStepPasswordSubtitle;
 
   /// No description provided for @newPassword.
@@ -361,7 +409,7 @@ abstract class AppLocalizations {
   /// No description provided for @orSignInWith.
   ///
   /// In en, this message translates to:
-  /// **'Or sign in with'**
+  /// **'or'**
   String get orSignInWith;
 
   /// No description provided for @continueWithGoogle.

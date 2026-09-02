@@ -31,69 +31,57 @@ class SocialLoginRow extends StatelessWidget {
           ],
         ),
         AppSpacing.md.v,
-        _SocialButton(
-          label: context.l10n.continueWithGoogle,
-          letter: 'G',
-          badgeColor: colors.onSurfaceVariant,
-        ),
+        _SocialButton(label: context.l10n.continueWithGoogle, letter: 'G'),
       ],
     );
   }
 }
 
 class _SocialButton extends StatelessWidget {
-  const _SocialButton({
-    required this.label,
-    required this.letter,
-    required this.badgeColor,
-  });
+  const _SocialButton({required this.label, required this.letter});
 
   final String label;
   final String letter;
-  final Color badgeColor;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
-    return Opacity(
-      opacity: 0.6,
-      child: GestureDetector(
-        onTap: () => showTopToast(context, context.l10n.comingSoon),
-        child: Container(
-          width: double.infinity,
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          decoration: BoxDecoration(
-            border: Border.all(color: colors.outline),
-            borderRadius: AppRadius.brPill,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircleAvatar(
-                radius: 10,
-                backgroundColor: badgeColor,
-                child: Text(
-                  letter,
-                  style: TextStyle(
-                    color: colors.surface,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              AppSpacing.sm.h,
-              Text(
-                label,
+    return GestureDetector(
+      onTap: () => showTopToast(context, context.l10n.comingSoon),
+      child: Container(
+        width: double.infinity,
+        height: 54,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        decoration: BoxDecoration(
+          color: colors.surfaceContainerHighest,
+          borderRadius: AppRadius.brPill,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 11,
+              backgroundColor: colors.surface,
+              child: Text(
+                letter,
                 style: TextStyle(
                   color: colors.onSurface,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-            ],
-          ),
+            ),
+            AppSpacing.sm.h,
+            Text(
+              label,
+              style: TextStyle(
+                color: colors.onSurface,
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+            ),
+          ],
         ),
       ),
     );

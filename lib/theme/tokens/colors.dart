@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Design tokens — colors. Light canvas, single ink accent (see DESIGN.md).
+/// Design tokens — colors. Light canvas, single accent (see DESIGN.md).
 class AppColors {
   AppColors._();
 
@@ -8,9 +8,10 @@ class AppColors {
   static const text = _Text();
   static const status = _Status();
 
-  /// The app's single accent — near-black ink. Primary buttons, icon
-  /// buttons, selected chips/rows, the active nav pill.
-  static const Color ink = Color(0xFF0D0D0F);
+  /// The app's single accent — still named `ink` for its historical role as
+  /// a near-black fill, now the brand blue. Primary buttons, icon buttons,
+  /// selected chips/rows, the active nav pill.
+  static const Color ink = Color(0xFF1B2CC1);
 
   /// Tap-down state for ink surfaces only.
   static const Color inkPressed = Color(0xFF000000);

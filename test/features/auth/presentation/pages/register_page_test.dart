@@ -67,6 +67,15 @@ void main() {
     ).thenAnswer((_) async => const Right(null));
   }
 
+  // Adding a label above every field made these steps taller than the
+  // fixed test viewport, so the primary button can sit below the fold —
+  // scroll it into view before tapping, same as a real (scrollable) device.
+  Future<void> tapVisible(WidgetTester tester, Finder finder) async {
+    await tester.ensureVisible(finder);
+    await tester.pumpAndSettle();
+    await tester.tap(finder);
+  }
+
   Future<void> goToNameStep(WidgetTester tester) async {
     await tester.pumpWidget(_wrap(mockRepository, prefs));
     await tester.pumpAndSettle();
@@ -74,7 +83,7 @@ void main() {
       find.byKey(const ValueKey('email')),
       'buyer@example.com',
     );
-    await tester.tap(find.text('Next'));
+    await tapVisible(tester, find.text('Next'));
     await tester.pumpAndSettle();
   }
 
@@ -86,7 +95,7 @@ void main() {
     await goToNameStep(tester);
     await tester.enterText(find.byKey(const ValueKey('firstName')), firstName);
     await tester.enterText(find.byKey(const ValueKey('lastName')), lastName);
-    await tester.tap(find.text('Next'));
+    await tapVisible(tester, find.text('Next'));
     await tester.pumpAndSettle();
   }
 
@@ -97,7 +106,7 @@ void main() {
 
       // Leave First Name blank, fill only Last Name.
       await tester.enterText(find.byKey(const ValueKey('lastName')), 'Cruz');
-      await tester.tap(find.text('Next'));
+      await tapVisible(tester, find.text('Next'));
       await tester.pumpAndSettle();
 
       // Still on the name step — the required-field validator blocked it.
@@ -130,8 +139,8 @@ void main() {
       find.byKey(const ValueKey('confirmPassword')),
       'a-different-passphrase',
     );
-    await tester.tap(find.byType(Checkbox));
-    await tester.tap(find.text('Sign Up'));
+    await tapVisible(tester, find.byType(Checkbox));
+    await tapVisible(tester, find.text('Sign Up'));
     await tester.pumpAndSettle();
 
     expect(find.text('Passwords do not match'), findsOneWidget);

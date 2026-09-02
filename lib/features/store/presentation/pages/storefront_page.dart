@@ -12,6 +12,7 @@ import 'package:mapanytime_market_app/features/store/presentation/controllers/st
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/merchant_ad_section.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
+import 'package:mapanytime_market_app/shared/widgets/back_chevron_button.dart';
 import 'package:mapanytime_market_app/shared/widgets/category_chip.dart';
 import 'package:mapanytime_market_app/shared/widgets/icon_button.dart';
 import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
@@ -47,15 +48,7 @@ class _StorefrontPageState extends ConsumerState<StorefrontPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 12),
-          child: AppIconButton(
-            icon: Icons.arrow_back_ios_new_rounded,
-            size: 40,
-            iconSize: 18,
-            onTap: () => context.pop(),
-          ),
-        ),
+        leading: BackChevronButton(onTap: () => context.pop()),
         actions: [
           AppIconButton(
             icon: Icons.share_outlined,

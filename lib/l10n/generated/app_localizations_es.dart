@@ -12,6 +12,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get appName => 'MapAnytime Market';
 
   @override
+  String get wordmark => 'MapAnytime';
+
+  @override
   String get login => 'Iniciar sesión';
 
   @override
@@ -21,13 +24,25 @@ class AppLocalizationsEs extends AppLocalizations {
   String get email => 'Correo electrónico';
 
   @override
+  String get emailHint => 'tucorreo@ejemplo.com';
+
+  @override
   String get password => 'Contraseña';
+
+  @override
+  String get enterPasswordHint => 'Ingresa tu contraseña';
+
+  @override
+  String get createPasswordHint => '8+ caracteres';
+
+  @override
+  String get confirmPasswordHint => 'Vuelve a ingresarla';
 
   @override
   String get welcomeBack => '¡Bienvenido de nuevo!';
 
   @override
-  String get signInToContinue => 'Inicia sesión para continuar';
+  String get signInToContinue => 'Inicia sesión para retomar donde lo dejaste.';
 
   @override
   String get forgotPassword => '¿Olvidaste tu contraseña?';
@@ -48,10 +63,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get firstName => 'Nombre';
 
   @override
+  String get firstNameHint => 'Juan';
+
+  @override
   String get middleName => 'Segundo nombre (opcional)';
 
   @override
+  String get middleNameHint => 'Santos';
+
+  @override
   String get lastName => 'Apellido';
+
+  @override
+  String get lastNameHint => 'Dela Cruz';
 
   @override
   String get createAccountCta => 'Crear cuenta';
@@ -70,7 +94,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get forgotPasswordSubtitle =>
-      'Ingresa tu correo electrónico y te enviaremos un código de verificación';
+      'Ingresa tu correo electrónico y te enviaremos un código de 6 dígitos.';
 
   @override
   String get sendCode => 'Enviar código';
@@ -110,21 +134,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get registerStepEmailSubtitle =>
-      'Lo usaremos para proteger tu cuenta.';
+      'Te enviaremos avisos de recogida y recibos aquí.';
 
   @override
   String get registerStepNameTitle => '¿Cuál es tu nombre?';
 
   @override
   String get registerStepNameSubtitle =>
-      'Esto ayuda a personalizar tu experiencia.';
+      'Las tiendas lo usan para entregarte tu pedido.';
 
   @override
   String get registerStepPasswordTitle => 'Crea una contraseña';
 
   @override
   String get registerStepPasswordSubtitle =>
-      'Usa al menos 8 caracteres — 15 o más es aún mejor.';
+      'Al menos 8 caracteres. Cuanto más larga, más segura.';
 
   @override
   String get newPassword => 'Nueva contraseña';
@@ -145,7 +169,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get errorNoEmail => 'Error: no se proporcionó correo electrónico';
 
   @override
-  String get orSignInWith => 'O inicia sesión con';
+  String get orSignInWith => 'o';
 
   @override
   String get continueWithGoogle => 'Continuar con Google';
