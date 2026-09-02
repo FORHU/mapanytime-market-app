@@ -172,11 +172,23 @@ abstract class AppLocalizations {
   /// **'Join MapAnytime Market as a buyer'**
   String get joinTagline;
 
-  /// No description provided for @fullNameOptional.
+  /// No description provided for @firstName.
   ///
   /// In en, this message translates to:
-  /// **'Full name (optional)'**
-  String get fullNameOptional;
+  /// **'First name'**
+  String get firstName;
+
+  /// No description provided for @middleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Middle name (optional)'**
+  String get middleName;
+
+  /// No description provided for @lastName.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name'**
+  String get lastName;
 
   /// No description provided for @createAccountCta.
   ///
@@ -307,7 +319,7 @@ abstract class AppLocalizations {
   /// No description provided for @registerStepPasswordSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Make it at least 6 characters.'**
+  /// **'Use at least 8 characters — 15 or more is even stronger.'**
   String get registerStepPasswordSubtitle;
 
   /// No description provided for @newPassword.

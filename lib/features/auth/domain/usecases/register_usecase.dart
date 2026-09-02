@@ -12,13 +12,17 @@ class RegisterUseCase {
   Future<Either<Failure, void>> call(
     String email,
     String password, {
-    String? name,
+    required String firstName,
+    required String lastName,
+    String? middleName,
   }) {
     final countryCode = PlatformDispatcher.instance.locale.countryCode;
     return _repository.register(
       email.trim(),
       password,
-      name: name,
+      firstName: firstName,
+      lastName: lastName,
+      middleName: middleName,
       countryCode: countryCode,
       roleName: 'BUYER',
     );

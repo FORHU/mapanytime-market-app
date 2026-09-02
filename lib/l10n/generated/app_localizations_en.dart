@@ -45,7 +45,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get joinTagline => 'Join MapAnytime Market as a buyer';
 
   @override
-  String get fullNameOptional => 'Full name (optional)';
+  String get firstName => 'First name';
+
+  @override
+  String get middleName => 'Middle name (optional)';
+
+  @override
+  String get lastName => 'Last name';
 
   @override
   String get createAccountCta => 'Create account';
@@ -116,7 +122,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get registerStepPasswordTitle => 'Create a password';
 
   @override
-  String get registerStepPasswordSubtitle => 'Make it at least 6 characters.';
+  String get registerStepPasswordSubtitle =>
+      'Use at least 8 characters — 15 or more is even stronger.';
 
   @override
   String get newPassword => 'New password';

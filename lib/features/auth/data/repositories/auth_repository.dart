@@ -11,7 +11,9 @@ abstract class AuthRepository {
   Future<Either<Failure, void>> register(
     String email,
     String password, {
-    String? name,
+    required String firstName,
+    required String lastName,
+    String? middleName,
     String? countryCode,
     String roleName,
   });
@@ -63,7 +65,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, void>> register(
     String email,
     String password, {
-    String? name,
+    required String firstName,
+    required String lastName,
+    String? middleName,
     String? countryCode,
     String roleName = 'BUYER',
   }) async {
@@ -71,7 +75,9 @@ class AuthRepositoryImpl implements AuthRepository {
       await _remote.register(
         email,
         password,
-        name: name,
+        firstName: firstName,
+        lastName: lastName,
+        middleName: middleName,
         countryCode: countryCode,
         roleName: roleName,
       );

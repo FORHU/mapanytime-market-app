@@ -45,7 +45,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get joinTagline => '구매자로 맵애니타임 마켓에 가입하세요';
 
   @override
-  String get fullNameOptional => '이름 (선택 사항)';
+  String get firstName => '이름';
+
+  @override
+  String get middleName => '중간 이름 (선택 사항)';
+
+  @override
+  String get lastName => '성';
 
   @override
   String get createAccountCta => '계정 만들기';
@@ -113,7 +119,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get registerStepPasswordTitle => '비밀번호 만들기';
 
   @override
-  String get registerStepPasswordSubtitle => '6자 이상으로 설정해 주세요.';
+  String get registerStepPasswordSubtitle => '8자 이상을 사용하세요 — 15자 이상이면 더 안전합니다.';
 
   @override
   String get newPassword => '새 비밀번호';
