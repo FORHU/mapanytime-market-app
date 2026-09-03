@@ -4,6 +4,14 @@ RewardDiscountType _discountTypeOf(Object? raw) => raw == 'PERCENTAGE'
     ? RewardDiscountType.percentage
     : RewardDiscountType.fixed;
 
+/// Prisma `Decimal` columns (discountValue, minOrderAmount,
+/// maxDiscountAmount) serialize as JSON strings, not numbers.
+num? _numOf(Object? raw) {
+  if (raw is num) return raw;
+  if (raw is String) return num.tryParse(raw);
+  return null;
+}
+
 /// A voucher in the claimable catalog. `GET /rewards/vouchers`.
 class RewardVoucher {
   const RewardVoucher({
@@ -25,9 +33,9 @@ class RewardVoucher {
       description: json['description'] as String?,
       pointCost: (json['pointCost'] as num?)?.toInt() ?? 0,
       discountType: _discountTypeOf(json['discountType']),
-      discountValue: (json['discountValue'] as num?) ?? 0,
-      minOrderAmount: json['minOrderAmount'] as num?,
-      maxDiscountAmount: json['maxDiscountAmount'] as num?,
+      discountValue: _numOf(json['discountValue']) ?? 0,
+      minOrderAmount: _numOf(json['minOrderAmount']),
+      maxDiscountAmount: _numOf(json['maxDiscountAmount']),
       validityDays: (json['validityDays'] as num?)?.toInt() ?? 30,
     );
   }
