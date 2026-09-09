@@ -8,6 +8,9 @@ class AppRadius {
   static const md = 16.0;
   static const lg = 20.0;
 
+  /// Text-field corner radius.
+  static const field = 14.0;
+
   /// Default card radius.
   static const card = 24.0;
 
@@ -21,6 +24,7 @@ class AppRadius {
   static BorderRadius get brSm => BorderRadius.circular(sm);
   static BorderRadius get brMd => BorderRadius.circular(md);
   static BorderRadius get brLg => BorderRadius.circular(lg);
+  static BorderRadius get brField => BorderRadius.circular(field);
   static BorderRadius get brCard => BorderRadius.circular(card);
   static BorderRadius get brXl => BorderRadius.circular(xl);
   static BorderRadius get brPill => BorderRadius.circular(pill);

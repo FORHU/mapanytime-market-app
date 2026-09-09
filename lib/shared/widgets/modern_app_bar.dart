@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mapanytime_market_app/shared/widgets/icon_button.dart';
+import 'package:mapanytime_market_app/shared/widgets/back_chevron_button.dart';
 
 /// Minimal, transparent app bar with a circular back button and optional
 /// actions. Implements [PreferredSizeWidget] for the `Scaffold.appBar` slot.
@@ -28,14 +28,8 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: centerTitle,
       titleSpacing: 8,
       leading: showBack
-          ? Padding(
-              padding: const EdgeInsets.only(left: 12),
-              child: AppIconButton(
-                icon: Icons.arrow_back_ios_new_rounded,
-                size: 40,
-                iconSize: 18,
-                onTap: onBack ?? () => Navigator.of(context).maybePop(),
-              ),
+          ? BackChevronButton(
+              onTap: onBack ?? () => Navigator.of(context).maybePop(),
             )
           : null,
       title: title != null

@@ -14,37 +14,16 @@ import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 /// Step 2 of the password-reset flow: the user enters the code emailed to
 /// them plus a new password.
-class ResetPasswordPage extends StatelessWidget {
+class ResetPasswordPage extends ConsumerStatefulWidget {
   const ResetPasswordPage({required this.email, super.key});
 
   final String email;
 
   @override
-  Widget build(BuildContext context) {
-    return AuthScaffold(
-      onBack: () => context.pop(),
-      title: context.l10n.resetPasswordTitle,
-      subtitle: context.l10n.resetPasswordSubtitle(email),
-      card: _ResetPasswordForm(email: email),
-      wideTagline: [
-        context.l10n.authTaglineDiscover,
-        context.l10n.authTaglineTrack,
-        context.l10n.authTaglineCheckout,
-      ],
-    );
-  }
+  ConsumerState<ResetPasswordPage> createState() => _ResetPasswordPageState();
 }
 
-class _ResetPasswordForm extends ConsumerStatefulWidget {
-  const _ResetPasswordForm({required this.email});
-
-  final String email;
-
-  @override
-  ConsumerState<_ResetPasswordForm> createState() => _ResetPasswordFormState();
-}
-
-class _ResetPasswordFormState extends ConsumerState<_ResetPasswordForm> {
+class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   String _code = '';
   final _newPasswordController = TextEditingController();
@@ -78,40 +57,52 @@ class _ResetPasswordFormState extends ConsumerState<_ResetPasswordForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          OtpCodeField(
-            onChanged: (value) => _code = value,
-            validator: (v) => (v == null || v.length != 4)
-                ? context.l10n.verificationCodeInvalid
-                : null,
-          ),
-          AppSpacing.md.v,
-          ModernTextField(
-            hint: context.l10n.newPassword,
-            controller: _newPasswordController,
-            obscureText: true,
-            validator: Validators.password,
-          ),
-          AppSpacing.md.v,
-          ModernTextField(
-            hint: context.l10n.confirmPassword,
-            controller: _confirmPasswordController,
-            obscureText: true,
-            validator: (v) => v != _newPasswordController.text
-                ? context.l10n.passwordsDoNotMatch
-                : null,
-          ),
-          AppSpacing.lg.v,
-          PrimaryButton(
-            label: context.l10n.resetPasswordCta,
-            isLoading: _isLoading,
-            onPressed: _submit,
-          ),
-        ],
+    return AuthScaffold(
+      onBack: () => context.pop(),
+      title: context.l10n.resetPasswordTitle,
+      subtitle: context.l10n.resetPasswordSubtitle(widget.email),
+      showLogo: false,
+      wideTagline: [
+        context.l10n.authTaglineDiscover,
+        context.l10n.authTaglineTrack,
+        context.l10n.authTaglineCheckout,
+      ],
+      card: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            OtpCodeField(
+              onChanged: (value) => _code = value,
+              validator: (v) => (v == null || v.length != 4)
+                  ? context.l10n.verificationCodeInvalid
+                  : null,
+            ),
+            AppSpacing.md.v,
+            ModernTextField(
+              label: context.l10n.newPassword,
+              hint: context.l10n.createPasswordHint,
+              controller: _newPasswordController,
+              obscureText: true,
+              validator: Validators.password,
+            ),
+            AppSpacing.md.v,
+            ModernTextField(
+              label: context.l10n.confirmPassword,
+              hint: context.l10n.confirmPasswordHint,
+              controller: _confirmPasswordController,
+              obscureText: true,
+              validator: (v) => v != _newPasswordController.text
+                  ? context.l10n.passwordsDoNotMatch
+                  : null,
+            ),
+          ],
+        ),
+      ),
+      actions: PrimaryButton(
+        label: context.l10n.resetPasswordCta,
+        isLoading: _isLoading,
+        onPressed: _submit,
       ),
     );
   }

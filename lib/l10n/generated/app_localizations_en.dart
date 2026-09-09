@@ -12,6 +12,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appName => 'MapAnytime Market';
 
   @override
+  String get wordmark => 'MapAnytime';
+
+  @override
   String get login => 'Login';
 
   @override
@@ -21,13 +24,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get email => 'Email';
 
   @override
+  String get emailHint => 'you@example.com';
+
+  @override
   String get password => 'Password';
+
+  @override
+  String get enterPasswordHint => 'Enter your password';
+
+  @override
+  String get createPasswordHint => '8+ characters';
+
+  @override
+  String get confirmPasswordHint => 'Re-enter password';
 
   @override
   String get welcomeBack => 'Welcome back';
 
   @override
-  String get signInToContinue => 'Sign in to continue';
+  String get signInToContinue => 'Sign in to pick up where you left off.';
 
   @override
   String get forgotPassword => 'Forgot password?';
@@ -48,10 +63,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get firstName => 'First name';
 
   @override
+  String get firstNameHint => 'Juan';
+
+  @override
   String get middleName => 'Middle name (optional)';
 
   @override
+  String get middleNameHint => 'Santos';
+
+  @override
   String get lastName => 'Last name';
+
+  @override
+  String get lastNameHint => 'Dela Cruz';
 
   @override
   String get createAccountCta => 'Create account';
@@ -70,7 +94,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get forgotPasswordSubtitle =>
-      'Enter your email and we\'ll send you a verification code';
+      'Enter your email and we\'ll send a 6-digit code.';
 
   @override
   String get sendCode => 'Send code';
@@ -109,21 +133,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get registerStepEmailSubtitle =>
-      'We\'ll use this to keep your account secure.';
+      'We\'ll send pickup updates and receipts here.';
 
   @override
   String get registerStepNameTitle => 'What\'s your name?';
 
   @override
   String get registerStepNameSubtitle =>
-      'This helps personalize your experience.';
+      'Stores use this to hand over your order.';
 
   @override
   String get registerStepPasswordTitle => 'Create a password';
 
   @override
   String get registerStepPasswordSubtitle =>
-      'Use at least 8 characters — 15 or more is even stronger.';
+      'At least 8 characters. Longer is stronger.';
 
   @override
   String get newPassword => 'New password';
@@ -144,7 +168,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorNoEmail => 'Error: No email provided';
 
   @override
-  String get orSignInWith => 'Or sign in with';
+  String get orSignInWith => 'or';
 
   @override
   String get continueWithGoogle => 'Continue with Google';

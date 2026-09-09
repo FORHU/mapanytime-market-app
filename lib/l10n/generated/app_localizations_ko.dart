@@ -12,6 +12,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get appName => '맵애니타임 마켓';
 
   @override
+  String get wordmark => 'MapAnytime';
+
+  @override
   String get login => '로그인';
 
   @override
@@ -21,13 +24,25 @@ class AppLocalizationsKo extends AppLocalizations {
   String get email => '이메일';
 
   @override
+  String get emailHint => 'you@example.com';
+
+  @override
   String get password => '비밀번호';
+
+  @override
+  String get enterPasswordHint => '비밀번호를 입력하세요';
+
+  @override
+  String get createPasswordHint => '8자 이상';
+
+  @override
+  String get confirmPasswordHint => '비밀번호를 다시 입력하세요';
 
   @override
   String get welcomeBack => '다시 오신 것을 환영합니다';
 
   @override
-  String get signInToContinue => '계속하려면 로그인하세요';
+  String get signInToContinue => '이전에 하던 곳부터 다시 시작하세요.';
 
   @override
   String get forgotPassword => '비밀번호를 잊으셨나요?';
@@ -48,10 +63,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get firstName => '이름';
 
   @override
+  String get firstNameHint => 'Juan';
+
+  @override
   String get middleName => '중간 이름 (선택 사항)';
 
   @override
+  String get middleNameHint => 'Santos';
+
+  @override
   String get lastName => '성';
+
+  @override
+  String get lastNameHint => 'Dela Cruz';
 
   @override
   String get createAccountCta => '계정 만들기';
@@ -69,7 +93,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get forgotPasswordTitle => '비밀번호 재설정';
 
   @override
-  String get forgotPasswordSubtitle => '이메일을 입력하시면 인증 코드를 보내드립니다';
+  String get forgotPasswordSubtitle => '이메일을 입력하시면 6자리 코드를 보내드립니다.';
 
   @override
   String get sendCode => '코드 보내기';
@@ -107,19 +131,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get registerStepEmailTitle => '이메일이 무엇인가요?';
 
   @override
-  String get registerStepEmailSubtitle => '계정을 안전하게 보호하는 데 사용됩니다.';
+  String get registerStepEmailSubtitle => '픽업 안내와 영수증을 이 주소로 보내드려요.';
 
   @override
   String get registerStepNameTitle => '이름이 무엇인가요?';
 
   @override
-  String get registerStepNameSubtitle => '맞춤 경험을 위해 도움이 됩니다.';
+  String get registerStepNameSubtitle => '매장에서 주문을 전달할 때 사용됩니다.';
 
   @override
   String get registerStepPasswordTitle => '비밀번호 만들기';
 
   @override
-  String get registerStepPasswordSubtitle => '8자 이상을 사용하세요 — 15자 이상이면 더 안전합니다.';
+  String get registerStepPasswordSubtitle => '8자 이상. 길수록 더 안전합니다.';
 
   @override
   String get newPassword => '새 비밀번호';
@@ -140,7 +164,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get errorNoEmail => '오류: 이메일이 제공되지 않았습니다';
 
   @override
-  String get orSignInWith => '또는 다음으로 로그인';
+  String get orSignInWith => '또는';
 
   @override
   String get continueWithGoogle => 'Google로 계속하기';
