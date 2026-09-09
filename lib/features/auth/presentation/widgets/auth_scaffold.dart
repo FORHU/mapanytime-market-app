@@ -17,6 +17,7 @@ class AuthScaffold extends StatelessWidget {
     required this.subtitle,
     required this.card,
     required this.wideTagline,
+    this.actions,
     this.footer,
     this.onBack,
     this.showLogo = true,
@@ -26,6 +27,14 @@ class AuthScaffold extends StatelessWidget {
   final String title;
   final String subtitle;
   final Widget card;
+
+  /// Primary action content — the CTA button, plus any social-login row or
+  /// terms checkbox that belongs with it. On phone layouts this is pinned to
+  /// the bottom of the screen (the auth redesign brief's "primary action in
+  /// the thumb zone" principle) while [card]'s fields scroll above it. On
+  /// wide/tablet layouts there's ample vertical space, so it just renders
+  /// inline after [card] instead of pinning.
+  final Widget? actions;
 
   /// Feature bullets shown in the brand panel on wide screens only.
   final List<String> wideTagline;
@@ -47,10 +56,50 @@ class AuthScaffold extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final isWide = constraints.maxWidth >= AppBreakpoints.tablet;
+
+            if (!isWide && actions != null) {
+              return Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        AppSpacing.lg,
+                        AppSpacing.lg,
+                        0,
+                      ),
+                      child: _FormColumn(
+                        title: title,
+                        subtitle: subtitle,
+                        card: card,
+                        showLogo: showLogo,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                      AppSpacing.lg,
+                      AppSpacing.lg,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        actions!,
+                        if (footer != null) ...[AppSpacing.lg.v, footer!],
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }
+
             final form = _FormColumn(
               title: title,
               subtitle: subtitle,
               card: card,
+              actions: actions,
               footer: footer,
               showLogo: !isWide && showLogo,
             );
@@ -91,6 +140,7 @@ class _FormColumn extends StatelessWidget {
     required this.subtitle,
     required this.card,
     required this.showLogo,
+    this.actions,
     this.footer,
   });
 
@@ -98,6 +148,7 @@ class _FormColumn extends StatelessWidget {
   final String subtitle;
   final Widget card;
   final bool showLogo;
+  final Widget? actions;
   final Widget? footer;
 
   @override
@@ -131,6 +182,7 @@ class _FormColumn extends StatelessWidget {
         ),
         AppSpacing.xl.v,
         FadeSlideIn(delay: const Duration(milliseconds: 160), child: card),
+        if (actions != null) ...[AppSpacing.lg.v, actions!],
         if (footer != null) ...[AppSpacing.lg.v, footer!],
       ],
     );

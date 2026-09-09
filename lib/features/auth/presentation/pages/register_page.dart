@@ -118,6 +118,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       onBack: _back,
       title: title,
       subtitle: subtitle,
+      showLogo: false,
       wideTagline: [
         context.l10n.authTaglineDiscover,
         context.l10n.authTaglineTrack,
@@ -134,17 +135,25 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           key: ValueKey(_step),
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _StepDots(current: _step, total: _stepCount),
+            _StepProgressBar(current: _step, total: _stepCount),
             AppSpacing.lg.v,
             Form(key: _formKey, child: _stepField()),
+          ],
+        ),
+      ),
+      actions: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 220),
+        child: Column(
+          key: ValueKey(_step),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
             if (_step == _stepCount - 1) ...[
-              AppSpacing.md.v,
               _TermsCheckbox(
                 value: _acceptedTerms,
                 onChanged: (v) => setState(() => _acceptedTerms = v),
               ),
+              AppSpacing.md.v,
             ],
-            AppSpacing.lg.v,
             PrimaryButton(
               label: _step == _stepCount - 1
                   ? context.l10n.signUpCta
@@ -164,7 +173,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       case 0:
         return ModernTextField(
           key: const ValueKey('email'),
-          hint: context.l10n.email,
+          label: context.l10n.email,
+          hint: context.l10n.emailHint,
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
           validator: Validators.email,
@@ -175,20 +185,23 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           children: [
             ModernTextField(
               key: const ValueKey('firstName'),
-              hint: context.l10n.firstName,
+              label: context.l10n.firstName,
+              hint: context.l10n.firstNameHint,
               controller: _firstNameController,
               validator: Validators.notEmpty,
             ),
             AppSpacing.md.v,
             ModernTextField(
               key: const ValueKey('middleName'),
-              hint: context.l10n.middleName,
+              label: context.l10n.middleName,
+              hint: context.l10n.middleNameHint,
               controller: _middleNameController,
             ),
             AppSpacing.md.v,
             ModernTextField(
               key: const ValueKey('lastName'),
-              hint: context.l10n.lastName,
+              label: context.l10n.lastName,
+              hint: context.l10n.lastNameHint,
               controller: _lastNameController,
               validator: Validators.notEmpty,
             ),
@@ -200,7 +213,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           children: [
             ModernTextField(
               key: const ValueKey('password'),
-              hint: context.l10n.password,
+              label: context.l10n.password,
+              hint: context.l10n.createPasswordHint,
               controller: _passwordController,
               obscureText: true,
               validator: Validators.password,
@@ -208,7 +222,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             AppSpacing.md.v,
             ModernTextField(
               key: const ValueKey('confirmPassword'),
-              hint: context.l10n.confirmPassword,
+              label: context.l10n.confirmPassword,
+              hint: context.l10n.confirmPasswordHint,
               controller: _confirmPasswordController,
               obscureText: true,
               validator: (v) => v != _passwordController.text
@@ -221,8 +236,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   }
 }
 
-class _StepDots extends StatelessWidget {
-  const _StepDots({required this.current, required this.total});
+class _StepProgressBar extends StatelessWidget {
+  const _StepProgressBar({required this.current, required this.total});
 
   final int current;
   final int total;
@@ -231,17 +246,17 @@ class _StepDots extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         for (var i = 0; i < total; i++) ...[
           if (i > 0) AppSpacing.xs.h,
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: i == current ? 22 : 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: i <= current ? colors.onSurface : colors.outline,
-              borderRadius: BorderRadius.circular(4),
+          Expanded(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              height: 4,
+              decoration: BoxDecoration(
+                color: i <= current ? colors.primary : colors.outline,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
           ),
         ],
@@ -267,8 +282,11 @@ class _TermsCheckbox extends StatelessWidget {
           Checkbox(
             value: value,
             onChanged: (v) => onChanged(v ?? false),
-            activeColor: colors.onSurface,
+            activeColor: colors.primary,
             side: BorderSide(color: colors.outline),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(7),
+            ),
           ),
           Expanded(
             child: Text(

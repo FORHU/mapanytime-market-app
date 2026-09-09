@@ -121,6 +121,9 @@ class _CatalogTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final catalog = ref.watch(voucherCatalogControllerProvider);
     final balance = ref.watch(mapPointsBalanceProvider);
+    // extendBody:true on the shell Scaffold reports the floating bottom nav
+    // pill's height here — without it the last card sits behind the pill.
+    final navClearance = MediaQuery.of(context).padding.bottom + AppSpacing.md;
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -142,7 +145,12 @@ class _CatalogTab extends ConsumerWidget {
               )
             : ListView.separated(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(AppSpacing.md),
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  navClearance,
+                ),
                 itemCount: vouchers.length,
                 separatorBuilder: (_, _) => const Gap(AppSpacing.sm),
                 itemBuilder: (context, i) => _ClaimableVoucherRow(
@@ -202,6 +210,7 @@ class _MyVouchersTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vouchers = ref.watch(myVouchersControllerProvider);
+    final navClearance = MediaQuery.of(context).padding.bottom + AppSpacing.md;
 
     return RefreshIndicator(
       onRefresh: () async => ref.invalidate(myVouchersControllerProvider),
@@ -219,7 +228,12 @@ class _MyVouchersTab extends ConsumerWidget {
               )
             : ListView.separated(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(AppSpacing.md),
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  navClearance,
+                ),
                 itemCount: items.length,
                 separatorBuilder: (_, _) => const Gap(AppSpacing.sm),
                 itemBuilder: (context, i) =>
@@ -236,6 +250,7 @@ class _HistoryTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transactions = ref.watch(transactionsProvider);
+    final navClearance = MediaQuery.of(context).padding.bottom + AppSpacing.md;
 
     return RefreshIndicator(
       onRefresh: () async => ref.invalidate(transactionsProvider),
@@ -253,7 +268,12 @@ class _HistoryTab extends ConsumerWidget {
               )
             : ListView.separated(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(AppSpacing.md),
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  navClearance,
+                ),
                 itemCount: items.length,
                 separatorBuilder: (_, _) => const Gap(AppSpacing.sm),
                 itemBuilder: (context, i) =>

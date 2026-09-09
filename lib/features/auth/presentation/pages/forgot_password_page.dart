@@ -11,38 +11,17 @@ import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_text_field.dart';
 import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
-import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
 /// Step 1 of the password-reset flow: collects the account email and
 /// requests a one-time verification code be sent to it.
-class ForgotPasswordPage extends StatelessWidget {
+class ForgotPasswordPage extends ConsumerStatefulWidget {
   const ForgotPasswordPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return AuthScaffold(
-      onBack: () => context.pop(),
-      title: context.l10n.forgotPasswordTitle,
-      subtitle: context.l10n.forgotPasswordSubtitle,
-      card: const _ForgotPasswordForm(),
-      wideTagline: [
-        context.l10n.authTaglineDiscover,
-        context.l10n.authTaglineTrack,
-        context.l10n.authTaglineCheckout,
-      ],
-    );
-  }
+  ConsumerState<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
 }
 
-class _ForgotPasswordForm extends ConsumerStatefulWidget {
-  const _ForgotPasswordForm();
-
-  @override
-  ConsumerState<_ForgotPasswordForm> createState() =>
-      _ForgotPasswordFormState();
-}
-
-class _ForgotPasswordFormState extends ConsumerState<_ForgotPasswordForm> {
+class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   bool _isLoading = false;
@@ -70,24 +49,30 @@ class _ForgotPasswordFormState extends ConsumerState<_ForgotPasswordForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ModernTextField(
-            hint: context.l10n.email,
-            controller: _emailController,
-            keyboardType: TextInputType.emailAddress,
-            validator: Validators.email,
-          ),
-          AppSpacing.lg.v,
-          PrimaryButton(
-            label: context.l10n.nextCta,
-            isLoading: _isLoading,
-            onPressed: _submit,
-          ),
-        ],
+    return AuthScaffold(
+      onBack: () => context.pop(),
+      title: context.l10n.forgotPasswordTitle,
+      subtitle: context.l10n.forgotPasswordSubtitle,
+      showLogo: false,
+      wideTagline: [
+        context.l10n.authTaglineDiscover,
+        context.l10n.authTaglineTrack,
+        context.l10n.authTaglineCheckout,
+      ],
+      card: Form(
+        key: _formKey,
+        child: ModernTextField(
+          label: context.l10n.email,
+          hint: context.l10n.emailHint,
+          controller: _emailController,
+          keyboardType: TextInputType.emailAddress,
+          validator: Validators.email,
+        ),
+      ),
+      actions: PrimaryButton(
+        label: context.l10n.nextCta,
+        isLoading: _isLoading,
+        onPressed: _submit,
       ),
     );
   }

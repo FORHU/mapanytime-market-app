@@ -57,14 +57,16 @@ class _LoginFormState extends ConsumerState<LoginForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ModernTextField(
-            hint: context.l10n.email,
+            label: context.l10n.email,
+            hint: context.l10n.emailHint,
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             validator: Validators.email,
           ),
           AppSpacing.md.v,
           ModernTextField(
-            hint: context.l10n.password,
+            label: context.l10n.password,
+            hint: context.l10n.enterPasswordHint,
             controller: _passwordController,
             obscureText: true,
             validator: Validators.password,
