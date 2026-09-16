@@ -9,6 +9,18 @@ class ApiEndpoints {
   static const String refresh = '/auth/refresh-token';
   static const String logout = '/auth/logout';
 
+  /// Exchanges a Facebook access token (from `flutter_facebook_auth`) for our
+  /// own session. Request body `{ accessToken }` — the API verifies it against
+  /// the Graph API server-side rather than trusting anything the client
+  /// asserts about its own identity.
+  static const String facebookLogin = '/auth/facebook';
+
+  /// Exchanges a Google ID token (from `google_sign_in`) for our own session.
+  /// Request body `{ idToken }` — the API verifies its signature, audience
+  /// and issuer against Google's own public keys rather than trusting
+  /// anything the client asserts about its own identity.
+  static const String googleLogin = '/auth/google';
+
   /// Sends a one-time 4-digit reset code to the given email.
   /// Request body `{ email }`. Always answers 200 with the same message
   /// whether or not the address exists, so it cannot be used to discover

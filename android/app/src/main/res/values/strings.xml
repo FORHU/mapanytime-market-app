@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Facebook Login config, read by AndroidManifest.xml. facebook_app_id and
+  facebook_client_token come from the Meta app at developers.facebook.com
+  (Settings > Basic > App ID, and Settings > Advanced > Client Token) — the
+  same app used for FACEBOOK_APP_ID in the API and NEXT_PUBLIC_FACEBOOK_APP_ID
+  on the web. Unlike the App Secret, Meta documents both of these as safe to
+  ship inside a compiled app, so this file can be committed once filled in.
+-->
+<resources>
+    <string name="facebook_app_id">978370945272386</string>
+    <string name="fb_login_protocol_scheme">fb978370945272386</string>
+    <string name="facebook_client_token">34dacb6f021110be5e31a6264f37b421</string>
+</resources>

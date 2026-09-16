@@ -170,6 +170,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get continueWithGoogle => 'Google로 계속하기';
 
   @override
+  String get continueWithFacebook => 'Facebook으로 계속하기';
+
+  @override
   String get registerSuccessTitle => '성공!';
 
   @override
