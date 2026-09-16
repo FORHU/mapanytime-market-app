@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/components/mapbox_style_manager.dart';
+import 'package:mapanytime_market_app/features/worldMap/presentation/pages/components/store_clusterer.dart';
 
 StoreEntity _store({
   MarkerDisplayMode markerDisplayMode = MarkerDisplayMode.photoCard,
@@ -71,6 +72,60 @@ void main() {
       expect(
         MapboxStyleManager.iconIdFor(a),
         isNot(MapboxStyleManager.iconIdFor(b)),
+      );
+    });
+  });
+
+  group('MapboxStyleManager.iconIdForMarker', () {
+    StoreCluster cluster({
+      required int count,
+      bool isBuildingGroup = false,
+    }) => StoreCluster(
+      id: 'cluster:0:0',
+      stores: List.generate(count, (i) => _store()),
+      lat: 14.6,
+      lng: 120.98,
+      isBuildingGroup: isBuildingGroup,
+      label: 'Test Cluster',
+    );
+
+    test('is stable for an unchanged cluster', () {
+      final c = cluster(count: 12);
+      expect(
+        MapboxStyleManager.iconIdForMarker(c),
+        MapboxStyleManager.iconIdForMarker(c),
+      );
+    });
+
+    test('differs between a count cluster and a building group', () {
+      final count = cluster(count: 5);
+      final building = cluster(count: 5, isBuildingGroup: true);
+      expect(
+        MapboxStyleManager.iconIdForMarker(count),
+        isNot(MapboxStyleManager.iconIdForMarker(building)),
+      );
+    });
+
+    test('differs when the member count differs', () {
+      expect(
+        MapboxStyleManager.iconIdForMarker(cluster(count: 5)),
+        isNot(MapboxStyleManager.iconIdForMarker(cluster(count: 6))),
+      );
+    });
+
+    test('differs when isTruncated differs, even at the same count', () {
+      final c = cluster(count: 500);
+      expect(
+        MapboxStyleManager.iconIdForMarker(c),
+        isNot(MapboxStyleManager.iconIdForMarker(c, isTruncated: true)),
+      );
+    });
+
+    test('a StoreMarker delegates to the plain store iconIdFor', () {
+      final store = _store();
+      expect(
+        MapboxStyleManager.iconIdForMarker(StoreMarker(store)),
+        MapboxStyleManager.iconIdFor(store),
       );
     });
   });

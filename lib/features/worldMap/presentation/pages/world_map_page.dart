@@ -11,7 +11,9 @@ import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_ca
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/controllers/world_map_controller.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/components/mapbox_style_manager.dart';
+import 'package:mapanytime_market_app/features/worldMap/presentation/pages/components/store_clusterer.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/components/user_location_manager.dart';
+import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/cluster_stores_sheet.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/navigation_mode_pill.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_floating_card.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/widgets/store_list_view.dart';
@@ -56,6 +58,21 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   Timer? _debounceTimer;
   String _mapStyle = 'mapbox://styles/mapbox/streets-v12';
 
+  // Clustering. Zoom is tracked separately from the store-refetch debounce
+  // above: re-clustering is a local recompute over already-loaded stores,
+  // not a network request, so it runs on its own much shorter debounce
+  // rather than waiting the full 750ms meant for the fetch.
+  double _currentZoom = 12;
+  Timer? _reclusterDebounceTimer;
+
+  // A non-building cluster is flown to a higher zoom on tap rather than
+  // shown as a sheet. Capped here rather than at the map's own max zoom:
+  // by this zoom, StoreClusterer's grid cell (~18m at 19) already
+  // approaches the building-group threshold (20m), so anything that hasn't
+  // split into singles or a building group by then genuinely won't from
+  // further zooming — that's the fallback-to-sheet case.
+  static const double _clusterZoomCeiling = 19;
+
   // Store search: text field + its own debounce (independent of the
   // camera-idle debounce above).
   final _searchController = TextEditingController();
@@ -99,6 +116,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       mapboxMap,
       screenWidth: MediaQuery.sizeOf(context).width,
       onStoreTap: _selectStore,
+      onClusterTap: _handleClusterTap,
     );
 
     unawaited(
@@ -243,11 +261,143 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     setState(() => _selectedStoreId = null);
   }
 
+  /// A building group always opens the sheet — it's already the terminal,
+  /// unsplittable state (see `StoreClusterer.buildingGroupThresholdMeters`).
+  /// A plain count cluster zooms to frame its members instead, *unless* we're
+  /// already at `_clusterZoomCeiling`, where zooming further would not
+  /// usefully separate them — the fallback that keeps a dense cluster tap
+  /// from ever being a dead tap.
+  ///
+  /// Returns void rather than a Future so it still satisfies
+  /// `MapboxStyleManager.onClusterTap`'s `void Function(StoreCluster)`.
+  void _handleClusterTap(StoreCluster cluster) {
+    if (cluster.isBuildingGroup || _currentZoom >= _clusterZoomCeiling) {
+      _showClusterSheet(cluster);
+      return;
+    }
+    unawaited(_zoomToCluster(cluster));
+  }
+
+  void _showClusterSheet(StoreCluster cluster) {
+    unawaited(
+      ClusterStoresSheet.show(
+        context,
+        cluster: cluster,
+        onNavigate: (store) => unawaited(_startNavigationTo(store)),
+      ),
+    );
+  }
+
+  /// Frames every member of [cluster] on screen.
+  ///
+  /// The camera is computed by Mapbox from the members' own coordinates
+  /// rather than guessed from a zoom increment: a fixed increment ignores how
+  /// large the cluster actually is, and centering on the centroid pushes
+  /// outliers off screen whenever the members aren't evenly spread.
+  Future<void> _zoomToCluster(StoreCluster cluster) async {
+    final map = mapboxMap;
+    if (map == null) return;
+
+    final points = cluster.stores
+        .map((s) => Point(coordinates: Position(s.lng, s.lat)))
+        .toList();
+
+    final CameraOptions camera;
+    try {
+      camera = await map.cameraForCoordinatesPadding(
+        points,
+        // Flat and north-up: a fitted camera that inherited a navigation
+        // pitch would frame the members against a tilted horizon.
+        CameraOptions(bearing: 0, pitch: 0),
+        _clusterFitPadding(),
+        _clusterZoomCeiling,
+        null,
+      );
+    } on Exception catch (e) {
+      debugPrint('Could not compute a camera for cluster ${cluster.id}: $e');
+      return;
+    }
+
+    if (!mounted) return;
+
+    // Capped means the members are tighter than the grid can separate, so
+    // moving there would land on this same cluster. Show the list instead of
+    // a camera move that visibly changes nothing.
+    final targetZoom = camera.zoom ?? _currentZoom;
+    if (targetZoom >= _clusterZoomCeiling) {
+      _showClusterSheet(cluster);
+      return;
+    }
+
+    // easeTo, not flyTo: the cluster is already on screen, and flyTo's
+    // deliberate zoom-out-then-in arc reads as a swoop over a short hop.
+    // Duration tracks the actual distance travelled so a small step isn't
+    // sluggish and a large one isn't abrupt.
+    final delta = (targetZoom - _currentZoom).abs();
+    final durationMs = (300 + delta * 130).clamp(300.0, 800.0).round();
+    unawaited(map.easeTo(camera, MapAnimationOptions(duration: durationMs)));
+
+    // Re-cluster for the destination zoom now, without waiting for the camera
+    // to arrive — and note there is no way to wait for it even if we wanted
+    // to: the platform interface for easeTo carries no completion callback,
+    // so its Future resolves once the animation is *scheduled*.
+    //
+    // Doing it here is what actually fixes the lag. The camera debounce would
+    // otherwise recluster 120ms after landing, and only then start fetching
+    // and rasterizing each store's bitmap — leaving the cluster bubble parked
+    // at the destination before it split. Reclustering up front means the
+    // stores are resolving while the camera eases in, so they're there as it
+    // arrives rather than popping in afterwards.
+    _reclusterDebounceTimer?.cancel();
+    _currentZoom = targetZoom;
+    await _renderMarkers();
+  }
+
+  /// Insets the fitted camera must keep clear, so members don't land beneath
+  /// the chrome floating over the map.
+  ///
+  /// Marker bitmaps are center-anchored and up to ~68dp tall plus shadow, so
+  /// half a marker is reserved on every side — without it a correctly fitted
+  /// edge marker still renders half-clipped.
+  MbxEdgeInsets _clusterFitPadding() {
+    const markerHalf = 40.0;
+    // 16 offset + 54 search bar + 8 gap + 40 category chip row.
+    const topChrome = 118.0;
+    // Clears the bottom nav area. The floating controls stack is 104 tall but
+    // only 48 wide at the right edge, so reserving all of it would cost every
+    // fit a strip of vertical space for one corner.
+    const bottomChrome = 56.0;
+
+    final media = MediaQuery.of(context);
+    var top = media.padding.top + topChrome + markerHalf;
+    var bottom =
+        media.padding.bottom + AppSpacing.sm + bottomChrome + markerHalf;
+
+    // On a short screen the chrome can claim most of the viewport, and
+    // padding that leaves no room produces a degenerate camera.
+    final maxVertical = media.size.height * 0.6;
+    if (top + bottom > maxVertical) {
+      final scale = maxVertical / (top + bottom);
+      top *= scale;
+      bottom *= scale;
+    }
+
+    return MbxEdgeInsets(
+      top: top,
+      left: AppSpacing.md + markerHalf,
+      bottom: bottom,
+      right: AppSpacing.md + markerHalf,
+    );
+  }
+
   Future<void> _renderMarkers() async {
     if (_styleManager == null) return;
 
-    final stores = ref.read(worldMapControllerProvider).value?.stores ?? [];
-    await _styleManager!.updateGeoJsonSource(stores);
+    final state = ref.read(worldMapControllerProvider).value;
+    final stores = state?.stores ?? [];
+    _styleManager!.isStoreListTruncated = state?.hasMore ?? false;
+    final markers = StoreClusterer.cluster(stores, zoom: _currentZoom);
+    await _styleManager!.updateGeoJsonSource(markers);
   }
 
   /// Resolves the selected chip index to a category id. Index 0 is "All"
@@ -308,6 +458,15 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
     final cameraState = await mapboxMap!.getCameraState();
     final center = cameraState.center;
+    _currentZoom = cameraState.zoom;
+
+    // Re-cluster on a much shorter debounce than the store refetch below:
+    // this only recomputes over stores already loaded, so there's no
+    // reason to wait a full 750ms just to reflect the new zoom on screen.
+    _reclusterDebounceTimer?.cancel();
+    _reclusterDebounceTimer = Timer(const Duration(milliseconds: 120), () {
+      if (mounted) unawaited(_renderMarkers());
+    });
 
     if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
 
@@ -410,6 +569,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   @override
   void dispose() {
     _debounceTimer?.cancel();
+    _reclusterDebounceTimer?.cancel();
     _searchDebounce?.cancel();
     _searchController.dispose();
     _initTimer?.cancel();

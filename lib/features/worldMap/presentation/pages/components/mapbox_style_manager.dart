@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
+import 'package:mapanytime_market_app/features/worldMap/presentation/pages/components/store_clusterer.dart';
 import 'package:mapanytime_market_app/shared/utils/category_visuals.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/effects.dart';
@@ -33,6 +34,7 @@ class MapboxStyleManager {
     this.mapboxMap, {
     required double screenWidth,
     this.onStoreTap,
+    this.onClusterTap,
   }) : _cardSize = sizeFor(screenWidth);
 
   final MapboxMap mapboxMap;
@@ -41,7 +43,26 @@ class MapboxStyleManager {
   /// is tapped.
   final void Function(String storeId)? onStoreTap;
 
-  List<StoreEntity> _stores = [];
+  /// Called with the tapped [StoreCluster] (either a count cluster or a
+  /// building group). Deciding whether to fly to a higher zoom or open the
+  /// store-list sheet needs camera state this class doesn't own, so that
+  /// policy lives with the caller — this just reports what was tapped.
+  final void Function(StoreCluster cluster)? onClusterTap;
+
+  List<MapMarker> _markers = [];
+
+  /// Clusters currently on the source, keyed by their stable id, so
+  /// [_handleTap] can hand the caller the full cluster (members, label,
+  /// isBuildingGroup) without round-tripping that through feature
+  /// properties, which only carry primitives.
+  final Map<String, StoreCluster> _clusterById = {};
+
+  /// Whether the store list currently backing the map was capped by the
+  /// controller (`hasMore`), set by the caller alongside each
+  /// [updateGeoJsonSource] call. Used only to decide whether a cluster
+  /// absorbing the entire loaded set should read "500+" instead of an exact
+  /// count it can't back up.
+  bool isStoreListTruncated = false;
 
   static const _sourceId = 'stores-source';
   static const _dotLayerId = 'stores-dot-layer';
@@ -199,44 +220,67 @@ class MapboxStyleManager {
         interactionID: '$_dotLayerId-tap',
       );
 
-    await updateGeoJsonSource(_stores);
+    await updateGeoJsonSource(_markers);
   }
 
   void _handleTap(
     TypedFeaturesetFeature<FeaturesetDescriptor> feature,
     MapContentGestureContext context,
   ) {
-    final storeId = feature.properties['storeId'] as String?;
-    if (storeId != null) onStoreTap?.call(storeId);
+    final kind = feature.properties['kind'] as String?;
+    if (kind == 'store') {
+      final storeId = feature.properties['storeId'] as String?;
+      if (storeId != null) onStoreTap?.call(storeId);
+      return;
+    }
+
+    final clusterId = feature.properties['clusterId'] as String?;
+    final cluster = clusterId == null ? null : _clusterById[clusterId];
+    if (cluster != null) onClusterTap?.call(cluster);
   }
 
-  /// Diffs the new store list against what's currently on the source and
-  /// applies only the add/update/remove needed — untouched stores are
-  /// skipped entirely rather than resent.
-  Future<void> updateGeoJsonSource(List<StoreEntity> stores) async {
-    _stores = stores;
+  /// Diffs the new marker list against what's currently on the source and
+  /// applies only the add/update/remove needed — untouched markers are
+  /// skipped entirely rather than resent. Handles both plain stores and
+  /// clusters, since [StoreClusterer.cluster] freely mixes the two.
+  Future<void> updateGeoJsonSource(List<MapMarker> markers) async {
+    _markers = markers;
+    _clusterById
+      ..clear()
+      ..addEntries(
+        markers.whereType<StoreCluster>().map((c) => MapEntry(c.id, c)),
+      );
+    final totalLoadedStores = markers.fold<int>(
+      0,
+      (sum, m) => sum + (m is StoreCluster ? m.count : 1),
+    );
     final style = mapboxMap.style;
 
     final newIds = <String>{};
     final toAdd = <Feature>[];
     final toUpdate = <Feature>[];
-    final toRegister = <(String iconId, StoreEntity store)>[];
+    final toRegister = <(String iconId, MapMarker marker, bool isTruncated)>[];
 
-    for (final store in stores) {
-      newIds.add(store.id);
-      final iconId = iconIdFor(store);
+    for (final marker in markers) {
+      final id = _idFor(marker);
+      newIds.add(id);
+      final isTruncated =
+          isStoreListTruncated &&
+          marker is StoreCluster &&
+          marker.count == totalLoadedStores;
+      final iconId = iconIdForMarker(marker, isTruncated: isTruncated);
       if (!_registeredImageIds.contains(iconId)) {
-        toRegister.add((iconId, store));
+        toRegister.add((iconId, marker, isTruncated));
       }
 
-      final renderSignature = _renderSignatureFor(store, iconId);
-      final previous = _liveSignatures[store.id];
+      final renderSignature = _renderSignatureFor(marker, iconId);
+      final previous = _liveSignatures[id];
       if (previous == null) {
-        toAdd.add(_featureFor(store, iconId));
+        toAdd.add(_featureFor(marker, iconId));
       } else if (previous != renderSignature) {
-        toUpdate.add(_featureFor(store, iconId));
+        toUpdate.add(_featureFor(marker, iconId));
       }
-      _liveSignatures[store.id] = renderSignature;
+      _liveSignatures[id] = renderSignature;
     }
 
     final removedIds =
@@ -249,7 +293,9 @@ class MapboxStyleManager {
       // sequentially in a dense viewport is the difference between a
       // near-instant render and one that visibly stalls.
       await Future.wait(
-        toRegister.map((entry) => _registerImage(entry.$1, entry.$2)),
+        toRegister.map(
+          (entry) => _registerImage(entry.$1, entry.$2, entry.$3),
+        ),
       );
 
       if (toAdd.isNotEmpty) {
@@ -266,15 +312,38 @@ class MapboxStyleManager {
     }
   }
 
-  Feature _featureFor(StoreEntity store, String iconId) => Feature(
-    id: store.id,
-    geometry: Point(coordinates: Position(store.lng, store.lat)),
-    properties: {
-      'storeId': store.id,
-      'iconId': iconId,
-      'color': _hexColor(colorForStore(store)),
-    },
-  );
+  static String _idFor(MapMarker marker) => switch (marker) {
+    StoreMarker(:final store) => store.id,
+    StoreCluster(:final id) => id,
+  };
+
+  Feature _featureFor(MapMarker marker, String iconId) {
+    switch (marker) {
+      case StoreMarker(:final store):
+        return Feature(
+          id: store.id,
+          geometry: Point(coordinates: Position(store.lng, store.lat)),
+          properties: {
+            'kind': 'store',
+            'storeId': store.id,
+            'iconId': iconId,
+            'color': _hexColor(colorForStore(store)),
+          },
+        );
+      case StoreCluster(:final id, :final lat, :final lng, :final count):
+        return Feature(
+          id: id,
+          geometry: Point(coordinates: Position(lng, lat)),
+          properties: {
+            'kind': marker.isBuildingGroup ? 'building' : 'cluster',
+            'clusterId': id,
+            'iconId': iconId,
+            'color': _hexColor(AppColors.ink),
+            'count': count,
+          },
+        );
+    }
+  }
 
   // `circleColorExpression: ['get', 'color']` is a Style Spec data
   // expression — it needs a CSS color string, not a raw packed int. A bare
@@ -284,8 +353,11 @@ class MapboxStyleManager {
   String _hexColor(Color color) =>
       '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
 
-  String _renderSignatureFor(StoreEntity s, String iconId) =>
-      '$iconId|${s.lat}|${s.lng}';
+  String _renderSignatureFor(MapMarker marker, String iconId) =>
+      switch (marker) {
+        StoreMarker(:final store) => '$iconId|${store.lat}|${store.lng}',
+        StoreCluster(:final lat, :final lng) => '$iconId|$lat|$lng',
+      };
 
   /// Content signature a registered bitmap is cached under — includes every
   /// field any `_paint*Card` method reads, so a change to any of them (e.g.
@@ -302,9 +374,33 @@ class MapboxStyleManager {
     s.markerSubtitle ?? '',
   ].join('|');
 
-  Future<void> _registerImage(String iconId, StoreEntity store) async {
+  /// Content signature for a cluster or building bitmap. Keyed by the exact
+  /// label text drawn — including the "500+" suffix when [isTruncated] — so
+  /// a bubble is re-rasterized only when what it displays actually changes,
+  /// not on every camera move that leaves its count untouched.
+  @visibleForTesting
+  static String iconIdForMarker(
+    MapMarker marker, {
+    bool isTruncated = false,
+  }) => switch (marker) {
+    StoreMarker(:final store) => iconIdFor(store),
+    StoreCluster(:final count, :final isBuildingGroup) =>
+      'cluster|${isBuildingGroup ? 'building' : 'count'}|'
+          '${formatStoreCountLabel(count, isTruncated: isTruncated)}',
+  };
+
+  Future<void> _registerImage(
+    String iconId,
+    MapMarker marker,
+    bool isTruncated,
+  ) async {
     if (_registeredImageIds.contains(iconId)) return;
-    final mbxImage = await _createCardImage(store);
+    final mbxImage = switch (marker) {
+      StoreMarker(:final store) => await _createCardImage(store),
+      StoreCluster() => await (marker.isBuildingGroup
+          ? _renderBuildingCard(marker)
+          : _renderClusterBubble(marker, isTruncated: isTruncated)),
+    };
     await mapboxMap.style.addStyleImage(
       iconId,
       _dpr,
@@ -379,6 +475,144 @@ class MapboxStyleManager {
       case MarkerDisplayMode.photoCard:
         return _renderPhotoCard(store);
     }
+  }
+
+  /// Bubble diameter in 2-3 discrete size tiers by member count, not
+  /// continuous — a 3-store and a 300-store cluster must read as different
+  /// magnitudes, but a bitmap re-rasterized for every exact pixel size
+  /// would bloat the icon cache (keyed by [iconIdForMarker]) for no
+  /// perceptible gain. Scaled off the same [_cardSize] every store card
+  /// uses, so a cluster sits in the same visual weight class as the
+  /// markers it's standing in for.
+  double _clusterDiameterFor(int count) {
+    if (count >= 100) return _cardSize.height * 1.25;
+    if (count >= 50) return _cardSize.height * 1.1;
+    if (count >= 10) return _cardSize.height * 0.95;
+    return _cardSize.height * 0.8;
+  }
+
+  /// Count cluster: a solid circle in the brand color with the member
+  /// count. Solid-filled rather than photo-backed, since there's no single
+  /// store to represent — and a white stroke plus shadow (the same
+  /// lift-off-the-background technique [_renderPhotoCard] uses for
+  /// `Colors.white`) is what keeps it legible over Satellite imagery as
+  /// well as the three flat-color styles, with no per-style tinting needed.
+  Future<MbxImage> _renderClusterBubble(
+    StoreCluster cluster, {
+    required bool isTruncated,
+  }) {
+    final diameter = _clusterDiameterFor(cluster.count);
+    final label = formatStoreCountLabel(
+      cluster.count,
+      isTruncated: isTruncated,
+    ).replaceAll(' Stores', '');
+
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: TextStyle(
+          fontSize: diameter * (cluster.count >= 100 ? 0.26 : 0.32),
+          fontWeight: FontWeight.w800,
+          color: AppColors.text.onInk,
+          letterSpacing: -0.3,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    )..layout(maxWidth: diameter * 0.85);
+
+    final size = ui.Size(diameter, diameter);
+    return _rasterize(size, (canvas, cardRect) {
+      final cardRRect = RRect.fromRectAndRadius(
+        cardRect,
+        Radius.circular(cardRect.height / 2),
+      );
+      _drawCardShadow(canvas, cardRRect);
+      canvas.drawRRect(cardRRect, Paint()..color = AppColors.ink);
+      _drawCardStroke(canvas, cardRRect, Colors.white);
+
+      // A glyph centered on its geometric bounding box reads as sitting
+      // slightly high — text metrics leave more visual room below the
+      // baseline than above the cap height. Nudging down by a fraction of
+      // the font size corrects for it; this is the same "optical, not
+      // geometric" centering `_paintMonogram`'s font choice already relies
+      // on visually, made explicit here since a bare numeral in a perfect
+      // circle makes the mismatch far more noticeable.
+      final opticalCenter = cardRect.center + Offset(0, diameter * 0.03);
+      textPainter.paint(
+        canvas,
+        opticalCenter - Offset(textPainter.width / 2, textPainter.height / 2),
+      );
+    });
+  }
+
+  /// Building group: the terminal, unsplittable cluster. Deliberately a
+  /// different shape and color from [_renderClusterBubble] — a pill with a
+  /// building glyph, dark-filled rather than brand-blue — since it opens
+  /// the store-list sheet on tap instead of flying to a higher zoom, and
+  /// that differing behavior needs a differing static cue rather than
+  /// relying on a viewer to remember which shade of the same shape does
+  /// what.
+  Future<MbxImage> _renderBuildingCard(StoreCluster cluster) {
+    final iconDiameter = _cardSize.height * 0.62;
+    final countText = '${cluster.count}';
+
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: countText,
+        style: TextStyle(
+          fontSize: iconDiameter * 0.5,
+          fontWeight: FontWeight.w800,
+          color: AppColors.text.onInk,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+
+    const paddingH = AppSpacing.sm;
+    const gapIconText = AppSpacing.xs;
+    final size = ui.Size(
+      paddingH * 2 + iconDiameter + gapIconText + textPainter.width,
+      iconDiameter + AppSpacing.xs * 2,
+    );
+
+    return _rasterize(size, (canvas, cardRect) {
+      final cardRRect = RRect.fromRectAndRadius(
+        cardRect,
+        Radius.circular(cardRect.height / 2),
+      );
+      _drawCardShadow(canvas, cardRRect);
+      canvas.drawRRect(cardRRect, Paint()..color = AppColors.text.primary);
+      _drawCardStroke(canvas, cardRRect, Colors.white);
+
+      final iconCenter = Offset(
+        cardRect.left + paddingH + iconDiameter / 2,
+        cardRect.center.dy,
+      );
+      final iconPainter = TextPainter(
+        text: TextSpan(
+          text: String.fromCharCode(Icons.apartment_rounded.codePoint),
+          style: TextStyle(
+            fontSize: iconDiameter * 0.55,
+            fontFamily: Icons.apartment_rounded.fontFamily,
+            package: Icons.apartment_rounded.fontPackage,
+            color: AppColors.text.onInk,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      iconPainter.paint(
+        canvas,
+        iconCenter - Offset(iconPainter.width / 2, iconPainter.height / 2),
+      );
+
+      final textLeft = cardRect.left + paddingH + iconDiameter + gapIconText;
+      textPainter.paint(
+        canvas,
+        Offset(textLeft, cardRect.center.dy - textPainter.height / 2),
+      );
+    });
   }
 
   /// Rasterizes a [logicalSize] card into an [MbxImage], with [_dpr]-aware

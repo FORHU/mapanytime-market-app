@@ -10,7 +10,12 @@ import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_en
 ///   "storeName": "...",
 ///   "distanceKm": 2.3,
 ///   "coordinates": { "lat": 14.5995, "lng": 120.9842 },
-///   "address": { "city": "...", "province": "...", "country": "..." }
+///   "address": {
+///     "currentAddress": "...",
+///     "city": "...",
+///     "province": "...",
+///     "country": "..."
+///   }
 /// }
 /// ```
 class StoreModel extends StoreEntity {
@@ -30,6 +35,7 @@ class StoreModel extends StoreEntity {
     super.markerDisplayMode,
     super.markerPrice,
     super.markerSubtitle,
+    super.address,
   });
 
   // categoryId/categoryName/logoUrl/rating/ratingCount/isOpen aren't sent by
@@ -38,6 +44,7 @@ class StoreModel extends StoreEntity {
   // markers plan).
   factory StoreModel.fromJson(Map<String, dynamic> json) {
     final coords = json['coordinates'] as Map<String, dynamic>? ?? {};
+    final address = json['address'] as Map<String, dynamic>?;
     return StoreModel(
       id: json['id'] as String? ?? '',
       name: json['storeName'] as String? ?? 'Unknown Store',
@@ -56,6 +63,13 @@ class StoreModel extends StoreEntity {
       ),
       markerPrice: (json['markerPrice'] as num?)?.toDouble(),
       markerSubtitle: json['markerSubtitle'] as String?,
+      // currentAddress is non-null in the DB but sellers can leave it blank,
+      // so an empty string is normalized to null here rather than pushed
+      // downstream for every consumer to re-check.
+      address: (address?['currentAddress'] as String?)?.trim().isNotEmpty ==
+              true
+          ? (address!['currentAddress'] as String).trim()
+          : null,
     );
   }
 
@@ -88,5 +102,6 @@ class StoreModel extends StoreEntity {
     'markerDisplayMode': markerDisplayMode.name,
     'markerPrice': markerPrice,
     'markerSubtitle': markerSubtitle,
+    'address': address == null ? null : {'currentAddress': address},
   };
 }

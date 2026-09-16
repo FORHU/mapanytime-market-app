@@ -28,6 +28,27 @@ void main() {
         model.markerPhotoUrl,
         'https://cdn.example.com/stores/store-1/banner.jpg',
       );
+      // No currentAddress in this fixture — city/province/country alone
+      // aren't a building-level address.
+      expect(model.address, isNull);
+    });
+
+    test('parses currentAddress and trims it', () {
+      final model = StoreModel.fromJson(const {
+        'id': 'store-5',
+        'address': {'currentAddress': '  SM Megamall Bldg A  '},
+      });
+
+      expect(model.address, 'SM Megamall Bldg A');
+    });
+
+    test('normalizes a blank currentAddress to null', () {
+      final model = StoreModel.fromJson(const {
+        'id': 'store-6',
+        'address': {'currentAddress': '   '},
+      });
+
+      expect(model.address, isNull);
     });
 
     test('defaults markerPhotoUrl to null when absent', () {
@@ -84,6 +105,7 @@ void main() {
       'markerDisplayMode': 'photoCard',
       'markerPrice': null,
       'markerSubtitle': null,
+      'address': null,
     });
   });
 }
