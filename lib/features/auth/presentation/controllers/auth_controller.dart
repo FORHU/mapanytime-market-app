@@ -8,6 +8,8 @@ import 'package:mapanytime_market_app/core/services/storage_service.dart';
 import 'package:mapanytime_market_app/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:mapanytime_market_app/features/auth/data/repositories/auth_repository.dart';
 import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.dart';
+import 'package:mapanytime_market_app/features/auth/domain/usecases/facebook_login_usecase.dart';
+import 'package:mapanytime_market_app/features/auth/domain/usecases/google_login_usecase.dart';
 import 'package:mapanytime_market_app/features/auth/domain/usecases/login_usecase.dart';
 import 'package:mapanytime_market_app/features/auth/domain/usecases/refresh_auth_usecase.dart';
 import 'package:mapanytime_market_app/features/auth/domain/usecases/register_usecase.dart';
@@ -51,6 +53,14 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 
 final loginUseCaseProvider = Provider<LoginUseCase>(
   (ref) => LoginUseCase(ref.watch(authRepositoryProvider)),
+);
+
+final facebookLoginUseCaseProvider = Provider<FacebookLoginUseCase>(
+  (ref) => FacebookLoginUseCase(ref.watch(authRepositoryProvider)),
+);
+
+final googleLoginUseCaseProvider = Provider<GoogleLoginUseCase>(
+  (ref) => GoogleLoginUseCase(ref.watch(authRepositoryProvider)),
 );
 
 final registerUseCaseProvider = Provider<RegisterUseCase>(
@@ -128,6 +138,42 @@ class AuthController extends Notifier<AuthState> {
     state = state.copyWith(isLoading: true);
 
     final result = await ref.read(loginUseCaseProvider)(email, password);
+
+    return result.fold(
+      (failure) {
+        state = AuthState(error: failure.message);
+        return false;
+      },
+      (user) {
+        state = AuthState(user: user);
+        unawaited(ref.read(cartProvider.notifier).hydrate());
+        return true;
+      },
+    );
+  }
+
+  Future<bool> loginWithFacebook(String accessToken) async {
+    state = state.copyWith(isLoading: true);
+
+    final result = await ref.read(facebookLoginUseCaseProvider)(accessToken);
+
+    return result.fold(
+      (failure) {
+        state = AuthState(error: failure.message);
+        return false;
+      },
+      (user) {
+        state = AuthState(user: user);
+        unawaited(ref.read(cartProvider.notifier).hydrate());
+        return true;
+      },
+    );
+  }
+
+  Future<bool> loginWithGoogle(String idToken) async {
+    state = state.copyWith(isLoading: true);
+
+    final result = await ref.read(googleLoginUseCaseProvider)(idToken);
 
     return result.fold(
       (failure) {

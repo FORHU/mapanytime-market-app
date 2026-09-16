@@ -8,6 +8,7 @@ class AppConfig {
     required this.baseUrl,
     required this.mapboxPublicToken,
     this.enableLogging = false,
+    this.googleServerClientId = '',
   });
 
   /// Builds config from `flutter_dotenv` values loaded at runtime.
@@ -25,6 +26,7 @@ class AppConfig {
                   (envString != 'prod' ? 'true' : 'false'))
               .toLowerCase() ==
           'true',
+      googleServerClientId: dotenv.env['GOOGLE_SERVER_CLIENT_ID'] ?? '',
     );
   }
 
@@ -35,7 +37,8 @@ class AppConfig {
       appName = 'MapAnytime Market (Dev)',
       baseUrl = 'http://localhost:4002/api/v1',
       mapboxPublicToken = defaultMapboxPublicToken,
-      enableLogging = true;
+      enableLogging = true,
+      googleServerClientId = '';
 
   /// Explicit production config used by `main_prod.dart` — logging off, real
   /// backend.
@@ -44,13 +47,22 @@ class AppConfig {
       appName = 'MapAnytime Market',
       baseUrl = '',
       mapboxPublicToken = defaultMapboxPublicToken,
-      enableLogging = false;
+      enableLogging = false,
+      googleServerClientId = '';
 
   final Environment environment;
   final String appName;
   final String baseUrl;
   final String mapboxPublicToken;
   final bool enableLogging;
+
+  /// The *Web application* OAuth client ID from Google Cloud Console — the
+  /// same one as the API's `GOOGLE_CLIENT_ID` and the web app's
+  /// `NEXT_PUBLIC_GOOGLE_CLIENT_ID`. Passed to `GoogleSignIn.initialize` as
+  /// `serverClientId` so the ID token this app gets back carries that
+  /// audience, which is what the API verifies it against — not a
+  /// platform-specific Android/iOS client ID. Empty disables the button.
+  final String googleServerClientId;
 
   bool get isDev => environment == Environment.dev;
   bool get isProd => environment == Environment.prod;

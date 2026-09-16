@@ -53,6 +53,7 @@
   "errorNoEmail": "Error: no se proporcionó correo electrónico",
   "orSignInWith": "o",
   "continueWithGoogle": "Continuar con Google",
+  "continueWithFacebook": "Continuar con Facebook",
   "registerSuccessTitle": "¡Listo!",
   "registerSuccessSubtitle": "Tu cuenta está lista. Empieza a descubrir tiendas cerca de ti.",
   "continueButton": "Continuar",
