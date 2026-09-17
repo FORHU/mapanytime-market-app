@@ -66,8 +66,8 @@ class StoreModel extends StoreEntity {
       // currentAddress is non-null in the DB but sellers can leave it blank,
       // so an empty string is normalized to null here rather than pushed
       // downstream for every consumer to re-check.
-      address: (address?['currentAddress'] as String?)?.trim().isNotEmpty ==
-              true
+      address:
+          (address?['currentAddress'] as String?)?.trim().isNotEmpty == true
           ? (address!['currentAddress'] as String).trim()
           : null,
     );

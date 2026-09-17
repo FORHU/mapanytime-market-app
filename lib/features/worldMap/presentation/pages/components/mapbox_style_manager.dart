@@ -12,8 +12,12 @@ import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
-typedef _RegisterEntry =
-    (String iconId, MapMarker marker, bool isTruncated, bool isSelected);
+typedef _RegisterEntry = (
+  String iconId,
+  MapMarker marker,
+  bool isTruncated,
+  bool isSelected,
+);
 
 /// Renders store markers via a native `GeoJsonSource` + style layers instead
 /// of `PointAnnotationManager` — this is what lets Mapbox's own collision
@@ -327,8 +331,7 @@ class MapboxStyleManager {
       // near-instant render and one that visibly stalls.
       await Future.wait(
         toRegister.map(
-          (entry) =>
-              _registerImage(entry.$1, entry.$2, entry.$3, entry.$4),
+          (entry) => _registerImage(entry.$1, entry.$2, entry.$3, entry.$4),
         ),
       );
 
@@ -433,11 +436,14 @@ class MapboxStyleManager {
   ) async {
     if (_registeredImageIds.contains(iconId)) return;
     final mbxImage = switch (marker) {
-      StoreMarker(:final store) =>
-        await _createCardImage(store, isSelected: isSelected),
-      StoreCluster() => await (marker.isBuildingGroup
-          ? _renderBuildingCard(marker)
-          : _renderClusterBubble(marker, isTruncated: isTruncated)),
+      StoreMarker(:final store) => await _createCardImage(
+        store,
+        isSelected: isSelected,
+      ),
+      StoreCluster() =>
+        await (marker.isBuildingGroup
+            ? _renderBuildingCard(marker)
+            : _renderClusterBubble(marker, isTruncated: isTruncated)),
     };
     await mapboxMap.style.addStyleImage(
       iconId,
@@ -527,8 +533,10 @@ class MapboxStyleManager {
       )
       // The M's notch: peak -> valley -> peak.
       ..lineTo(valley.dx, valley.dy)
-      ..lineTo(_pointOnCrown(crownCenter, r, leftPeakAngle).dx,
-          _pointOnCrown(crownCenter, r, leftPeakAngle).dy)
+      ..lineTo(
+        _pointOnCrown(crownCenter, r, leftPeakAngle).dx,
+        _pointOnCrown(crownCenter, r, leftPeakAngle).dy,
+      )
       // Left cheek, arcing down from the M's left peak to leftShoulder.
       ..arcTo(
         crownRect,
@@ -589,8 +597,8 @@ class MapboxStyleManager {
   }
 
   void _drawPinShadow(Canvas canvas, Path path, {bool strong = false}) {
-    final shadow = (strong ? AppEffects.cardShadow : AppEffects.softShadow)
-        .first;
+    final shadow =
+        (strong ? AppEffects.cardShadow : AppEffects.softShadow).first;
     canvas.drawPath(path.shift(shadow.offset), shadow.toPaint());
   }
 

@@ -37,8 +37,8 @@ final paymentMethodsProvider =
 ///
 /// Riverpod family types are complex and self-documenting via generics.
 // ignore: specify_nonobvious_property_types
-final orderPaymentStatusProvider =
-    FutureProvider.autoDispose.family<OrderPaymentStatus, String>((
+final orderPaymentStatusProvider = FutureProvider.autoDispose
+    .family<OrderPaymentStatus, String>((
       ref,
       orderId,
     ) async {

@@ -100,10 +100,9 @@ class StoreClusterer {
 
     final bins = <String, List<StoreEntity>>{};
     for (final store in valid) {
-      final cellX =
-          ((store.lng * metersPerDegreeLng) / cellSizeMeters).floor();
-      final cellY =
-          ((store.lat * _metersPerDegreeLat) / cellSizeMeters).floor();
+      final cellX = ((store.lng * metersPerDegreeLng) / cellSizeMeters).floor();
+      final cellY = ((store.lat * _metersPerDegreeLat) / cellSizeMeters)
+          .floor();
       (bins[_binKey(cellX, cellY)] ??= []).add(store);
     }
 
@@ -162,7 +161,8 @@ class StoreClusterer {
     final dLng = (b.lng - a.lng) * math.pi / 180;
     final sinLat = math.sin(dLat / 2);
     final sinLng = math.sin(dLng / 2);
-    final h = sinLat * sinLat +
+    final h =
+        sinLat * sinLat +
         math.cos(a.lat * math.pi / 180) *
             math.cos(b.lat * math.pi / 180) *
             sinLng *
