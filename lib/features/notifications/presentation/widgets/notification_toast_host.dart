@@ -10,6 +10,19 @@ import 'package:mapanytime_market_app/features/orders/presentation/controllers/o
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 
+/// Notification types that mean the buyer's order list is now out of date.
+///
+/// `PAYMENT_COMPLETED` is the one the server sends the *buyer* when a payment
+/// settles — `ORDER_PAID` goes to the seller — so leaving it out meant the one
+/// event that matters most to the person holding this phone was the one event
+/// that refreshed nothing.
+const Set<String> _orderRefreshingTypes = {
+  'ORDER_UPDATED',
+  'ORDER_CREATED',
+  'ORDER_PAID',
+  'PAYMENT_COMPLETED',
+};
+
 /// Wraps the whole app (via `MaterialApp.router`'s builder) and shows a
 /// small, top-floating compact toast whenever a realtime notification arrives.
 class NotificationToastHost extends ConsumerWidget {
@@ -29,11 +42,7 @@ class NotificationToastHost extends ConsumerWidget {
         if (notification != null) {
           _showTopToast(context, notification);
           final type = notification.metadata?['type'] as String?;
-          final isOrderUpdate =
-              type == 'ORDER_UPDATED' ||
-              type == 'ORDER_CREATED' ||
-              type == 'ORDER_PAID';
-          if (isOrderUpdate) {
+          if (type != null && _orderRefreshingTypes.contains(type)) {
             ref.invalidate(ordersProvider);
           }
         }

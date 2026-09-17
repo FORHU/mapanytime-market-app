@@ -25,6 +25,7 @@ class StoreEntity extends Equatable {
     this.markerDisplayMode = MarkerDisplayMode.photoCard,
     this.markerPrice,
     this.markerSubtitle,
+    this.address,
   });
 
   final String id;
@@ -54,6 +55,12 @@ class StoreEntity extends Equatable {
   /// Used when [markerDisplayMode] is [MarkerDisplayMode.labelCard].
   final String? markerSubtitle;
 
+  /// The seller-entered street address, e.g. "SM Megamall Bldg A". Free text,
+  /// not a building identifier — used only as a display label. Grouping
+  /// co-located stores must key on coordinates, not this string, since two
+  /// sellers in the same building routinely type it differently.
+  final String? address;
+
   @override
   List<Object?> get props => [
     id,
@@ -71,5 +78,6 @@ class StoreEntity extends Equatable {
     markerDisplayMode,
     markerPrice,
     markerSubtitle,
+    address,
   ];
 }

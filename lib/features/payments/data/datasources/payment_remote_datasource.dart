@@ -1,5 +1,6 @@
 import 'package:mapanytime_market_app/core/constants/api_endpoints.dart';
 import 'package:mapanytime_market_app/core/services/api_service.dart';
+import 'package:mapanytime_market_app/features/payments/domain/entities/order_payment_status.dart';
 import 'package:mapanytime_market_app/features/payments/domain/entities/payment_method.dart';
 
 class PaymentProviderGroup {
@@ -68,5 +69,25 @@ class PaymentRemoteDataSource {
         methods: methodList,
       );
     }).toList();
+  }
+
+  /// Where the payment for [orderId] actually stands.
+  ///
+  /// Same path as the initiate call, read instead of written. This is what the
+  /// confirmation screen polls: launching checkout proves only that the buyer
+  /// was shown a payment page, and the webhook that settles it lands on the
+  /// server, not here.
+  Future<OrderPaymentStatus> fetchOrderPaymentStatus(String orderId) async {
+    final response = await _api.get(ApiEndpoints.orderPayment(orderId));
+
+    if (response is Map) {
+      final resData = response['data'];
+      if (resData is Map) {
+        return OrderPaymentStatus.fromJson(resData.cast<String, dynamic>());
+      }
+      return OrderPaymentStatus.fromJson(response.cast<String, dynamic>());
+    }
+
+    throw const FormatException('Unexpected payment status response shape.');
   }
 }
