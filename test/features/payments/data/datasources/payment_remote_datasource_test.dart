@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mapanytime_market_app/core/services/api_service.dart';
 import 'package:mapanytime_market_app/features/orders/data/order_remote_datasource.dart';
 import 'package:mapanytime_market_app/features/payments/data/datasources/payment_remote_datasource.dart';
+import 'package:mapanytime_market_app/features/payments/domain/entities/order_payment_status.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockApiService extends Mock implements ApiService {}
@@ -108,6 +109,88 @@ void main() {
         expect(cash.feeAmount, 0.0);
       },
     );
+  });
+
+  group('PaymentRemoteDataSource.fetchOrderPaymentStatus', () {
+    test('parses the status envelope and reports a settled payment', () async {
+      when(() => mockApi.get(any())).thenAnswer(
+        (_) async => const {
+          'statusCode': 200,
+          'data': {
+            'orderId': 'order-1',
+            'paymentId': 'pay-1',
+            'orderStatus': 'PROCESSING',
+            'paymentStatus': 'COMPLETED',
+            'amount': 1022.81,
+            'currency': 'PHP',
+            'provider': 'Xendit',
+            'paymentMethod': 'GCash',
+            'paidAt': '2026-08-20T17:05:00.000Z',
+          },
+        },
+      );
+
+      final result = await paymentDataSource.fetchOrderPaymentStatus('order-1');
+
+      expect(result.orderId, 'order-1');
+      expect(result.paymentStatus, PaymentStatusValue.completed);
+      expect(result.orderStatus, 'PROCESSING');
+      expect(result.amount, 1022.81);
+      expect(result.paidAt, isNotNull);
+      expect(result.isSettled, isTrue);
+      expect(result.outcome, PaymentOutcome.paid);
+    });
+
+    /// The common case immediately after checkout: the buyer's browser is back
+    /// before the webhook that settles the payment has arrived.
+    test('reports a pending payment as unsettled and waiting', () async {
+      when(() => mockApi.get(any())).thenAnswer(
+        (_) async => const {
+          'data': {
+            'orderId': 'order-2',
+            'orderStatus': 'PENDING',
+            'paymentStatus': 'PENDING',
+          },
+        },
+      );
+
+      final result = await paymentDataSource.fetchOrderPaymentStatus('order-2');
+
+      expect(result.isSettled, isFalse);
+      expect(result.outcome, PaymentOutcome.waiting);
+    });
+
+    /// No webhook is emitted when a session merely expires, so the order being
+    /// moved to FAILED is the only failure signal that ever reaches the app.
+    test('reads a failed order as failure despite a PENDING payment', () async {
+      when(() => mockApi.get(any())).thenAnswer(
+        (_) async => const {
+          'data': {
+            'orderId': 'order-3',
+            'orderStatus': 'FAILED',
+            'paymentStatus': 'PENDING',
+          },
+        },
+      );
+
+      final result = await paymentDataSource.fetchOrderPaymentStatus('order-3');
+
+      expect(result.outcome, PaymentOutcome.failed);
+      expect(result.isSettled, isTrue);
+    });
+
+    test('tolerates an unknown status rather than throwing', () async {
+      when(() => mockApi.get(any())).thenAnswer(
+        (_) async => const {
+          'data': {'orderId': 'order-4', 'paymentStatus': 'SOMETHING_NEW'},
+        },
+      );
+
+      final result = await paymentDataSource.fetchOrderPaymentStatus('order-4');
+
+      expect(result.paymentStatus, PaymentStatusValue.unknown);
+      expect(result.outcome, PaymentOutcome.waiting);
+    });
   });
 
   group('OrderRemoteDataSource.createOrder', () {

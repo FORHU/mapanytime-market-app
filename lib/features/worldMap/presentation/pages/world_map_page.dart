@@ -237,6 +237,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
         _selectedStoreId = storeId;
       });
     }
+    _styleManager?.setSelectedStore(storeId);
 
     final stores = ref.read(worldMapControllerProvider).value?.stores ?? [];
     final store = stores.where((s) => s.id == storeId).firstOrNull;
@@ -257,6 +258,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   }
 
   void _deselectStore() {
+    _styleManager?.setSelectedStore(null);
     if (!mounted) return;
     setState(() => _selectedStoreId = null);
   }

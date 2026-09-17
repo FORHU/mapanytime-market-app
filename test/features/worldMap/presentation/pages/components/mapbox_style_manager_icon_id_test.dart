@@ -74,6 +74,14 @@ void main() {
         isNot(MapboxStyleManager.iconIdFor(b)),
       );
     });
+
+    test('differs when isSelected differs', () {
+      final store = _store();
+      expect(
+        MapboxStyleManager.iconIdFor(store),
+        isNot(MapboxStyleManager.iconIdFor(store, isSelected: true)),
+      );
+    });
   });
 
   group('MapboxStyleManager.iconIdForMarker', () {
@@ -126,6 +134,17 @@ void main() {
       expect(
         MapboxStyleManager.iconIdForMarker(StoreMarker(store)),
         MapboxStyleManager.iconIdFor(store),
+      );
+    });
+
+    test('a StoreMarker forwards isSelected to iconIdFor', () {
+      final store = _store();
+      expect(
+        MapboxStyleManager.iconIdForMarker(
+          StoreMarker(store),
+          isSelected: true,
+        ),
+        MapboxStyleManager.iconIdFor(store, isSelected: true),
       );
     });
   });

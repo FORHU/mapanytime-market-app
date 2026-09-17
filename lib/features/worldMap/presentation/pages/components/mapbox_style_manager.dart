@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -8,9 +9,11 @@ import 'package:mapanytime_market_app/features/worldMap/presentation/pages/compo
 import 'package:mapanytime_market_app/shared/utils/category_visuals.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/effects.dart';
-import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+
+typedef _RegisterEntry =
+    (String iconId, MapMarker marker, bool isTruncated, bool isSelected);
 
 /// Renders store markers via a native `GeoJsonSource` + style layers instead
 /// of `PointAnnotationManager` — this is what lets Mapbox's own collision
@@ -63,6 +66,20 @@ class MapboxStyleManager {
   /// absorbing the entire loaded set should read "500+" instead of an exact
   /// count it can't back up.
   bool isStoreListTruncated = false;
+
+  /// The currently-selected store, if any — drives the selected-pin
+  /// treatment in [_renderPhotoCard]. Set via [setSelectedStore], which
+  /// re-diffs the already-held marker list so only the previously-selected
+  /// and newly-selected store's bitmap actually gets re-registered.
+  String? _selectedStoreId;
+
+  /// Marks [storeId] as the selected store (or clears selection when null)
+  /// and re-renders just the affected marker(s).
+  void setSelectedStore(String? storeId) {
+    if (storeId == _selectedStoreId) return;
+    _selectedStoreId = storeId;
+    unawaited(updateGeoJsonSource(_markers));
+  }
 
   static const _sourceId = 'stores-source';
   static const _dotLayerId = 'stores-dot-layer';
@@ -121,8 +138,18 @@ class MapboxStyleManager {
 
   final ({double width, double height}) _cardSize;
 
-  static const double _cardRadius = AppRadius.sm;
   static const double _statusBadgeRadius = 5;
+
+  // Teardrop-pin geometry tuning, all relative to the crown radius — adjust
+  // these, not the path-construction code, if the pin's proportions need a
+  // nudge once it's been seen on-device (see the zoom-range comment above
+  // for precedent: this file tunes visual constants after real feedback,
+  // not up front).
+  static const double _pinShoulderAngleDeg = 37; // crown cheek -> taper
+  static const double _pinPeakAngleDeg = 45; // the M's two peaks on the crown
+  static const double _pinNotchDepthFactor = 0.35; // how deep the M valley cuts
+  static const double _pinTipDropFactor = 1.3; // crown-center-to-tip distance
+  static const double _pinSelectedScale = 1.15;
 
   // Registered style-image ids (content signatures) already uploaded via
   // addStyleImage — style-scoped, so this (and _liveSignatures below) must
@@ -259,7 +286,7 @@ class MapboxStyleManager {
     final newIds = <String>{};
     final toAdd = <Feature>[];
     final toUpdate = <Feature>[];
-    final toRegister = <(String iconId, MapMarker marker, bool isTruncated)>[];
+    final toRegister = <_RegisterEntry>[];
 
     for (final marker in markers) {
       final id = _idFor(marker);
@@ -268,9 +295,15 @@ class MapboxStyleManager {
           isStoreListTruncated &&
           marker is StoreCluster &&
           marker.count == totalLoadedStores;
-      final iconId = iconIdForMarker(marker, isTruncated: isTruncated);
+      final isSelected =
+          marker is StoreMarker && marker.store.id == _selectedStoreId;
+      final iconId = iconIdForMarker(
+        marker,
+        isTruncated: isTruncated,
+        isSelected: isSelected,
+      );
       if (!_registeredImageIds.contains(iconId)) {
-        toRegister.add((iconId, marker, isTruncated));
+        toRegister.add((iconId, marker, isTruncated, isSelected));
       }
 
       final renderSignature = _renderSignatureFor(marker, iconId);
@@ -294,7 +327,8 @@ class MapboxStyleManager {
       // near-instant render and one that visibly stalls.
       await Future.wait(
         toRegister.map(
-          (entry) => _registerImage(entry.$1, entry.$2, entry.$3),
+          (entry) =>
+              _registerImage(entry.$1, entry.$2, entry.$3, entry.$4),
         ),
       );
 
@@ -364,7 +398,7 @@ class MapboxStyleManager {
   /// switching marker display mode) invalidates the cache instead of
   /// leaving a stale bitmap on screen.
   @visibleForTesting
-  static String iconIdFor(StoreEntity s) => [
+  static String iconIdFor(StoreEntity s, {bool isSelected = false}) => [
     s.id,
     s.markerPhotoUrl ?? '',
     s.isOpen?.toString() ?? '',
@@ -372,6 +406,7 @@ class MapboxStyleManager {
     s.markerDisplayMode.name,
     s.markerPrice?.toString() ?? '',
     s.markerSubtitle ?? '',
+    if (isSelected) 'selected',
   ].join('|');
 
   /// Content signature for a cluster or building bitmap. Keyed by the exact
@@ -382,8 +417,9 @@ class MapboxStyleManager {
   static String iconIdForMarker(
     MapMarker marker, {
     bool isTruncated = false,
+    bool isSelected = false,
   }) => switch (marker) {
-    StoreMarker(:final store) => iconIdFor(store),
+    StoreMarker(:final store) => iconIdFor(store, isSelected: isSelected),
     StoreCluster(:final count, :final isBuildingGroup) =>
       'cluster|${isBuildingGroup ? 'building' : 'count'}|'
           '${formatStoreCountLabel(count, isTruncated: isTruncated)}',
@@ -393,10 +429,12 @@ class MapboxStyleManager {
     String iconId,
     MapMarker marker,
     bool isTruncated,
+    bool isSelected,
   ) async {
     if (_registeredImageIds.contains(iconId)) return;
     final mbxImage = switch (marker) {
-      StoreMarker(:final store) => await _createCardImage(store),
+      StoreMarker(:final store) =>
+        await _createCardImage(store, isSelected: isSelected),
       StoreCluster() => await (marker.isBuildingGroup
           ? _renderBuildingCard(marker)
           : _renderClusterBubble(marker, isTruncated: isTruncated)),
@@ -433,26 +471,136 @@ class MapboxStyleManager {
     }
   }
 
-  void _paintMonogram(
+  /// A point on the pin's crown circle, [angleDeg] measured the same way as
+  /// [Path.arcTo] (0° = positive x-axis, increasing clockwise).
+  Offset _pointOnCrown(
+    Offset crownCenter,
+    double crownRadius,
+    double angleDeg,
+  ) {
+    final rad = angleDeg * math.pi / 180;
+    return crownCenter + Offset(math.cos(rad), math.sin(rad)) * crownRadius;
+  }
+
+  /// Builds the teardrop-with-M-notch silhouette inside [cardRect], sized by
+  /// [crownDiameter]. The tip is pinned to `cardRect.center` — combined with
+  /// [_rasterize]'s symmetric shadow padding, that puts the tip exactly at
+  /// the bitmap's own geometric center, which is what the icon layer's
+  /// `IconAnchor.CENTER` anchors on. That's the whole trick behind "the
+  /// teardrop's point is the actual coordinate" without touching shared
+  /// layer config (which every other marker style also uses).
+  ({Path path, Offset tip, Offset crownCenter, double crownRadius})
+  _buildPinGeometry(Rect cardRect, double crownDiameter) {
+    final r = crownDiameter / 2;
+    final tipDrop = r * _pinTipDropFactor;
+    final tip = cardRect.center;
+    final crownCenter = tip - Offset(0, tipDrop);
+
+    const rightShoulderAngle = 90 - _pinShoulderAngleDeg;
+    const leftShoulderAngle = 90 + _pinShoulderAngleDeg;
+    const rightPeakAngle = 270 + _pinPeakAngleDeg;
+    const leftPeakAngle = 270 - _pinPeakAngleDeg;
+    const cheekSweepDeg = rightPeakAngle - 360 - rightShoulderAngle;
+
+    final rightShoulder = _pointOnCrown(crownCenter, r, rightShoulderAngle);
+    final leftShoulder = _pointOnCrown(crownCenter, r, leftShoulderAngle);
+    final valley = crownCenter + Offset(0, -r * _pinNotchDepthFactor);
+
+    final crownRect = Rect.fromCircle(center: crownCenter, radius: r);
+    final path = Path()
+      ..moveTo(tip.dx, tip.dy)
+      // Right taper: tip -> rightShoulder.
+      ..cubicTo(
+        tip.dx + r * 0.02,
+        tip.dy - tipDrop * 0.3,
+        rightShoulder.dx,
+        rightShoulder.dy + tipDrop * 0.4,
+        rightShoulder.dx,
+        rightShoulder.dy,
+      )
+      // Right cheek, arcing up and over to the M's right peak.
+      ..arcTo(
+        crownRect,
+        rightShoulderAngle * math.pi / 180,
+        cheekSweepDeg * math.pi / 180,
+        false,
+      )
+      // The M's notch: peak -> valley -> peak.
+      ..lineTo(valley.dx, valley.dy)
+      ..lineTo(_pointOnCrown(crownCenter, r, leftPeakAngle).dx,
+          _pointOnCrown(crownCenter, r, leftPeakAngle).dy)
+      // Left cheek, arcing down from the M's left peak to leftShoulder.
+      ..arcTo(
+        crownRect,
+        leftPeakAngle * math.pi / 180,
+        cheekSweepDeg * math.pi / 180,
+        false,
+      )
+      // Left taper: leftShoulder -> tip.
+      ..cubicTo(
+        leftShoulder.dx,
+        leftShoulder.dy + tipDrop * 0.4,
+        tip.dx - r * 0.02,
+        tip.dy - tipDrop * 0.3,
+        tip.dx,
+        tip.dy,
+      )
+      ..close();
+
+    return (path: path, tip: tip, crownCenter: crownCenter, crownRadius: r);
+  }
+
+  /// Paints the store's 2-letter code inside a small chip nested just below
+  /// the M's valley, on the same vertical centerline as the notch and the
+  /// pin's tip — replacing the old badge-wide monogram now that the pin's
+  /// own shape carries the brand identity.
+  void _paintMonogramChip(
     Canvas canvas,
     StoreEntity store,
-    Offset center,
-    double height,
+    Offset anchor,
+    double crownRadius,
   ) {
-    final painter = TextPainter(
+    final textPainter = TextPainter(
       text: TextSpan(
         text: monogramForStore(store),
         style: TextStyle(
-          fontSize: height * 0.4,
+          fontSize: crownRadius * 0.42,
           fontWeight: FontWeight.w700,
-          color: Colors.white,
+          color: colorForStore(store),
+          letterSpacing: -0.2,
         ),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
-    painter.paint(
+
+    final chipRect = Rect.fromCenter(
+      center: anchor,
+      width: textPainter.width + crownRadius * 0.36,
+      height: crownRadius * 0.62,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(chipRect, Radius.circular(chipRect.height / 2)),
+      Paint()..color = Colors.white,
+    );
+    textPainter.paint(
       canvas,
-      center - Offset(painter.width / 2, painter.height / 2),
+      anchor - Offset(textPainter.width / 2, textPainter.height / 2),
+    );
+  }
+
+  void _drawPinShadow(Canvas canvas, Path path, {bool strong = false}) {
+    final shadow = (strong ? AppEffects.cardShadow : AppEffects.softShadow)
+        .first;
+    canvas.drawPath(path.shift(shadow.offset), shadow.toPaint());
+  }
+
+  void _drawPinStroke(Canvas canvas, Path path, Color color) {
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
     );
   }
 
@@ -462,18 +610,21 @@ class MapboxStyleManager {
   static const double _shadowPadding = AppSpacing.sm;
 
   /// Marker card dispatcher — [StoreEntity.markerDisplayMode] picks which
-  /// renderer runs. Each renderer sizes its own bitmap (a fixed square for
+  /// renderer runs. Each renderer sizes its own bitmap (a teardrop pin for
   /// [_renderPhotoCard], auto-width pills for the other two, since Mapbox's
   /// `addStyleImage` takes each icon's native size independently — there's
   /// no shared canvas dimension to agree on).
-  Future<MbxImage> _createCardImage(StoreEntity store) {
+  Future<MbxImage> _createCardImage(
+    StoreEntity store, {
+    bool isSelected = false,
+  }) {
     switch (store.markerDisplayMode) {
       case MarkerDisplayMode.priceCard:
         return _renderPriceCard(store);
       case MarkerDisplayMode.labelCard:
         return _renderLabelCard(store);
       case MarkerDisplayMode.photoCard:
-        return _renderPhotoCard(store);
+        return _renderPhotoCard(store, isSelected: isSelected);
     }
   }
 
@@ -678,22 +829,13 @@ class MapboxStyleManager {
     );
   }
 
-  // Open/closed indicator, upper-right corner. Inset proportionally (rather
-  // than pinned to the literal bounding-box corner) so it sits near the
-  // rounded corner's curve instead of floating past it. Omitted entirely
-  // when unknown — never fabricate a status. Photo-card only: a price or
-  // label listing (a rental night, a single car) doesn't carry the same
-  // "open now" meaning a storefront does.
-  void _paintStatusDot(
-    Canvas canvas,
-    StoreEntity store,
-    Offset center,
-    ({double width, double height}) cardSize,
-  ) {
+  // Open/closed indicator, on the pin's upper-right shoulder. Omitted
+  // entirely when unknown — never fabricate a status. Photo-card only: a
+  // price or label listing (a rental night, a single car) doesn't carry the
+  // same "open now" meaning a storefront does.
+  void _paintStatusDot(Canvas canvas, StoreEntity store, Offset statusCenter) {
     final isOpen = store.isOpen;
     if (isOpen == null) return;
-    final statusCenter =
-        center + Offset(cardSize.width / 2 * 0.75, -cardSize.height / 2 * 0.75);
     canvas
       ..drawCircle(
         statusCenter,
@@ -710,18 +852,36 @@ class MapboxStyleManager {
       );
   }
 
-  /// Rounded-square photo card, fixed at [_cardSize]. Shows the merchant's
-  /// photo, center-cropped to fill the card; otherwise a colored monogram
-  /// card so every merchant is still identifiable at a glance.
-  Future<MbxImage> _renderPhotoCard(StoreEntity store) {
-    final size = ui.Size(_cardSize.width, _cardSize.height);
+  /// Teardrop pin, crown cut into an "M". Shows the merchant's photo,
+  /// cropped to fill the whole silhouette; otherwise a category-colored
+  /// fill with the store's 2-letter code in a chip nested in the M's
+  /// notch. Sized off `_cardSize.width` (scaled up when [isSelected])
+  /// rather than the fixed square every other renderer still uses — the
+  /// pin's aspect ratio is taller than it is wide, since the tip needs
+  /// room below the crown.
+  Future<MbxImage> _renderPhotoCard(
+    StoreEntity store, {
+    bool isSelected = false,
+  }) {
+    final crownDiameter =
+        _cardSize.width * (isSelected ? _pinSelectedScale : 0.90);
+    final tipDrop = crownDiameter / 2 * _pinTipDropFactor;
+    final size = ui.Size(crownDiameter, crownDiameter + tipDrop * 2);
+
     return _rasterize(size, (canvas, cardRect) async {
-      final cardRRect = RRect.fromRectAndRadius(
-        cardRect,
-        const Radius.circular(_cardRadius),
-      );
-      final center = cardRect.center;
-      _drawCardShadow(canvas, cardRRect);
+      final geometry = _buildPinGeometry(cardRect, crownDiameter);
+      final path = geometry.path;
+
+      _drawPinShadow(canvas, path, strong: isSelected);
+      if (isSelected) {
+        canvas.drawPath(
+          path,
+          Paint()
+            ..color = AppColors.ink
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 4,
+        );
+      }
 
       final photoUrl = store.markerPhotoUrl;
       final photoImage = photoUrl == null
@@ -731,12 +891,13 @@ class MapboxStyleManager {
       if (photoImage != null) {
         canvas
           ..save()
-          ..clipRRect(cardRRect);
+          ..clipPath(path);
 
-        // Crop-to-cover the destination (like CSS object-fit: cover): trim
-        // the source's wider dimension so it fills the card without
-        // stretching.
-        final destAspect = cardRect.width / cardRect.height;
+        // Crop-to-cover the pin's bounding box (like CSS object-fit:
+        // cover): trim the source's wider dimension so it fills the shape
+        // without stretching.
+        final destRect = path.getBounds();
+        final destAspect = destRect.width / destRect.height;
         final srcAspect = photoImage.width / photoImage.height;
         double srcWidth;
         double srcHeight;
@@ -753,15 +914,23 @@ class MapboxStyleManager {
           height: srcHeight,
         );
         canvas
-          ..drawImageRect(photoImage, src, cardRect, Paint())
+          ..drawImageRect(photoImage, src, destRect, Paint())
           ..restore();
       } else {
-        canvas.drawRRect(cardRRect, Paint()..color = colorForStore(store));
-        _paintMonogram(canvas, store, center, cardRect.height);
+        canvas.drawPath(path, Paint()..color = colorForStore(store));
+        _paintMonogramChip(
+          canvas,
+          store,
+          geometry.crownCenter,
+          geometry.crownRadius,
+        );
       }
 
-      _drawCardStroke(canvas, cardRRect, Colors.white);
-      _paintStatusDot(canvas, store, center, _cardSize);
+      _drawPinStroke(canvas, path, Colors.white);
+      final statusCenter =
+          geometry.crownCenter +
+          Offset(geometry.crownRadius * 0.68, -geometry.crownRadius * 0.68);
+      _paintStatusDot(canvas, store, statusCenter);
     });
   }
 

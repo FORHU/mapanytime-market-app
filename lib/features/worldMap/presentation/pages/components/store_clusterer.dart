@@ -194,6 +194,5 @@ class StoreClusterer {
 /// itself capped (`hasMore`) — the one case where a count is a lower bound
 /// rather than exact. Showing "+" on every cluster whenever any part of the
 /// viewport was truncated would be misleading in the other direction.
-@visibleForTesting
 String formatStoreCountLabel(int count, {required bool isTruncated}) =>
     isTruncated ? '$count+ Stores' : '$count Stores';
