@@ -30,8 +30,7 @@ class UserEntity extends Equatable {
   ///
   /// Deliberately fails closed: empty or unrecognised roles return false, so an
   /// unknown user is treated as a restricted buyer rather than waved through.
-  bool get hasPlatformAdminRole =>
-      roles.any(_platformAdminRoles.contains);
+  bool get hasPlatformAdminRole => roles.any(_platformAdminRoles.contains);
 
   static const Set<String> _platformAdminRoles = {
     'ADMIN',

@@ -70,6 +70,7 @@ class AppConfig {
   /// Platform admins (`ADMIN`, `DEVELOPER`, `SUPER_ADMIN`) are unaffected
   /// either way — see `isCheckoutRestricted` in `lib/routes/app_routes.dart`.
   final bool buyerCheckoutEnabled;
+
   /// The *Web application* OAuth client ID from Google Cloud Console — the
   /// same one as the API's `GOOGLE_CLIENT_ID` and the web app's
   /// `NEXT_PUBLIC_GOOGLE_CLIENT_ID`. Passed to `GoogleSignIn.initialize` as
