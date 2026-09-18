@@ -1,13 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mapanytime_market_app/core/config/app_config.dart';
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/core/utils/currency.dart';
+import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/cart/domain/entities/cart_item.dart';
 import 'package:mapanytime_market_app/features/cart/domain/entities/cart_pricing.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart';
+import 'package:mapanytime_market_app/routes/app_routes.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
+import 'package:mapanytime_market_app/shared/widgets/alpha_checkout_dialog.dart';
 import 'package:mapanytime_market_app/shared/widgets/badged_icon_button.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
@@ -20,6 +26,24 @@ import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
+
+/// Shared by both layouts' checkout CTAs.
+///
+/// During alpha testing a restricted buyer gets an explanation instead of
+/// navigation. The route guard in `app_routes.dart` enforces the same rule for
+/// anyone who reaches `/checkout` another way; this exists so the button says
+/// why rather than appearing broken.
+Future<void> _startCheckout(BuildContext context, WidgetRef ref) async {
+  if (isCheckoutRestricted(
+    buyerCheckoutEnabled: AppConfig.instance.buyerCheckoutEnabled,
+    user: ref.read(authControllerProvider).user,
+  )) {
+    await showAlphaCheckoutNotice(context);
+    return;
+  }
+  if (!context.mounted) return;
+  unawaited(context.push(RouteNames.checkout));
+}
 
 /// Cart tab: items grouped by store, a server-verified price breakdown and
 /// a checkout CTA. Two layouts: single column on phones, a two-pane
@@ -178,7 +202,7 @@ class _NarrowLayout extends ConsumerWidget {
         ),
         _CheckoutBar(
           enabled: selectedCount > 0 && pricing.hasValue,
-          onCheckout: () => context.push(RouteNames.checkout),
+          onCheckout: () => unawaited(_startCheckout(context, ref)),
         ),
       ],
     );
@@ -236,7 +260,7 @@ class _WideLayout extends ConsumerWidget {
                       : 'Select items to checkout',
                   icon: Icons.arrow_forward_rounded,
                   onPressed: selectedCount > 0 && pricing.hasValue
-                      ? () => context.push(RouteNames.checkout)
+                      ? () => unawaited(_startCheckout(context, ref))
                       : null,
                 ),
               ],

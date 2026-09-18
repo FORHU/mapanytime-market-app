@@ -8,6 +8,7 @@ class AppConfig {
     required this.baseUrl,
     required this.mapboxPublicToken,
     this.enableLogging = false,
+    this.buyerCheckoutEnabled = false,
   });
 
   /// Builds config from `flutter_dotenv` values loaded at runtime.
@@ -25,6 +26,11 @@ class AppConfig {
                   (envString != 'prod' ? 'true' : 'false'))
               .toLowerCase() ==
           'true',
+      // Unset means blocked — alpha testing is the default state, so no
+      // .env file needs to carry this until checkout is re-enabled.
+      buyerCheckoutEnabled:
+          (dotenv.env['BUYER_CHECKOUT_ENABLED'] ?? 'false').toLowerCase() ==
+          'true',
     );
   }
 
@@ -35,7 +41,8 @@ class AppConfig {
       appName = 'MapAnytime Market (Dev)',
       baseUrl = 'http://localhost:4002/api/v1',
       mapboxPublicToken = defaultMapboxPublicToken,
-      enableLogging = true;
+      enableLogging = true,
+      buyerCheckoutEnabled = false;
 
   /// Explicit production config used by `main_prod.dart` — logging off, real
   /// backend.
@@ -44,13 +51,21 @@ class AppConfig {
       appName = 'MapAnytime Market',
       baseUrl = '',
       mapboxPublicToken = defaultMapboxPublicToken,
-      enableLogging = false;
+      enableLogging = false,
+      buyerCheckoutEnabled = false;
 
   final Environment environment;
   final String appName;
   final String baseUrl;
   final String mapboxPublicToken;
   final bool enableLogging;
+
+  /// Alpha testing: when false, regular buyers are blocked from checkout.
+  /// Set true to re-enable.
+  ///
+  /// Platform admins (`ADMIN`, `DEVELOPER`, `SUPER_ADMIN`) are unaffected
+  /// either way — see `isCheckoutRestricted` in `lib/routes/app_routes.dart`.
+  final bool buyerCheckoutEnabled;
 
   bool get isDev => environment == Environment.dev;
   bool get isProd => environment == Environment.prod;

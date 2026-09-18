@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mapanytime_market_app/core/config/app_config.dart';
 import 'package:mapanytime_market_app/core/services/storage_service.dart';
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
+import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/pages/login_page.dart';
@@ -33,6 +35,20 @@ import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_en
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/world_map_page.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/main_layout.dart';
+
+/// Whether [user] is barred from checkout during alpha testing.
+///
+/// Fails closed: a null user, or one whose roles are unknown, is treated as a
+/// restricted buyer. Only `ADMIN`, `DEVELOPER` and `SUPER_ADMIN` pass while
+/// [buyerCheckoutEnabled] is false.
+///
+/// Takes the flag as a parameter rather than reading `AppConfig.instance` so it
+/// stays pure and testable — `instance` is `static late` and throws if read
+/// before `bootstrap()`.
+bool isCheckoutRestricted({
+  required bool buyerCheckoutEnabled,
+  required UserEntity? user,
+}) => !buyerCheckoutEnabled && !(user?.hasPlatformAdminRole ?? false);
 
 /// Listenable helper to notify GoRouter whenever auth state changes.
 class RouterNotifier extends ChangeNotifier {
@@ -97,6 +113,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           goingToResetPassword ||
           goingToRegisterSuccess) {
         return RouteNames.home;
+      }
+
+      // Alpha testing: keep CheckoutPage from mounting for a restricted buyer,
+      // so paymentMethodsProvider never fetches and no stock is reserved. Sits
+      // after the auth gate on purpose — an unauthenticated user still belongs
+      // at login, not the cart.
+      if (state.matchedLocation == RouteNames.checkout &&
+          isCheckoutRestricted(
+            buyerCheckoutEnabled: AppConfig.instance.buyerCheckoutEnabled,
+            user: ref.read(authControllerProvider).user,
+          )) {
+        return RouteNames.cart;
       }
       return null;
     },
