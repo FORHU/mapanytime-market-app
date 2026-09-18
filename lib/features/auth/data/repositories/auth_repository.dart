@@ -8,6 +8,8 @@ import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.
 /// Repository contract (the abstraction the domain layer depends on).
 abstract class AuthRepository {
   Future<Either<Failure, UserEntity>> login(String email, String password);
+  Future<Either<Failure, UserEntity>> loginWithFacebook(String accessToken);
+  Future<Either<Failure, UserEntity>> loginWithGoogle(String idToken);
   Future<Either<Failure, void>> register(
     String email,
     String password, {
@@ -48,6 +50,52 @@ class AuthRepositoryImpl implements AuthRepository {
         await _storage.saveRefreshToken(refreshToken);
       }
       // Save full user model to local cache for instant offline startup
+      await _storage.saveUserModel(user);
+      return Right(user);
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(e.message));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on AppException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Object catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> loginWithFacebook(
+    String accessToken,
+  ) async {
+    try {
+      final user = await _remote.loginWithFacebook(accessToken);
+      await _storage.saveToken(user.token);
+      final refreshToken = user.refreshToken;
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        await _storage.saveRefreshToken(refreshToken);
+      }
+      await _storage.saveUserModel(user);
+      return Right(user);
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(e.message));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on AppException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Object catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> loginWithGoogle(String idToken) async {
+    try {
+      final user = await _remote.loginWithGoogle(idToken);
+      await _storage.saveToken(user.token);
+      final refreshToken = user.refreshToken;
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        await _storage.saveRefreshToken(refreshToken);
+      }
       await _storage.saveUserModel(user);
       return Right(user);
     } on UnauthorizedException catch (e) {

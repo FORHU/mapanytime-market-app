@@ -9,6 +9,7 @@ class AppConfig {
     required this.mapboxPublicToken,
     this.enableLogging = false,
     this.buyerCheckoutEnabled = false,
+    this.googleServerClientId = '',
   });
 
   /// Builds config from `flutter_dotenv` values loaded at runtime.
@@ -31,6 +32,7 @@ class AppConfig {
       buyerCheckoutEnabled:
           (dotenv.env['BUYER_CHECKOUT_ENABLED'] ?? 'false').toLowerCase() ==
           'true',
+      googleServerClientId: dotenv.env['GOOGLE_SERVER_CLIENT_ID'] ?? '',
     );
   }
 
@@ -42,7 +44,8 @@ class AppConfig {
       baseUrl = 'http://localhost:4002/api/v1',
       mapboxPublicToken = defaultMapboxPublicToken,
       enableLogging = true,
-      buyerCheckoutEnabled = false;
+      buyerCheckoutEnabled = false,
+      googleServerClientId = '';
 
   /// Explicit production config used by `main_prod.dart` — logging off, real
   /// backend.
@@ -52,7 +55,8 @@ class AppConfig {
       baseUrl = '',
       mapboxPublicToken = defaultMapboxPublicToken,
       enableLogging = false,
-      buyerCheckoutEnabled = false;
+      buyerCheckoutEnabled = false,
+      googleServerClientId = '';
 
   final Environment environment;
   final String appName;
@@ -66,6 +70,13 @@ class AppConfig {
   /// Platform admins (`ADMIN`, `DEVELOPER`, `SUPER_ADMIN`) are unaffected
   /// either way — see `isCheckoutRestricted` in `lib/routes/app_routes.dart`.
   final bool buyerCheckoutEnabled;
+  /// The *Web application* OAuth client ID from Google Cloud Console — the
+  /// same one as the API's `GOOGLE_CLIENT_ID` and the web app's
+  /// `NEXT_PUBLIC_GOOGLE_CLIENT_ID`. Passed to `GoogleSignIn.initialize` as
+  /// `serverClientId` so the ID token this app gets back carries that
+  /// audience, which is what the API verifies it against — not a
+  /// platform-specific Android/iOS client ID. Empty disables the button.
+  final String googleServerClientId;
 
   bool get isDev => environment == Environment.dev;
   bool get isProd => environment == Environment.prod;

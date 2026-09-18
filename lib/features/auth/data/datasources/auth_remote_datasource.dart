@@ -5,6 +5,8 @@ import 'package:mapanytime_market_app/features/auth/data/models/user_model.dart'
 /// Talks to the remote API. Knows nothing about storage or UI.
 abstract class AuthRemoteDataSource {
   Future<UserModel> login(String email, String password);
+  Future<UserModel> loginWithFacebook(String accessToken);
+  Future<UserModel> loginWithGoogle(String idToken);
   Future<void> register(
     String email,
     String password, {
@@ -38,6 +40,22 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       'email': email,
       'password': password,
       'roleName': 'BUYER',
+    });
+    return UserModel.fromJson((data as Map).cast<String, dynamic>());
+  }
+
+  @override
+  Future<UserModel> loginWithFacebook(String accessToken) async {
+    final data = await _api.post(ApiEndpoints.facebookLogin, {
+      'accessToken': accessToken,
+    });
+    return UserModel.fromJson((data as Map).cast<String, dynamic>());
+  }
+
+  @override
+  Future<UserModel> loginWithGoogle(String idToken) async {
+    final data = await _api.post(ApiEndpoints.googleLogin, {
+      'idToken': idToken,
     });
     return UserModel.fromJson((data as Map).cast<String, dynamic>());
   }

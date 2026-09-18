@@ -60,6 +60,7 @@
   "errorNoEmail": "Error: No email provided",
   "orSignInWith": "or",
   "continueWithGoogle": "Continue with Google",
+  "continueWithFacebook": "Continue with Facebook",
   "registerSuccessTitle": "Success!",
   "registerSuccessSubtitle": "Your account is ready. Start discovering stores near you.",
   "continueButton": "Continue",
