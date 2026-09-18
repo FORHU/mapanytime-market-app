@@ -8,6 +8,7 @@ class AppConfig {
     required this.baseUrl,
     required this.mapboxPublicToken,
     this.enableLogging = false,
+    this.buyerCheckoutEnabled = false,
     this.googleServerClientId = '',
   });
 
@@ -26,6 +27,11 @@ class AppConfig {
                   (envString != 'prod' ? 'true' : 'false'))
               .toLowerCase() ==
           'true',
+      // Unset means blocked — alpha testing is the default state, so no
+      // .env file needs to carry this until checkout is re-enabled.
+      buyerCheckoutEnabled:
+          (dotenv.env['BUYER_CHECKOUT_ENABLED'] ?? 'false').toLowerCase() ==
+          'true',
       googleServerClientId: dotenv.env['GOOGLE_SERVER_CLIENT_ID'] ?? '',
     );
   }
@@ -38,6 +44,7 @@ class AppConfig {
       baseUrl = 'http://localhost:4002/api/v1',
       mapboxPublicToken = defaultMapboxPublicToken,
       enableLogging = true,
+      buyerCheckoutEnabled = false,
       googleServerClientId = '';
 
   /// Explicit production config used by `main_prod.dart` — logging off, real
@@ -48,6 +55,7 @@ class AppConfig {
       baseUrl = '',
       mapboxPublicToken = defaultMapboxPublicToken,
       enableLogging = false,
+      buyerCheckoutEnabled = false,
       googleServerClientId = '';
 
   final Environment environment;
@@ -55,6 +63,13 @@ class AppConfig {
   final String baseUrl;
   final String mapboxPublicToken;
   final bool enableLogging;
+
+  /// Alpha testing: when false, regular buyers are blocked from checkout.
+  /// Set true to re-enable.
+  ///
+  /// Platform admins (`ADMIN`, `DEVELOPER`, `SUPER_ADMIN`) are unaffected
+  /// either way — see `isCheckoutRestricted` in `lib/routes/app_routes.dart`.
+  final bool buyerCheckoutEnabled;
 
   /// The *Web application* OAuth client ID from Google Cloud Console — the
   /// same one as the API's `GOOGLE_CLIENT_ID` and the web app's

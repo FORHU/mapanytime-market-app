@@ -10,6 +10,7 @@ class UserEntity extends Equatable {
     this.avatarUrl,
     this.countryCode,
     this.onboardingCompleted = false,
+    this.roles = const [],
   });
 
   final String id;
@@ -19,6 +20,24 @@ class UserEntity extends Equatable {
   final String? countryCode;
   final bool onboardingCompleted;
 
+  /// Platform role names as the backend spells them, e.g. `BUYER`, `ADMIN`.
+  ///
+  /// Empty when unknown — a user cached before this field existed, or a
+  /// response that omitted it. See [hasPlatformAdminRole] for why that matters.
+  final List<String> roles;
+
+  /// Mirrors `ADMIN_ROLES` on the backend.
+  ///
+  /// Deliberately fails closed: empty or unrecognised roles return false, so an
+  /// unknown user is treated as a restricted buyer rather than waved through.
+  bool get hasPlatformAdminRole => roles.any(_platformAdminRoles.contains);
+
+  static const Set<String> _platformAdminRoles = {
+    'ADMIN',
+    'DEVELOPER',
+    'SUPER_ADMIN',
+  };
+
   @override
   List<Object?> get props => [
     id,
@@ -27,5 +46,6 @@ class UserEntity extends Equatable {
     avatarUrl,
     countryCode,
     onboardingCompleted,
+    roles,
   ];
 }
