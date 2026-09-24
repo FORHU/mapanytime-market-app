@@ -24,6 +24,17 @@ class StoreSocketDataSource {
   /// Ids of stores removed (or deactivated) within a subscribed region.
   Stream<String> get onRemoved => _removed.stream;
 
+  // God's Eye rides the same connection and viewport subscription as stores.
+  // Raw maps: parsing belongs to the mobility feature, not this socket.
+  final _vehicleMoved = StreamController<Map<String, dynamic>>.broadcast();
+  final _vehicleRemoved = StreamController<String>.broadcast();
+
+  /// `vehicle:moved` payloads for vehicles within a subscribed region.
+  Stream<Map<String, dynamic>> get onVehicleMoved => _vehicleMoved.stream;
+
+  /// Ids of vehicles that stopped sharing within a subscribed region.
+  Stream<String> get onVehicleRemoved => _vehicleRemoved.stream;
+
   void connect() {
     if (_socket != null) return;
 
@@ -54,6 +65,16 @@ class StoreSocketDataSource {
               _removed.add(data['id'] as String);
             }
           })
+          ..on('vehicle:moved', (data) {
+            if (data is Map && data['id'] is String) {
+              _vehicleMoved.add(data.cast<String, dynamic>());
+            }
+          })
+          ..on('vehicle:removed', (data) {
+            if (data is Map && data['id'] is String) {
+              _vehicleRemoved.add(data['id'] as String);
+            }
+          })
           ..connect();
   }
 
@@ -78,5 +99,7 @@ class StoreSocketDataSource {
     _socket = null;
     await _upserted.close();
     await _removed.close();
+    await _vehicleMoved.close();
+    await _vehicleRemoved.close();
   }
 }

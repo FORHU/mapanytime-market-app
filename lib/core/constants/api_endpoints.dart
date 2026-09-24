@@ -180,4 +180,21 @@ class ApiEndpoints {
 
   /// Paginated MapPoints ledger.  `GET /rewards/transactions`.
   static const String rewardsTransactions = '/rewards/transactions';
+
+  // --- Mobility / God's Eye ---
+
+  /// Active vehicle types (code, name, markerIconUrl).  `GET`.
+  static const String mobilityVehicleTypes = '/mobility/vehicle-types';
+
+  /// Live vehicles in a bounding box, for a map that just opened.  `GET`.
+  static const String mobilityLiveVehicles = '/mobility/vehicles/live';
+
+  /// The caller's assigned vehicle, or null when not a driver.  `GET`.
+  static const String mobilityMyVehicle = '/mobility/me/vehicle';
+
+  /// One GPS fix from the driver's phone.  `POST`.
+  static const String mobilityTrackingLocation = '/mobility/tracking/location';
+
+  /// Driver stopped sharing — takes the vehicle off the map now.  `POST`.
+  static const String mobilityTrackingStop = '/mobility/tracking/stop';
 }
