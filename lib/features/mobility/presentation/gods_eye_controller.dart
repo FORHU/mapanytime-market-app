@@ -6,9 +6,10 @@ import 'package:mapanytime_market_app/features/mobility/data/mobility_remote_dat
 import 'package:mapanytime_market_app/features/worldMap/presentation/controllers/world_map_controller.dart'
     show storeSocketProvider;
 
-/// A vehicle not heard from in this long leaves the map — covers a driver
-/// losing signal, and a vehicle driving out of the cells this phone watches
-/// (the server only tells the cell it's in now, never the one it left).
+/// A vehicle not heard from in this long leaves the map. The server already
+/// sends `vehicle:removed` on stop, on 60s of silence and when a vehicle
+/// leaves the cells this phone watches; this is the fallback for events
+/// missed while the socket was down.
 const liveVehicleTtl = Duration(seconds: 60);
 
 /// Drops vehicles older than [liveVehicleTtl]. Returns [vehicles] itself when
@@ -47,6 +48,20 @@ class GodsEyeController extends Notifier<Map<String, LiveVehicle>> {
     final removedSub = socket.onVehicleRemoved.listen((id) {
       if (state.containsKey(id)) state = {...state}..remove(id);
     });
+    // Pings sent while the socket was down were missed: catch up.
+    final reconnectedSub = socket.onReconnected.listen((_) {
+      final bounds = _bounds;
+      if (bounds != null) {
+        unawaited(
+          loadSnapshot(
+            north: bounds.north,
+            south: bounds.south,
+            east: bounds.east,
+            west: bounds.west,
+          ),
+        );
+      }
+    });
     final pruneTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       state = pruneStale(state, DateTime.now());
     });
@@ -54,10 +69,13 @@ class GodsEyeController extends Notifier<Map<String, LiveVehicle>> {
     ref.onDispose(() {
       unawaited(movedSub.cancel());
       unawaited(removedSub.cancel());
+      unawaited(reconnectedSub.cancel());
       pruneTimer.cancel();
     });
     return const {};
   }
+
+  ({double north, double south, double east, double west})? _bounds;
 
   /// Merges in the vehicles currently live inside the bounds. Best-effort: the
   /// socket fills the map in within one ping interval anyway.
@@ -67,6 +85,7 @@ class GodsEyeController extends Notifier<Map<String, LiveVehicle>> {
     required double east,
     required double west,
   }) async {
+    _bounds = (north: north, south: south, east: east, west: west);
     try {
       final live = await ref
           .read(mobilityRemoteProvider)

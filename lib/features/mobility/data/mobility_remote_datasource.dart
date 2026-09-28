@@ -16,6 +16,8 @@ class LiveVehicle {
     required this.lng,
     required this.receivedAt,
     this.heading,
+    this.accuracy,
+    this.isStopped = false,
   });
 
   factory LiveVehicle.fromJson(Map<String, dynamic> json, {DateTime? now}) =>
@@ -26,6 +28,9 @@ class LiveVehicle {
         lat: (json['lat'] as num).toDouble(),
         lng: (json['lng'] as num).toDouble(),
         heading: (json['heading'] as num?)?.toDouble(),
+        accuracy: (json['accuracy'] as num?)?.toDouble(),
+        // Older API builds send no status; treat those vehicles as moving.
+        isStopped: json['status'] == 'stopped',
         receivedAt: now ?? DateTime.now(),
       );
 
@@ -35,6 +40,12 @@ class LiveVehicle {
   final double lat;
   final double lng;
   final double? heading;
+
+  /// Metres, as the driver's GPS reported it. Null from older app builds.
+  final double? accuracy;
+
+  /// Parked or waiting — decided by the server from speed and displacement.
+  final bool isStopped;
 
   /// Phone-clock time this position arrived — staleness is judged by this,
   /// not the driver's device clock, so clock skew can't keep a ghost alive.
@@ -126,6 +137,9 @@ class MobilityRemoteDataSource {
         // Geolocator reports m/s and -1 for "unknown"; the API takes km/h.
         if (p.speed >= 0) 'speed': (p.speed * 3.6).clamp(0, 160),
         if (p.heading >= 0) 'heading': p.heading,
+        // Metres (68% radius). Lets the API forgive jumps two fuzzy fixes
+        // explain, and ignore parked-vehicle GPS wander.
+        'accuracy': p.accuracy,
         'timestamp': (at ?? p.timestamp).millisecondsSinceEpoch,
       });
 

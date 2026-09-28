@@ -24,12 +24,22 @@ class VehicleLayer {
   static const _iconLayerId = 'vehicles-icon-layer';
   static const double _iconSize = 36;
 
-  /// At most one source push per this long — at 100 vehicles pinging every 5s
-  /// the socket delivers ~20 events/s, and each push re-sends the collection.
+  /// One render cycle per this long — each push re-sends the whole collection.
+  /// A cycle is a single push, or a glide of [_glideFrames] pushes.
   static const _renderGap = Duration(seconds: 1);
+  static const _glideFrames = 5;
 
-  Iterable<LiveVehicle> _pending = const [];
-  Timer? _renderTimer;
+  /// Pings arrive every 10–15s, so a vehicle would otherwise jump tens of
+  /// metres. Moves up to this far glide over one cycle; bigger ones (a
+  /// snapshot, a reconnect) snap.
+  static const _maxGlideDeg = 0.01;
+
+  Map<String, LiveVehicle> _pending = const {};
+
+  /// Where each vehicle was last drawn.
+  Map<String, ({double lat, double lng})> _shown = const {};
+  bool _cycling = false;
+  bool _disposed = false;
   bool _ready = false;
 
   /// Adds the source, layers and type icons. Like the store layers, none of
@@ -70,6 +80,8 @@ class VehicleLayer {
         sourceId: _sourceId,
         filter: ['!', hasIcon],
         circleRadius: 7,
+        circleOpacityExpression: _stoppedDimmed,
+        circleStrokeOpacityExpression: _stoppedDimmed,
         circleColor: AppColors.ink.toARGB32(),
         circleStrokeWidth: 2,
         circleStrokeColor: Colors.white.toARGB32(),
@@ -81,6 +93,7 @@ class VehicleLayer {
         sourceId: _sourceId,
         filter: hasIcon,
         iconImageExpression: ['get', 'typeCode'],
+        iconOpacityExpression: _stoppedDimmed,
         // Live vehicles are the point of this layer — never hide one to
         // make room for a label or another vehicle.
         iconAllowOverlap: true,
@@ -88,48 +101,116 @@ class VehicleLayer {
     );
 
     _ready = true;
-    await _flush();
+    // The new source is empty: draw everyone in place, no glide.
+    _shown = const {};
+    _kick();
   }
 
-  /// Queues [vehicles] as the full set to show; pushes at most every
+  /// Queues [vehicles] as the full set to show. Drawn at most one cycle per
   /// [_renderGap].
   void render(Iterable<LiveVehicle> vehicles) {
-    _pending = vehicles;
-    if (_renderTimer?.isActive ?? false) return;
-    unawaited(_flush());
-    _renderTimer = Timer(_renderGap, () => unawaited(_flush()));
+    _pending = {for (final v in vehicles) v.id: v};
+    _kick();
   }
 
-  void dispose() => _renderTimer?.cancel();
+  void dispose() => _disposed = true;
 
-  Future<void> _flush() async {
-    if (!_ready) return;
+  void _kick() {
+    if (_cycling || !_ready || _disposed) return;
+    unawaited(_cycle());
+  }
+
+  /// Draws [_pending] (gliding what moved a little), then repeats while new
+  /// positions arrived during the cycle.
+  Future<void> _cycle() async {
+    _cycling = true;
+    try {
+      for (;;) {
+        final targets = _pending;
+        final from = _shown;
+        final glides = targets.values.any((v) {
+          final p = from[v.id];
+          return p != null && p != (lat: v.lat, lng: v.lng) && _near(p, v);
+        });
+        final frames = glides ? _glideFrames : 1;
+        for (var i = 1; i <= frames; i++) {
+          await _push(glideFrame(targets.values, from, i / frames));
+          await Future<void>.delayed(_renderGap ~/ frames);
+          if (_disposed || !_ready) return;
+        }
+        _shown = {
+          for (final v in targets.values) v.id: (lat: v.lat, lng: v.lng),
+        };
+        if (identical(targets, _pending)) return;
+      }
+    } finally {
+      _cycling = false;
+    }
+  }
+
+  /// [vehicles] at fraction [t] of the way from where they were drawn
+  /// ([from]) to where they are. New vehicles and long jumps snap.
+  @visibleForTesting
+  static List<(LiveVehicle, double lat, double lng)> glideFrame(
+    Iterable<LiveVehicle> vehicles,
+    Map<String, ({double lat, double lng})> from,
+    double t,
+  ) => [
+    for (final v in vehicles)
+      switch (from[v.id]) {
+        final p? when _near(p, v) => (
+          v,
+          p.lat + (v.lat - p.lat) * t,
+          p.lng + (v.lng - p.lng) * t,
+        ),
+        _ => (v, v.lat, v.lng),
+      },
+  ];
+
+  static bool _near(({double lat, double lng}) p, LiveVehicle v) =>
+      (v.lat - p.lat).abs() <= _maxGlideDeg &&
+      (v.lng - p.lng).abs() <= _maxGlideDeg;
+
+  Future<void> _push(List<(LiveVehicle, double, double)> frame) async {
     try {
       await mapboxMap.style.setStyleSourceProperty(
         _sourceId,
         'data',
-        _collection(_pending),
+        _collection(frame),
       );
     } on Exception catch (e) {
       debugPrint('Failed to update vehicles: $e');
     }
   }
 
-  static String _collection(Iterable<LiveVehicle> vehicles) => jsonEncode({
-    'type': 'FeatureCollection',
-    'features': [
-      for (final v in vehicles)
-        {
-          'type': 'Feature',
-          'id': v.id,
-          'geometry': {
-            'type': 'Point',
-            'coordinates': [v.lng, v.lat],
-          },
-          'properties': {'typeCode': v.typeCode, 'plate': v.plateNumber},
-        },
-    ],
-  });
+  /// Parked vehicles fade back so the moving ones stand out.
+  static const List<Object> _stoppedDimmed = [
+    'case',
+    ['get', 'stopped'],
+    0.55,
+    1.0,
+  ];
+
+  static String _collection(List<(LiveVehicle, double, double)> frame) =>
+      jsonEncode({
+        'type': 'FeatureCollection',
+        'features': [
+          for (final (v, lat, lng) in frame)
+            {
+              'type': 'Feature',
+              'id': v.id,
+              'geometry': {
+                'type': 'Point',
+                'coordinates': [lng, lat],
+              },
+              'properties': {
+                'typeCode': v.typeCode,
+                'plate': v.plateNumber,
+                'stopped': v.isStopped,
+              },
+            },
+        ],
+      });
 
   /// Fetches, downsizes and PNG-encodes an icon. Null on any failure — a
   /// broken icon URL falls back to the dot rather than hiding the vehicle.
