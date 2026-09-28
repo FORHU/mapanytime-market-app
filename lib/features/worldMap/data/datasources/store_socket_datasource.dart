@@ -24,6 +24,30 @@ class StoreSocketDataSource {
   /// Ids of stores removed (or deactivated) within a subscribed region.
   Stream<String> get onRemoved => _removed.stream;
 
+  // God's Eye rides the same connection and viewport subscription as stores.
+  // Raw maps: parsing belongs to the mobility feature, not this socket.
+  final _vehicleMoved = StreamController<Map<String, dynamic>>.broadcast();
+  final _vehicleRemoved = StreamController<String>.broadcast();
+
+  /// `vehicle:moved` payloads for vehicles within a subscribed region.
+  Stream<Map<String, dynamic>> get onVehicleMoved => _vehicleMoved.stream;
+
+  /// Ids of vehicles that left a subscribed region: stopped sharing, went
+  /// silent for 60s, or drove into a cell outside it.
+  Stream<String> get onVehicleRemoved => _vehicleRemoved.stream;
+
+  final _reconnected = StreamController<void>.broadcast();
+
+  /// Fires after the socket comes back from a drop. Whatever was pushed
+  /// while it was down was missed, so listeners should resync.
+  Stream<void> get onReconnected => _reconnected.stream;
+
+  /// The last viewport asked for. Rooms don't survive a reconnect — and with
+  /// more than one API instance it may land on a server that never saw this
+  /// socket — so it's sent again on every connect.
+  Map<String, double>? _viewport;
+  bool _connectedBefore = false;
+
   void connect() {
     if (_socket != null) return;
 
@@ -35,6 +59,12 @@ class StoreSocketDataSource {
                 .enableReconnection()
                 .build(),
           )
+          ..onConnect((_) {
+            final viewport = _viewport;
+            if (viewport != null) _socket?.emit('subscribe', viewport);
+            if (_connectedBefore) _reconnected.add(null);
+            _connectedBefore = true;
+          })
           ..on('store:upserted', (data) {
             if (data is! Map) return;
             final map = data.cast<String, dynamic>();
@@ -54,6 +84,16 @@ class StoreSocketDataSource {
               _removed.add(data['id'] as String);
             }
           })
+          ..on('vehicle:moved', (data) {
+            if (data is Map && data['id'] is String) {
+              _vehicleMoved.add(data.cast<String, dynamic>());
+            }
+          })
+          ..on('vehicle:removed', (data) {
+            if (data is Map && data['id'] is String) {
+              _vehicleRemoved.add(data['id'] as String);
+            }
+          })
           ..connect();
   }
 
@@ -65,12 +105,13 @@ class StoreSocketDataSource {
     required double east,
     required double west,
   }) {
-    _socket?.emit('subscribe', {
+    final viewport = _viewport = {
       'north': north,
       'south': south,
       'east': east,
       'west': west,
-    });
+    };
+    _socket?.emit('subscribe', viewport);
   }
 
   Future<void> dispose() async {
@@ -78,5 +119,8 @@ class StoreSocketDataSource {
     _socket = null;
     await _upserted.close();
     await _removed.close();
+    await _vehicleMoved.close();
+    await _vehicleRemoved.close();
+    await _reconnected.close();
   }
 }

@@ -6,6 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:mapanytime_market_app/core/utils/platform_support.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:mapanytime_market_app/features/mobility/data/mobility_remote_datasource.dart';
+import 'package:mapanytime_market_app/features/mobility/presentation/driver_tracking_chip.dart';
+import 'package:mapanytime_market_app/features/mobility/presentation/gods_eye_controller.dart';
+import 'package:mapanytime_market_app/features/mobility/presentation/vehicle_layer.dart';
 import 'package:mapanytime_market_app/features/worldMap/data/datasources/directions_datasource.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_category.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
@@ -40,6 +44,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   // Managers
   late final UserLocationManager _locationManager;
   MapboxStyleManager? _styleManager;
+  VehicleLayer? _vehicleLayer;
 
   // Custom UI State
   String? _selectedStoreId;
@@ -86,6 +91,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
   // Riverpod listener — registered once in initState, cancelled in dispose
   ProviderSubscription<AsyncValue<WorldMapData>>? _storesSubscription;
+  ProviderSubscription<Map<String, LiveVehicle>>? _vehiclesSubscription;
 
   @override
   void initState() {
@@ -108,6 +114,11 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
         unawaited(_renderMarkers());
       }
     });
+    // God's Eye: every live-vehicle change re-renders the (throttled) layer.
+    _vehiclesSubscription ??= ref.listenManual(
+      godsEyeControllerProvider,
+      (_, next) => _vehicleLayer?.render(next.values),
+    );
   }
 
   Future<void> _onMapCreated(MapboxMap mapboxMap) async {
@@ -118,6 +129,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       onStoreTap: _selectStore,
       onClusterTap: _handleClusterTap,
     );
+    _vehicleLayer = VehicleLayer(mapboxMap);
 
     unawaited(
       mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false)),
@@ -153,6 +165,9 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
       await _styleManager!.initializeStoreLayers();
       await _styleManager!.hidePoiLayers();
       await _renderMarkers();
+      // Added after the store layers so vehicles draw on top of them. Not
+      // awaited: the types request must not hold up stores or GPS centering.
+      unawaited(_initVehicleLayer());
 
       // Trigger an initial store fetch for the current camera position.
       // This ensures stores appear without the user needing to pan.
@@ -175,6 +190,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
               categoryId: _categoryIdForIndex(_selectedCategory),
             ),
       );
+      _loadVehicleSnapshot(lat: lat, lng: lng, span: span);
 
       // Start/Resume tracking user location
       unawaited(
@@ -501,7 +517,34 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
               search: _searchOrNull,
             ),
       );
+      _loadVehicleSnapshot(lat: lat, lng: lng, span: span);
     });
+  }
+
+  Future<void> _initVehicleLayer() async {
+    final layer = _vehicleLayer;
+    if (layer == null) return;
+    await layer.initialize(await ref.read(vehicleTypesProvider.future));
+    if (mounted) layer.render(ref.read(godsEyeControllerProvider).values);
+  }
+
+  /// Live vehicles for the viewport the store fetch just subscribed the
+  /// socket to — so parked vehicles show without waiting for their next ping.
+  void _loadVehicleSnapshot({
+    required double lat,
+    required double lng,
+    required double span,
+  }) {
+    unawaited(
+      ref
+          .read(godsEyeControllerProvider.notifier)
+          .loadSnapshot(
+            north: lat + span,
+            south: lat - span,
+            east: lng + span,
+            west: lng - span,
+          ),
+    );
   }
 
   Future<void> _startNavigationTo(
@@ -576,6 +619,8 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
     _searchController.dispose();
     _initTimer?.cancel();
     _storesSubscription?.close();
+    _vehiclesSubscription?.close();
+    _vehicleLayer?.dispose();
 
     final cancelRoute = polylineAnnotationManager?.deleteAll();
     if (cancelRoute != null) unawaited(cancelRoute);
@@ -681,6 +726,11 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
                             );
                           },
                         ),
+                      ),
+                      const Gap(AppSpacing.sm),
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: DriverTrackingChip(),
                       ),
                     ],
                   ),

@@ -4,6 +4,14 @@
     <!-- Required to show the user's current location on the map. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Driver mode: geolocator's foreground service keeps sharing the vehicle's
+         location with the screen off (persistent notification). WAKE_LOCK is
+         for its enableWakeLock option. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Android 13+: lets that foreground-service notification show. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Required by mobile_scanner to confirm Cash on Pickup orders. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <application
