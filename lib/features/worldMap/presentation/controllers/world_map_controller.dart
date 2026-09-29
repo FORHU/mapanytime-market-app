@@ -142,6 +142,10 @@ class WorldMapController extends AsyncNotifier<WorldMapData> {
   int _loadedOffset = 0;
   bool _loadingMore = false;
 
+  // Bumped for each new viewport; a background pager from an older one sees
+  // the mismatch and stops, so pans replace pagers instead of stacking them.
+  int _pagerGeneration = 0;
+
   StoreSocketDataSource? _socket;
 
   @override
@@ -256,10 +260,13 @@ class WorldMapController extends AsyncNotifier<WorldMapData> {
   }
 
   /// Background auto-pager: repeatedly calls [loadMore] with a small delay
-  /// until the viewport has been fully loaded (or limits reached).
+  /// until the viewport has been fully loaded (or limits reached). Stops at the
+  /// first failed page: retrying it every 300ms turns one failure (a 429 above
+  /// all) into hundreds of requests against the API's per-IP rate limit.
   Future<void> _autoLoadRemaining() async {
+    final generation = ++_pagerGeneration;
     var safety = 0;
-    while (true) {
+    while (generation == _pagerGeneration) {
       final data = state.value;
       final viewport = _viewport;
       if (data == null || viewport == null) return;
@@ -272,7 +279,7 @@ class WorldMapController extends AsyncNotifier<WorldMapData> {
         continue;
       }
 
-      await loadMore();
+      if (!await loadMore()) return;
 
       // Throttle subsequent page requests so pagination feels gradual.
       await Future<void>.delayed(const Duration(milliseconds: 300));
@@ -316,6 +323,7 @@ class WorldMapController extends AsyncNotifier<WorldMapData> {
     );
     _viewport = viewport;
     _loadedOffset = 0;
+    _pagerGeneration++; // the previous viewport's pager must not page this one
     _selectedCategoryId = categoryId;
     _searchTerm = search;
     _subscribeSocket(viewport);
@@ -353,11 +361,12 @@ class WorldMapController extends AsyncNotifier<WorldMapData> {
 
   /// Loads the next page for the current viewport and merges it in. No-op if
   /// there's nothing more, no viewport yet, or a load is already in flight.
-  Future<void> loadMore() async {
+  /// Returns false only when the request failed.
+  Future<bool> loadMore() async {
     final data = state.value;
     final viewport = _viewport;
     if (_loadingMore || data == null || !data.hasMore || viewport == null) {
-      return;
+      return true;
     }
 
     _loadingMore = true;
@@ -374,9 +383,9 @@ class WorldMapController extends AsyncNotifier<WorldMapData> {
         offset: _loadedOffset,
       );
 
-      result.fold(
+      return result.fold(
         // Keep the current data on failure — loadMore is best-effort.
-        (failure) {},
+        (failure) => false,
         (page) {
           _loadedOffset += page.stores.length;
           final merged = _merge(data.stores, page.stores);
@@ -387,6 +396,7 @@ class WorldMapController extends AsyncNotifier<WorldMapData> {
               hasMore: page.hasMore,
             ),
           );
+          return true;
         },
       );
     } finally {
