@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/features/worldMap/presentation/pages/components/store_clusterer.dart';
+import 'package:mapanytime_market_app/features/worldMap/presentation/pages/components/storefront_pin.dart';
 import 'package:mapanytime_market_app/shared/utils/category_visuals.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/effects.dart';
@@ -29,7 +29,7 @@ typedef _RegisterEntry = (
 /// - [_dotLayerId]: a small always-visible colored dot per store. Circles
 ///   aren't part of Mapbox's collision system, so this never disappears —
 ///   it's the fallback shown wherever the photo card above it is hidden.
-/// - [_iconLayerId]: the rounded-square photo/monogram card,
+/// - [_iconLayerId]: the storefront pin (or price/label card),
 ///   `iconAllowOverlap: false` so the native collision engine hides
 ///   whichever icons would overlap, revealing the dot underneath.
 ///
@@ -144,16 +144,11 @@ class MapboxStyleManager {
 
   static const double _statusBadgeRadius = 5;
 
-  // Teardrop-pin geometry tuning, all relative to the crown radius — adjust
-  // these, not the path-construction code, if the pin's proportions need a
-  // nudge once it's been seen on-device (see the zoom-range comment above
-  // for precedent: this file tunes visual constants after real feedback,
-  // not up front).
-  static const double _pinShoulderAngleDeg = 37; // crown cheek -> taper
-  static const double _pinPeakAngleDeg = 45; // the M's two peaks on the crown
-  static const double _pinNotchDepthFactor = 0.35; // how deep the M valley cuts
-  static const double _pinTipDropFactor = 1.3; // crown-center-to-tip distance
-  static const double _pinSelectedScale = 1.15;
+  // Storefront pin width as a fraction of the card width — tune on-device
+  // alongside `storefrontPinTipGap` (see the zoom-range comment above for
+  // precedent: this file tunes visual constants after real feedback, not up
+  // front).
+  static const double _pinWidthFactor = 0.9;
 
   // Registered style-image ids (content signatures) already uploaded via
   // addStyleImage — style-scoped, so this (and _liveSignatures below) must
@@ -458,7 +453,7 @@ class MapboxStyleManager {
   }
 
   /// Fetches and decodes a marker photo, caching by URL. Returns null (and
-  /// leaves the caller to fall back to the monogram card) on any failure — a
+  /// leaves the window to fall back to illustrated goods) on any failure — a
   /// broken/slow photo URL must never block marker rendering.
   Future<ui.Image?> _loadPhotoImage(String url) async {
     final cached = _photoImageCache[url];
@@ -477,148 +472,13 @@ class MapboxStyleManager {
     }
   }
 
-  /// A point on the pin's crown circle, [angleDeg] measured the same way as
-  /// [Path.arcTo] (0° = positive x-axis, increasing clockwise).
-  Offset _pointOnCrown(
-    Offset crownCenter,
-    double crownRadius,
-    double angleDeg,
-  ) {
-    final rad = angleDeg * math.pi / 180;
-    return crownCenter + Offset(math.cos(rad), math.sin(rad)) * crownRadius;
-  }
-
-  /// Builds the teardrop-with-M-notch silhouette inside [cardRect], sized by
-  /// [crownDiameter]. The tip is pinned to `cardRect.center` — combined with
-  /// [_rasterize]'s symmetric shadow padding, that puts the tip exactly at
-  /// the bitmap's own geometric center, which is what the icon layer's
-  /// `IconAnchor.CENTER` anchors on. That's the whole trick behind "the
-  /// teardrop's point is the actual coordinate" without touching shared
-  /// layer config (which every other marker style also uses).
-  ({Path path, Offset tip, Offset crownCenter, double crownRadius})
-  _buildPinGeometry(Rect cardRect, double crownDiameter) {
-    final r = crownDiameter / 2;
-    final tipDrop = r * _pinTipDropFactor;
-    final tip = cardRect.center;
-    final crownCenter = tip - Offset(0, tipDrop);
-
-    const rightShoulderAngle = 90 - _pinShoulderAngleDeg;
-    const leftShoulderAngle = 90 + _pinShoulderAngleDeg;
-    const rightPeakAngle = 270 + _pinPeakAngleDeg;
-    const leftPeakAngle = 270 - _pinPeakAngleDeg;
-    const cheekSweepDeg = rightPeakAngle - 360 - rightShoulderAngle;
-
-    final rightShoulder = _pointOnCrown(crownCenter, r, rightShoulderAngle);
-    final leftShoulder = _pointOnCrown(crownCenter, r, leftShoulderAngle);
-    final valley = crownCenter + Offset(0, -r * _pinNotchDepthFactor);
-
-    final crownRect = Rect.fromCircle(center: crownCenter, radius: r);
-    final path = Path()
-      ..moveTo(tip.dx, tip.dy)
-      // Right taper: tip -> rightShoulder.
-      ..cubicTo(
-        tip.dx + r * 0.02,
-        tip.dy - tipDrop * 0.3,
-        rightShoulder.dx,
-        rightShoulder.dy + tipDrop * 0.4,
-        rightShoulder.dx,
-        rightShoulder.dy,
-      )
-      // Right cheek, arcing up and over to the M's right peak.
-      ..arcTo(
-        crownRect,
-        rightShoulderAngle * math.pi / 180,
-        cheekSweepDeg * math.pi / 180,
-        false,
-      )
-      // The M's notch: peak -> valley -> peak.
-      ..lineTo(valley.dx, valley.dy)
-      ..lineTo(
-        _pointOnCrown(crownCenter, r, leftPeakAngle).dx,
-        _pointOnCrown(crownCenter, r, leftPeakAngle).dy,
-      )
-      // Left cheek, arcing down from the M's left peak to leftShoulder.
-      ..arcTo(
-        crownRect,
-        leftPeakAngle * math.pi / 180,
-        cheekSweepDeg * math.pi / 180,
-        false,
-      )
-      // Left taper: leftShoulder -> tip.
-      ..cubicTo(
-        leftShoulder.dx,
-        leftShoulder.dy + tipDrop * 0.4,
-        tip.dx - r * 0.02,
-        tip.dy - tipDrop * 0.3,
-        tip.dx,
-        tip.dy,
-      )
-      ..close();
-
-    return (path: path, tip: tip, crownCenter: crownCenter, crownRadius: r);
-  }
-
-  /// Paints the store's 2-letter code inside a small chip nested just below
-  /// the M's valley, on the same vertical centerline as the notch and the
-  /// pin's tip — replacing the old badge-wide monogram now that the pin's
-  /// own shape carries the brand identity.
-  void _paintMonogramChip(
-    Canvas canvas,
-    StoreEntity store,
-    Offset anchor,
-    double crownRadius,
-  ) {
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: monogramForStore(store),
-        style: TextStyle(
-          fontSize: crownRadius * 0.42,
-          fontWeight: FontWeight.w700,
-          color: colorForStore(store),
-          letterSpacing: -0.2,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    final chipRect = Rect.fromCenter(
-      center: anchor,
-      width: textPainter.width + crownRadius * 0.36,
-      height: crownRadius * 0.62,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(chipRect, Radius.circular(chipRect.height / 2)),
-      Paint()..color = Colors.white,
-    );
-    textPainter.paint(
-      canvas,
-      anchor - Offset(textPainter.width / 2, textPainter.height / 2),
-    );
-  }
-
-  void _drawPinShadow(Canvas canvas, Path path, {bool strong = false}) {
-    final shadow =
-        (strong ? AppEffects.cardShadow : AppEffects.softShadow).first;
-    canvas.drawPath(path.shift(shadow.offset), shadow.toPaint());
-  }
-
-  void _drawPinStroke(Canvas canvas, Path path, Color color) {
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
-    );
-  }
-
   // Fixed-pixel shadow blur doesn't scale with card size, so this padding
   // (reserved on every side of every bitmap so the blur has room) doesn't
   // either.
   static const double _shadowPadding = AppSpacing.sm;
 
   /// Marker card dispatcher — [StoreEntity.markerDisplayMode] picks which
-  /// renderer runs. Each renderer sizes its own bitmap (a teardrop pin for
+  /// renderer runs. Each renderer sizes its own bitmap (a storefront pin for
   /// [_renderPhotoCard], auto-width pills for the other two, since Mapbox's
   /// `addStyleImage` takes each icon's native size independently — there's
   /// no shared canvas dimension to agree on).
@@ -837,7 +697,7 @@ class MapboxStyleManager {
     );
   }
 
-  // Open/closed indicator, on the pin's upper-right shoulder. Omitted
+  // Open/closed indicator, on the roof ledge's top-right corner. Omitted
   // entirely when unknown — never fabricate a status. Photo-card only: a
   // price or label listing (a rental night, a single car) doesn't carry the
   // same "open now" meaning a storefront does.
@@ -860,85 +720,36 @@ class MapboxStyleManager {
       );
   }
 
-  /// Teardrop pin, crown cut into an "M". Shows the merchant's photo,
-  /// cropped to fill the whole silhouette; otherwise a category-colored
-  /// fill with the store's 2-letter code in a chip nested in the M's
-  /// notch. Sized off `_cardSize.width` (scaled up when [isSelected])
-  /// rather than the fixed square every other renderer still uses — the
-  /// pin's aspect ratio is taller than it is wide, since the tip needs
-  /// room below the crown.
+  /// Flat storefront pin (see `storefront_pin.dart`) in the store's
+  /// category color, the same color as its dot. The merchant's photo fills
+  /// the display window when there is one; otherwise the window shows
+  /// illustrated goods. The bitmap is taller than it is wide and mirrored
+  /// top-to-bottom, so its center — where `IconAnchor.CENTER` puts the
+  /// coordinate — sits just below the V's tip, on the dot.
   Future<MbxImage> _renderPhotoCard(
     StoreEntity store, {
     bool isSelected = false,
-  }) {
-    final crownDiameter =
-        _cardSize.width * (isSelected ? _pinSelectedScale : 0.90);
-    final tipDrop = crownDiameter / 2 * _pinTipDropFactor;
-    final size = ui.Size(crownDiameter, crownDiameter + tipDrop * 2);
+  }) async {
+    final width = _cardSize.width * _pinWidthFactor;
+    final layout = storefrontPinLayout(
+      width,
+      selected: isSelected,
+      statusReach: _statusBadgeRadius + 1.5,
+    );
 
-    return _rasterize(size, (canvas, cardRect) async {
-      final geometry = _buildPinGeometry(cardRect, crownDiameter);
-      final path = geometry.path;
+    final photoUrl = store.markerPhotoUrl;
+    final photo = photoUrl == null ? null : await _loadPhotoImage(photoUrl);
 
-      _drawPinShadow(canvas, path, strong: isSelected);
-      if (isSelected) {
-        canvas.drawPath(
-          path,
-          Paint()
-            ..color = AppColors.ink
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 4,
-        );
-      }
-
-      final photoUrl = store.markerPhotoUrl;
-      final photoImage = photoUrl == null
-          ? null
-          : await _loadPhotoImage(photoUrl);
-
-      if (photoImage != null) {
-        canvas
-          ..save()
-          ..clipPath(path);
-
-        // Crop-to-cover the pin's bounding box (like CSS object-fit:
-        // cover): trim the source's wider dimension so it fills the shape
-        // without stretching.
-        final destRect = path.getBounds();
-        final destAspect = destRect.width / destRect.height;
-        final srcAspect = photoImage.width / photoImage.height;
-        double srcWidth;
-        double srcHeight;
-        if (srcAspect > destAspect) {
-          srcHeight = photoImage.height.toDouble();
-          srcWidth = srcHeight * destAspect;
-        } else {
-          srcWidth = photoImage.width.toDouble();
-          srcHeight = srcWidth / destAspect;
-        }
-        final src = Rect.fromCenter(
-          center: Offset(photoImage.width / 2, photoImage.height / 2),
-          width: srcWidth,
-          height: srcHeight,
-        );
-        canvas
-          ..drawImageRect(photoImage, src, destRect, Paint())
-          ..restore();
-      } else {
-        canvas.drawPath(path, Paint()..color = colorForStore(store));
-        _paintMonogramChip(
-          canvas,
-          store,
-          geometry.crownCenter,
-          geometry.crownRadius,
-        );
-      }
-
-      _drawPinStroke(canvas, path, Colors.white);
-      final statusCenter =
-          geometry.crownCenter +
-          Offset(geometry.crownRadius * 0.68, -geometry.crownRadius * 0.68);
-      _paintStatusDot(canvas, store, statusCenter);
+    return _rasterize(layout.size, (canvas, cardRect) {
+      paintStorefrontPin(
+        canvas,
+        cardRect.center,
+        width,
+        wall: colorForStore(store),
+        selected: isSelected,
+        photo: photo,
+      );
+      _paintStatusDot(canvas, store, cardRect.center + layout.statusOffset);
     });
   }
 
