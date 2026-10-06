@@ -49,10 +49,8 @@ class ApiService {
             final serverSec = int.tryParse(header ?? '') ?? 0;
             const clientDelays = [1, 2, 4];
             final idx = attempt - 1;
-            final clientSec =
-                idx < clientDelays.length ? clientDelays[idx] : 4;
-            final extraWait =
-                serverSec > clientSec ? serverSec - clientSec : 0;
+            final clientSec = idx < clientDelays.length ? clientDelays[idx] : 4;
+            final extraWait = serverSec > clientSec ? serverSec - clientSec : 0;
             if (extraWait > 0) {
               await Future<void>.delayed(Duration(seconds: extraWait));
             }
@@ -87,27 +85,25 @@ class ApiService {
     String path, {
     Map<String, dynamic>? query,
     CancelToken? cancelToken,
-  }) =>
-      _send(
-        () => client.get<dynamic>(
-          path,
-          queryParameters: query,
-          cancelToken: cancelToken,
-        ),
-      );
+  }) => _send(
+    () => client.get<dynamic>(
+      path,
+      queryParameters: query,
+      cancelToken: cancelToken,
+    ),
+  );
 
   Future<dynamic> post(
     String path, [
     Object? body,
     Options? options,
-  ]) =>
-      _send(
-        () => client.post<dynamic>(
-          path,
-          data: body,
-          options: options,
-        ),
-      );
+  ]) => _send(
+    () => client.post<dynamic>(
+      path,
+      data: body,
+      options: options,
+    ),
+  );
 
   Future<dynamic> put(String path, [Object? body]) =>
       _send(() => client.put<dynamic>(path, data: body));
