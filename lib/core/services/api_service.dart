@@ -36,13 +36,28 @@ class ApiService {
       ),
     );
 
-    // 2. Retry transient failures on unstable networks (do not retry 4xx client errors like 401/403).
+    // 2. Retry transient failures on unstable networks (retry 429 with
+    // backoff; skip other 4xx client errors).
     client.interceptors.add(
       RetryInterceptor(
         dio: client,
         logPrint: appLogger.w,
-        retryEvaluator: (error, attempt) {
+        retryEvaluator: (error, attempt) async {
           final status = error.response?.statusCode;
+          if (status == 429) {
+            final header = error.response?.headers.value('retry-after');
+            final serverSec = int.tryParse(header ?? '') ?? 0;
+            const clientDelays = [1, 2, 4];
+            final idx = attempt - 1;
+            final clientSec =
+                idx < clientDelays.length ? clientDelays[idx] : 4;
+            final extraWait =
+                serverSec > clientSec ? serverSec - clientSec : 0;
+            if (extraWait > 0) {
+              await Future<void>.delayed(Duration(seconds: extraWait));
+            }
+            return true;
+          }
           if (status != null && status >= 400 && status < 500) {
             return false;
           }
@@ -52,7 +67,7 @@ class ApiService {
         retryDelays: const [
           Duration(seconds: 1),
           Duration(seconds: 2),
-          Duration(seconds: 3),
+          Duration(seconds: 4),
         ],
       ),
     );
@@ -68,11 +83,31 @@ class ApiService {
   /// Exposed so interceptors/tests can configure or replace the client.
   final Dio client;
 
-  Future<dynamic> get(String path, {Map<String, dynamic>? query}) =>
-      _send(() => client.get<dynamic>(path, queryParameters: query));
+  Future<dynamic> get(
+    String path, {
+    Map<String, dynamic>? query,
+    CancelToken? cancelToken,
+  }) =>
+      _send(
+        () => client.get<dynamic>(
+          path,
+          queryParameters: query,
+          cancelToken: cancelToken,
+        ),
+      );
 
-  Future<dynamic> post(String path, [Object? body]) =>
-      _send(() => client.post<dynamic>(path, data: body));
+  Future<dynamic> post(
+    String path, [
+    Object? body,
+    Options? options,
+  ]) =>
+      _send(
+        () => client.post<dynamic>(
+          path,
+          data: body,
+          options: options,
+        ),
+      );
 
   Future<dynamic> put(String path, [Object? body]) =>
       _send(() => client.put<dynamic>(path, data: body));
