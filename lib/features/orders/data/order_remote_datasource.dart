@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:mapanytime_market_app/core/constants/api_endpoints.dart';
 import 'package:mapanytime_market_app/core/services/api_service.dart';
 import 'package:mapanytime_market_app/features/orders/domain/entities/buyer_order.dart';
@@ -45,7 +46,13 @@ class OrderRemoteDataSource {
       payload['userVoucherId'] = userVoucherId;
     }
 
-    final response = await _api.post(ApiEndpoints.ordersCreate, payload);
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final idempotencyKey = 'order_${pickupAt}_$timestamp';
+    final response = await _api.post(
+      ApiEndpoints.ordersCreate,
+      payload,
+      Options(headers: {'Idempotency-Key': idempotencyKey}),
+    );
 
     final data = response is Map ? response['data'] : null;
     final map = data is Map

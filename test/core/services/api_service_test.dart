@@ -86,5 +86,12 @@ void main() {
         ),
       );
     });
+
+    test('accepts cancelToken on get request', () async {
+      final api = _apiReturning(status: 200, body: {'ok': true});
+      final cancelToken = CancelToken();
+      final data = await api.get('/data', cancelToken: cancelToken);
+      expect((data as Map)['ok'], isTrue);
+    });
   });
 }
