@@ -4,16 +4,13 @@ import 'package:mapanytime_market_app/features/recommendations/presentation/widg
 import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
 import 'package:mapanytime_market_app/shared/widgets/price_tag.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
-/// A vertical product card: image, name, price and store/distance. Still flat
-/// — no shadow, text sits directly on the page's canvas — but the image gets
-/// a subtle ink border (8% alpha, matching `AppEffects.cardShadow`'s
-/// strength) since a white product photo on the near-white background
-/// otherwise has no visible edge. `AppColors.ui.borderHairline` was tried
-/// first and was too close to the placeholder's own fill color to read as
-/// a border at all.
+/// A vertical product card: image, name, price and store/distance on one white
+/// surface. The `AppColors.ui.borderCard` outline and
+/// `AppEffects.productCardShadow` lift it off the page's canvas.
 class ProductCard extends StatelessWidget {
   const ProductCard({
     required this.name,
@@ -55,46 +52,41 @@ class ProductCard extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     return GestureDetector(
       onTap: onTap,
-      child: SizedBox(
+      child: Container(
         width: width,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: AppColors.ui.surface,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          border: Border.all(color: AppColors.ui.borderCard),
+          boxShadow: AppEffects.productCardShadow,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.card),
+            Stack(
+              children: [
+                NetworkImageBox(
+                  url: imageUrl,
+                  height: width * 0.9,
+                  placeholderColor: AppColors.ui.surfaceMutedCool,
                 ),
-                border: Border.all(
-                  color: AppColors.ink.withValues(alpha: 0.08),
-                ),
-              ),
-              child: Stack(
-                children: [
-                  NetworkImageBox(
-                    url: imageUrl,
-                    height: width * 0.9,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(AppRadius.card),
+                if (badgeLabel != null)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: DiscountBadge(label: badgeLabel!),
+                  ),
+                if (onToggleSave != null)
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: _SaveButton(
+                      isSaved: isSaved ?? false,
+                      onTap: onToggleSave!,
                     ),
                   ),
-                  if (badgeLabel != null)
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: DiscountBadge(label: badgeLabel!),
-                    ),
-                  if (onToggleSave != null)
-                    Positioned(
-                      top: 6,
-                      right: 6,
-                      child: _SaveButton(
-                        isSaved: isSaved ?? false,
-                        onTap: onToggleSave!,
-                      ),
-                    ),
-                ],
-              ),
+              ],
             ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.sm + 4),

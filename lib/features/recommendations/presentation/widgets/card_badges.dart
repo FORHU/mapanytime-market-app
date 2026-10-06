@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
+import 'package:mapanytime_market_app/theme/tokens/effects.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 
 /// Small "Open / Closed" status chip used on store covers.
@@ -15,8 +16,9 @@ class StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.55),
+        color: AppColors.ui.surface,
         borderRadius: AppRadius.brPill,
+        boxShadow: AppEffects.overlayShadow,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -29,8 +31,8 @@ class StatusBadge extends StatelessWidget {
           const Gap(5),
           Text(
             isOpen ? 'Open' : 'Closed',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.text.primary,
               fontSize: 11,
               fontWeight: FontWeight.w600,
             ),
@@ -50,19 +52,29 @@ class FavoriteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.black.withValues(alpha: 0.45),
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: SizedBox(
-          width: 32,
-          height: 32,
-          child: Icon(
-            isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-            size: 16,
-            color: isFavorite ? AppColors.status.error : Colors.white,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: AppEffects.overlayShadow,
+      ),
+      child: Material(
+        color: AppColors.ui.surface,
+        shape: const CircleBorder(),
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const CircleBorder(),
+          child: SizedBox(
+            width: 32,
+            height: 32,
+            child: Icon(
+              isFavorite
+                  ? Icons.favorite_rounded
+                  : Icons.favorite_border_rounded,
+              size: 16,
+              color: isFavorite
+                  ? AppColors.status.error
+                  : AppColors.text.secondary,
+            ),
           ),
         ),
       ),
@@ -70,13 +82,70 @@ class FavoriteButton extends StatelessWidget {
   }
 }
 
-/// A small amber star used next to a numeric rating.
+/// An amber chip pairing a star with the numeric rating, so the rating
+/// reads as one unit.
 class RatingPill extends StatelessWidget {
-  const RatingPill({super.key});
+  const RatingPill({required this.rating, super.key});
+
+  final num rating;
 
   @override
   Widget build(BuildContext context) {
-    return Icon(Icons.star_rounded, size: 16, color: AppColors.status.warning);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(6, 3, 8, 3),
+      decoration: BoxDecoration(
+        color: AppColors.status.warning.withValues(alpha: 0.14),
+        borderRadius: AppRadius.brPill,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.star_rounded, size: 14, color: AppColors.status.warning),
+          const Gap(3),
+          Text(
+            rating.toStringAsFixed(1),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.status.warningStrong,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A category icon on a white rounded tile, lifted off a tinted cover.
+class IconTile extends StatelessWidget {
+  const IconTile({
+    required this.icon,
+    required this.color,
+    this.size = 44,
+    this.radius = 14,
+    this.iconSize = 24,
+    super.key,
+  });
+
+  final IconData icon;
+  final Color color;
+  final double size;
+  final double radius;
+  final double iconSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppColors.ui.surface,
+        borderRadius: BorderRadius.circular(radius),
+        boxShadow: AppEffects.tileShadow(size),
+      ),
+      child: Icon(icon, size: iconSize, color: color),
+    );
   }
 }
 

@@ -30,6 +30,12 @@ class _UI {
   /// anything "on the canvas but grouped." #F5F5F6.
   Color get surfaceMuted => const Color(0xFFF5F5F6);
 
+  /// Image placeholder inside a white product card. #F1F2F8.
+  Color get surfaceMutedCool => const Color(0xFFF1F2F8);
+
+  /// Outline of a white product card on the page background. #DCDFEA.
+  Color get borderCard => const Color(0xFFDCDFEA);
+
   /// Reserved for the rare white-on-white legibility case. Not a default
   /// outline — fill contrast and shadow do the depth work in this system.
   /// #ECEDF0.
@@ -60,4 +66,8 @@ class _Status {
   Color get error => const Color(0xFFE5484D);
   Color get success => const Color(0xFF2FA36B);
   Color get warning => const Color(0xFFD89614);
+
+  /// Text on a [warning]-tinted chip (e.g. the rating chip) — the warning
+  /// hue darkened enough to read at 12px. #7A5200.
+  Color get warningStrong => const Color(0xFF7A5200);
 }

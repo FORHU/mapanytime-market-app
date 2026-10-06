@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mapanytime_market_app/core/utils/extensions.dart';
 import 'package:mapanytime_market_app/features/home/presentation/controllers/home_products_controller.dart';
 import 'package:mapanytime_market_app/features/home/presentation/home_mock_data.dart';
 import 'package:mapanytime_market_app/features/home/presentation/widgets/deals_carousel.dart';
@@ -258,6 +259,17 @@ class _HomePageState extends ConsumerState<HomePage> {
                           final wishlistNotifier = ref.read(
                             wishlistControllerProvider.notifier,
                           );
+                          // Say so when a save didn't stick, rather than
+                          // letting the heart silently flip back.
+                          void reportSave(Future<bool> change) => unawaited(
+                            change.then((ok) {
+                              if (!ok && context.mounted) {
+                                context.showSnackBar(
+                                  "Couldn't update Saved — try again",
+                                );
+                              }
+                            }),
+                          );
                           return Column(
                             children: [
                               Padding(
@@ -283,7 +295,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                             isSaved: savedIds.contains(p.id),
                                             onToggleSave: () {
                                               if (savedIds.contains(p.id)) {
-                                                unawaited(
+                                                reportSave(
                                                   wishlistNotifier.remove(
                                                     p.id,
                                                   ),
@@ -295,7 +307,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                 // diverged on storeId (?? ''
                                                 // vs !). Extract a shared
                                                 // helper.
-                                                unawaited(
+                                                reportSave(
                                                   wishlistNotifier.add(
                                                     StoreProduct(
                                                       id: p.id,

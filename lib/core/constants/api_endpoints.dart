@@ -158,6 +158,13 @@ class ApiEndpoints {
   /// Remove a saved product.  `DELETE /wishlist/items/<productId>`.
   static String wishlistItem(String productId) => '/wishlist/items/$productId';
 
+  /// The caller's saved stores (same shape as a nearby-store item).
+  /// `GET /wishlist/stores`; save with `POST {storeId}`.
+  static const String savedStores = '/wishlist/stores';
+
+  /// Unsave a store.  `DELETE /wishlist/stores/<storeId>`.
+  static String savedStore(String storeId) => '/wishlist/stores/$storeId';
+
   // ── Rewards (MapPoints) ───────────────────────────────────────────────────
 
   /// Balance, estimated ₱ value, and lifetime stats.  `GET /rewards/wallet`.

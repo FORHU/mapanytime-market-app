@@ -1,6 +1,8 @@
 import 'package:mapanytime_market_app/core/constants/api_endpoints.dart';
 import 'package:mapanytime_market_app/core/services/api_service.dart';
 import 'package:mapanytime_market_app/features/wishlist/domain/entities/wishlist_item.dart';
+import 'package:mapanytime_market_app/features/worldMap/data/models/store_model.dart';
+import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 
 class WishlistRemoteDataSource {
   const WishlistRemoteDataSource(this._api);
@@ -26,4 +28,23 @@ class WishlistRemoteDataSource {
 
   Future<void> remove(String productId) =>
       _api.delete(ApiEndpoints.wishlistItem(productId));
+
+  /// Saved stores come back in the nearby-store shape, so they parse with
+  /// the map's own [StoreModel.fromJson].
+  Future<List<StoreEntity>> getSavedStores() async {
+    final response = await _api.get(ApiEndpoints.savedStores);
+    final rawList = response is Map && response['data'] is List
+        ? response['data'] as List
+        : const <dynamic>[];
+
+    return rawList
+        .map((e) => StoreModel.fromJson((e as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  Future<void> addStore(String storeId) =>
+      _api.post(ApiEndpoints.savedStores, {'storeId': storeId});
+
+  Future<void> removeStore(String storeId) =>
+      _api.delete(ApiEndpoints.savedStore(storeId));
 }

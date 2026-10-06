@@ -64,8 +64,6 @@ class ProfilePage extends ConsumerWidget {
                 _MenuTile(
                   icon: Icons.favorite_outline_rounded,
                   label: 'Saved',
-                  // FIXME: subtitle promises saved stores, but only product
-                  // wishlisting is wired up — no store-saving exists yet.
                   subtitle: 'Your favourite stores & products',
                   onTap: () => context.push(RouteNames.saved),
                 ),

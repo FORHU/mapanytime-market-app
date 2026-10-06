@@ -23,6 +23,7 @@ import 'package:mapanytime_market_app/features/orders/presentation/pages/order_h
 import 'package:mapanytime_market_app/features/orders/presentation/pages/order_tracking_page.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/pages/pickup_pass_page.dart';
 import 'package:mapanytime_market_app/features/profile/presentation/pages/profile_page.dart';
+import 'package:mapanytime_market_app/features/recommendations/presentation/pages/deals_page.dart';
 import 'package:mapanytime_market_app/features/recommendations/presentation/pages/recommendations_page.dart';
 import 'package:mapanytime_market_app/features/rewards/presentation/pages/rewards_page.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/merchant_ad.dart';
@@ -263,6 +264,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               }
               return StorefrontPage(store: store);
             },
+          ),
+          GoRoute(
+            path: RouteNames.deals,
+            builder: (context, state) => const DealsPage(),
           ),
           GoRoute(
             path: RouteNames.productDetail,
