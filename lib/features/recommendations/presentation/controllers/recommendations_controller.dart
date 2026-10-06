@@ -16,11 +16,16 @@ class RecommendationsFeed {
     this.nearby = const [],
     this.recommended = const [],
     this.deals = const [],
+    this.dealsFailed = false,
   });
 
   final List<StoreEntity> nearby;
   final List<StoreEntity> recommended;
   final List<NearbyDeal> deals;
+
+  /// The deals fetch failed (the rest of the feed still loaded), so the
+  /// "Today's Deals" section can offer a retry instead of "No deals today".
+  final bool dealsFailed;
 
   bool get isEmpty => nearby.isEmpty && recommended.isEmpty && deals.isEmpty;
 }
@@ -62,6 +67,7 @@ final recommendationsFeedProvider = FutureProvider<RecommendationsFeed>((
       ..sort((a, b) => (b.rating ?? 0).compareTo(a.rating ?? 0));
 
     var deals = const <NearbyDeal>[];
+    var dealsFailed = false;
     try {
       deals = await ref
           .read(dealsRemoteDataSourceProvider)
@@ -76,12 +82,14 @@ final recommendationsFeedProvider = FutureProvider<RecommendationsFeed>((
     } on Exception {
       // Deals are supplementary — a failed fetch shouldn't blank the rest
       // of the page.
+      dealsFailed = true;
     }
 
     return RecommendationsFeed(
       nearby: nearby,
       recommended: recommended,
       deals: deals,
+      dealsFailed: dealsFailed,
     );
   } on Exception {
     // GPS unavailable/denied — show an empty state rather than an error.

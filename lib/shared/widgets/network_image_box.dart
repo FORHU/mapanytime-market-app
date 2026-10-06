@@ -10,6 +10,7 @@ class NetworkImageBox extends StatelessWidget {
     this.height,
     this.borderRadius,
     this.fit = BoxFit.cover,
+    this.placeholderColor,
     super.key,
   });
 
@@ -18,6 +19,10 @@ class NetworkImageBox extends StatelessWidget {
   final double? height;
   final BorderRadius? borderRadius;
   final BoxFit fit;
+
+  /// Fill behind the loading spinner and the error icon. Defaults to
+  /// `AppColors.ui.surfaceMuted`.
+  final Color? placeholderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -28,25 +33,28 @@ class NetworkImageBox extends StatelessWidget {
         width: width,
         height: height,
         fit: fit,
-        placeholder: (_, _) => _Placeholder(width: width, height: height),
-        errorWidget: (_, _, _) => _ErrorBox(width: width, height: height),
+        placeholder: (_, _) =>
+            _Placeholder(width: width, height: height, color: placeholderColor),
+        errorWidget: (_, _, _) =>
+            _ErrorBox(width: width, height: height, color: placeholderColor),
       ),
     );
   }
 }
 
 class _Placeholder extends StatelessWidget {
-  const _Placeholder({this.width, this.height});
+  const _Placeholder({this.width, this.height, this.color});
 
   final double? width;
   final double? height;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: width,
       height: height,
-      color: AppColors.ui.surfaceMuted,
+      color: color ?? AppColors.ui.surfaceMuted,
       child: Center(
         child: SizedBox(
           width: 22,
@@ -62,17 +70,18 @@ class _Placeholder extends StatelessWidget {
 }
 
 class _ErrorBox extends StatelessWidget {
-  const _ErrorBox({this.width, this.height});
+  const _ErrorBox({this.width, this.height, this.color});
 
   final double? width;
   final double? height;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: width,
       height: height,
-      color: AppColors.ui.surfaceMuted,
+      color: color ?? AppColors.ui.surfaceMuted,
       child: Icon(
         Icons.image_not_supported_outlined,
         color: AppColors.text.tertiary,

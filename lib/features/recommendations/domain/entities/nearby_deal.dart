@@ -39,6 +39,10 @@ class NearbyDeal {
   final String? productImageUrl;
   final num? productPrice;
 
+  /// When the ad stops running, in local time; null for an open-ended ad.
+  DateTime? get endsAt =>
+      DateTime.tryParse(ad.extra['validUntil'] ?? '')?.toLocal();
+
   /// The discounted unit price when computable (%, fixed-amount off); null
   /// for BOGO or when the product price is unknown — there's no single
   /// "discounted price" for a buy-X-get-Y-free deal.

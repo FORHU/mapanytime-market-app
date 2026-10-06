@@ -46,6 +46,9 @@ class FloatingSearchBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.ui.surfaceMuted,
         borderRadius: AppRadius.brPill,
+        border: Border.all(
+          color: AppColors.ui.borderCard,
+        ),
       ),
       child: Row(
         children: [
