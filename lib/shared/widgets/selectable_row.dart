@@ -67,6 +67,9 @@ class SelectableRow extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? AppColors.ink : AppColors.ui.surfaceMuted,
           borderRadius: borderRadius ?? AppRadius.brLg,
+          border: Border.all(
+            color: selected ? AppColors.ink : AppColors.ui.borderCard,
+          ),
         ),
         child: Row(
           mainAxisSize: showCheck ? MainAxisSize.max : MainAxisSize.min,

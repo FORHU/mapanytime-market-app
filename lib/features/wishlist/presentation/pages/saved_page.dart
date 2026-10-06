@@ -3,36 +3,126 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mapanytime_market_app/core/utils/extensions.dart';
+import 'package:mapanytime_market_app/features/recommendations/presentation/widgets/recommended_store_card.dart';
 import 'package:mapanytime_market_app/features/wishlist/domain/entities/wishlist_item.dart';
 import 'package:mapanytime_market_app/features/wishlist/presentation/controllers/wishlist_controller.dart';
+import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
 import 'package:mapanytime_market_app/shared/widgets/product_card.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 
-/// The buyer's saved products (`Profile → Saved`).
-class SavedPage extends ConsumerWidget {
+/// The buyer's saved products and stores (`Profile → Saved`), one tab each.
+class SavedPage extends StatelessWidget {
   const SavedPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: const ModernAppBar(title: 'Saved'),
+        body: Column(
+          children: [
+            TabBar(
+              labelColor: AppColors.ink,
+              unselectedLabelColor: AppColors.text.secondary,
+              indicatorColor: AppColors.ink,
+              dividerColor: AppColors.ui.borderHairline,
+              labelStyle: context.textTheme.labelLarge,
+              tabs: const [
+                Tab(text: 'Products'),
+                Tab(text: 'Stores'),
+              ],
+            ),
+            const Expanded(
+              child: TabBarView(children: [_ProductsTab(), _StoresTab()]),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProductsTab extends ConsumerWidget {
+  const _ProductsTab();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wishlistAsync = ref.watch(wishlistControllerProvider);
 
-    return Scaffold(
-      appBar: const ModernAppBar(title: 'Saved'),
-      body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(wishlistControllerProvider),
-        color: AppColors.ink,
-        child: wishlistAsync.when(
-          loading: () => const _LoadingState(),
-          error: (_, _) => _ErrorState(
-            onRetry: () => ref.invalidate(wishlistControllerProvider),
-          ),
-          data: (items) =>
-              items.isEmpty ? const _EmptyState() : _SavedGrid(items: items),
+    return RefreshIndicator(
+      onRefresh: () async => ref.invalidate(wishlistControllerProvider),
+      color: AppColors.ink,
+      child: wishlistAsync.when(
+        loading: () => const _LoadingState(),
+        error: (_, _) => _ErrorState(
+          onRetry: () => ref.invalidate(wishlistControllerProvider),
         ),
+        data: (items) => items.isEmpty
+            ? const _EmptyState(message: 'No saved products yet')
+            : _SavedGrid(items: items),
       ),
+    );
+  }
+}
+
+class _StoresTab extends ConsumerWidget {
+  const _StoresTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final storesAsync = ref.watch(savedStoresControllerProvider);
+
+    return RefreshIndicator(
+      onRefresh: () async => ref.invalidate(savedStoresControllerProvider),
+      color: AppColors.ink,
+      child: storesAsync.when(
+        loading: () => const _LoadingState(),
+        error: (_, _) => _ErrorState(
+          onRetry: () => ref.invalidate(savedStoresControllerProvider),
+        ),
+        data: (stores) => stores.isEmpty
+            ? const _EmptyState(message: 'No saved stores yet')
+            : _SavedStoresList(stores: stores),
+      ),
+    );
+  }
+}
+
+class _SavedStoresList extends ConsumerWidget {
+  const _SavedStoresList({required this.stores});
+
+  final List<StoreEntity> stores;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      itemCount: stores.length,
+      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+      itemBuilder: (context, i) {
+        final store = stores[i];
+        // Every store here is saved — the heart only ever unsaves.
+        return RecommendedStoreCard(
+          store: store,
+          isSaved: true,
+          onToggleSave: () async {
+            final ok = await ref
+                .read(savedStoresControllerProvider.notifier)
+                .remove(store.id);
+            if (!ok && context.mounted) {
+              context.showSnackBar("Couldn't update Saved — try again");
+            }
+          },
+          onVisit: () =>
+              unawaited(context.push(RouteNames.storefront, extra: store)),
+        );
+      },
     );
   }
 }
@@ -44,45 +134,54 @@ class _SavedGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return GridView.builder(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: AppSpacing.md,
-        crossAxisSpacing: AppSpacing.md,
-        childAspectRatio: 0.62,
-      ),
-      itemCount: items.length,
-      itemBuilder: (context, i) {
-        final item = items[i];
-        final product = item.product;
-        // Every item here is by definition saved — the heart is always
-        // filled, and tapping it always removes (there's no "unsaved" state
-        // to toggle back to on this particular page).
-        return ProductCard(
-          name: product.name,
-          imageUrl: product.imageUrl,
-          price: product.price,
-          storeName: product.storeName,
-          width: double.infinity,
-          isSaved: true,
-          onToggleSave: () => ref
-              .read(wishlistControllerProvider.notifier)
-              .remove(
-                product.id,
-              ),
-          onTap: () {
-            unawaited(
-              context.push(
-                RouteNames.productDetail,
-                extra: (
-                  product: product,
-                  storeId: product.storeId,
-                  storeName: product.storeName,
-                  promo: null,
-                ),
-              ),
+    // ProductCard sizes its image from `width`, so it needs the real cell
+    // width — `double.infinity` made the image infinitely tall and every
+    // card fail layout (blank cells). Same approach as Home's product grid.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cellWidth =
+            (constraints.maxWidth - AppSpacing.md * 2 - AppSpacing.md) / 2;
+        return GridView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(AppSpacing.md),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: AppSpacing.md,
+            crossAxisSpacing: AppSpacing.md,
+            childAspectRatio: 0.62,
+          ),
+          itemCount: items.length,
+          itemBuilder: (context, i) {
+            final item = items[i];
+            final product = item.product;
+            // Every item here is by definition saved — the heart is always
+            // filled, and tapping it always removes (there's no "unsaved" state
+            // to toggle back to on this particular page).
+            return ProductCard(
+              name: product.name,
+              imageUrl: product.imageUrl,
+              price: product.price,
+              storeName: product.storeName,
+              width: cellWidth,
+              isSaved: true,
+              onToggleSave: () => ref
+                  .read(wishlistControllerProvider.notifier)
+                  .remove(
+                    product.id,
+                  ),
+              onTap: () {
+                unawaited(
+                  context.push(
+                    RouteNames.productDetail,
+                    extra: (
+                      product: product,
+                      storeId: product.storeId,
+                      storeName: product.storeName,
+                      promo: null,
+                    ),
+                  ),
+                );
+              },
             );
           },
         );
@@ -135,7 +234,9 @@ class _ErrorState extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+  const _EmptyState({required this.message});
+
+  final String message;
 
   @override
   Widget build(BuildContext context) {
@@ -153,7 +254,7 @@ class _EmptyState extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'Nothing saved yet',
+                message,
                 style: TextStyle(color: AppColors.text.secondary),
               ),
             ],
