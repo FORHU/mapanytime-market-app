@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We need your location to show where you are on the map.</string>
+	<string>We need your location to show stores, deals, and places near you.</string>
 	<!-- Driver mode keeps sharing the vehicle's location after the app is
 	     backgrounded (blue indicator). Deliberately no "Always" usage key:
 	     geolocator would then ask every buyer for Always permission. -->
