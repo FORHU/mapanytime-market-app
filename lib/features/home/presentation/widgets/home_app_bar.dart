@@ -11,6 +11,7 @@ class HomeAppBar extends StatelessWidget {
   const HomeAppBar({
     required this.name,
     required this.location,
+    this.onLocationTap,
     this.onNotifications,
     this.onProfile,
     this.unreadCount = 0,
@@ -19,6 +20,10 @@ class HomeAppBar extends StatelessWidget {
 
   final String name;
   final String location;
+
+  /// Set when the location needs the user's attention (permission denied, GPS
+  /// off, ...): the location line becomes a tappable call to action.
+  final VoidCallback? onLocationTap;
   final VoidCallback? onNotifications;
   final VoidCallback? onProfile;
   final int unreadCount;
@@ -38,12 +43,40 @@ class HomeAppBar extends StatelessWidget {
                 'Discover near',
                 style: tt.bodySmall?.copyWith(color: AppColors.text.secondary),
               ),
-              Text(
-                location,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: tt.titleLarge,
-              ),
+              if (onLocationTap == null)
+                Text(
+                  location,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: tt.titleLarge,
+                )
+              else
+                GestureDetector(
+                  onTap: onLocationTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.location_off_rounded,
+                        size: 20,
+                        color: AppColors.text.secondary,
+                      ),
+                      const Gap(4),
+                      Flexible(
+                        child: Text(
+                          location,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: tt.titleLarge,
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.text.secondary,
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),

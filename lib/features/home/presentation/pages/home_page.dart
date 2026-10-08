@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/utils/extensions.dart';
+import 'package:mapanytime_market_app/features/home/presentation/controllers/home_location_controller.dart';
 import 'package:mapanytime_market_app/features/home/presentation/controllers/home_products_controller.dart';
 import 'package:mapanytime_market_app/features/home/presentation/home_mock_data.dart';
 import 'package:mapanytime_market_app/features/home/presentation/widgets/deals_carousel.dart';
@@ -47,6 +48,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
   Timer? _debounce;
+  late final AppLifecycleListener _lifecycle;
 
   /// Index of the root we've drilled into (into the roots list). Null means the
   /// filter row is showing the root categories.
@@ -59,11 +61,25 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    // Returning from Settings (permission granted / GPS switched on) should
+    // pick up the change without a restart.
+    _lifecycle = AppLifecycleListener(
+      onResume: () {
+        final status = ref.read(homeLocationControllerProvider).status;
+        if (status != HomeLocationStatus.located &&
+            status != HomeLocationStatus.locating) {
+          unawaited(
+            ref.read(homeLocationControllerProvider.notifier).refresh(),
+          );
+        }
+      },
+    );
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
+    _lifecycle.dispose();
     _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -159,8 +175,21 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   Future<void> _onRefresh() async {
     ref.invalidate(categoryTreeProvider);
+    unawaited(ref.read(homeLocationControllerProvider.notifier).refresh());
     await ref.read(homeProductsControllerProvider.notifier).refresh();
   }
+
+  /// Header text for the "Discover near" line.
+  static String _locationText(HomeLocationState location) =>
+      switch (location.status) {
+        HomeLocationStatus.locating => 'Locating…',
+        HomeLocationStatus.located => location.label ?? 'your location',
+        HomeLocationStatus.permissionDenied => 'Turn on location',
+        HomeLocationStatus.permissionDeniedForever =>
+          'Allow location in Settings',
+        HomeLocationStatus.serviceDisabled => 'Turn on GPS',
+        HomeLocationStatus.unavailable => 'Location unavailable',
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -173,6 +202,11 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     // Paginated products for the selected category; appends on scroll.
     final productsState = ref.watch(homeProductsControllerProvider);
+
+    final location = ref.watch(homeLocationControllerProvider);
+    final needsLocationFix =
+        location.status != HomeLocationStatus.located &&
+        location.status != HomeLocationStatus.locating;
 
     return Scaffold(
       body: SafeArea(
@@ -194,7 +228,16 @@ class _HomePageState extends ConsumerState<HomePage> {
                       child: FadeSlideIn(
                         child: HomeAppBar(
                           name: HomeMock.userName,
-                          location: HomeMock.location,
+                          location: _locationText(location),
+                          onLocationTap: needsLocationFix
+                              ? () => unawaited(
+                                  ref
+                                      .read(
+                                        homeLocationControllerProvider.notifier,
+                                      )
+                                      .resolve(),
+                                )
+                              : null,
                           unreadCount: ref.watch(
                             notificationFeedControllerProvider.select(
                               (s) => s.unreadCount,
@@ -265,7 +308,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                             change.then((ok) {
                               if (!ok && context.mounted) {
                                 context.showSnackBar(
-                                  "Couldn't update Saved — try again",
+                                  "Couldn't update Saved, try again",
                                 );
                               }
                             }),

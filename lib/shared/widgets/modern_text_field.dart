@@ -23,6 +23,13 @@ class ModernTextField extends StatefulWidget {
     this.onChanged,
     this.validator,
     this.borderRadius,
+    this.readOnly = false,
+    this.onTap,
+    this.prefixText,
+    this.textCapitalization = TextCapitalization.none,
+    this.labelTrailing,
+    this.minLines,
+    this.maxLines = 1,
     super.key,
   });
 
@@ -40,6 +47,23 @@ class ModernTextField extends StatefulWidget {
   /// Overrides the default [AppRadius.field] corner radius, for a caller
   /// that deliberately wants a different shape.
   final double? borderRadius;
+
+  /// For fields edited through a picker rather than the keyboard (e.g. a
+  /// date): the field shows the value and [onTap] opens the picker.
+  final bool readOnly;
+  final VoidCallback? onTap;
+
+  /// Fixed text before the input, e.g. a `+63` country code.
+  final String? prefixText;
+  final TextCapitalization textCapitalization;
+
+  /// Shown at the end of the label row, e.g. a chip saying where the value
+  /// came from.
+  final Widget? labelTrailing;
+
+  /// For multi-line input (e.g. an address); one line by default.
+  final int? minLines;
+  final int? maxLines;
 
   @override
   State<ModernTextField> createState() => _ModernTextFieldState();
@@ -71,13 +95,20 @@ class _ModernTextFieldState extends State<ModernTextField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.label != null) ...[
-          Text(
-            widget.label!,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: colors.onSurfaceVariant,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  widget.label!,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              if (widget.labelTrailing != null) widget.labelTrailing!,
+            ],
           ),
           const Gap(8),
         ],
@@ -88,6 +119,11 @@ class _ModernTextFieldState extends State<ModernTextField> {
           maxLength: widget.maxLength,
           onChanged: widget.onChanged,
           validator: widget.validator,
+          readOnly: widget.readOnly,
+          minLines: widget.minLines,
+          maxLines: widget.obscureText ? 1 : widget.maxLines,
+          onTap: widget.onTap,
+          textCapitalization: widget.textCapitalization,
           style: TextStyle(color: colors.onSurface, fontSize: 15),
           cursorColor: AppColors.ink,
           decoration: InputDecoration(
@@ -101,6 +137,12 @@ class _ModernTextFieldState extends State<ModernTextField> {
             prefixIcon: widget.prefixIcon != null
                 ? Icon(widget.prefixIcon, color: colors.onSurfaceVariant)
                 : null,
+            prefixText: widget.prefixText,
+            prefixStyle: TextStyle(
+              color: colors.onSurfaceVariant,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
             suffixIcon: suffix,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,

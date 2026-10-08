@@ -70,4 +70,8 @@ class _Status {
   /// Text on a [warning]-tinted chip (e.g. the rating chip) — the warning
   /// hue darkened enough to read at 12px. #7A5200.
   Color get warningStrong => const Color(0xFF7A5200);
+
+  /// Text on an [error]-tinted chip — the error hue darkened enough to read
+  /// at 11px. #B4282D.
+  Color get errorStrong => const Color(0xFFB4282D);
 }

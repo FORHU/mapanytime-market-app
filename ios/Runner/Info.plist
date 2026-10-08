@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We need your location to show where you are on the map.</string>
+	<string>We need your location to show stores, deals, and places near you.</string>
 	<!-- Driver mode keeps sharing the vehicle's location after the app is
 	     backgrounded (blue indicator). Deliberately no "Always" usage key:
 	     geolocator would then ask every buyer for Always permission. -->
@@ -12,7 +12,9 @@
 		<string>location</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
-	<string>We need your camera to scan the pickup confirmation code shown by the seller.</string>
+	<string>We use your camera to scan the seller's pickup confirmation code and to take a photo of your ID when you sign up.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Choose a saved photo of your ID when you sign up.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<!-- Facebook Login. FacebookAppID and the fb<APP_ID> URL scheme below use

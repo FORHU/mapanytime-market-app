@@ -165,6 +165,17 @@ class ApiEndpoints {
   /// Unsave a store.  `DELETE /wishlist/stores/<storeId>`.
   static String savedStore(String storeId) => '/wishlist/stores/$storeId';
 
+  // ── Addresses ─────────────────────────────────────────────────────────────
+
+  /// The caller's addresses, default first.  `GET`; add with `POST`.
+  static const String addresses = '/addresses';
+
+  /// One of the caller's addresses.  `PATCH` / `DELETE /addresses/<id>`.
+  static String address(String id) => '/addresses/$id';
+
+  /// Make an address the default.  `POST /addresses/<id>/default`.
+  static String addressDefault(String id) => '/addresses/$id/default';
+
   // ── Rewards (MapPoints) ───────────────────────────────────────────────────
 
   /// Balance, estimated ₱ value, and lifetime stats.  `GET /rewards/wallet`.
