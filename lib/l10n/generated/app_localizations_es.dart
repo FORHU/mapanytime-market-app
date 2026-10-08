@@ -130,18 +130,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get acceptTerms => 'Acepto los Términos y la Privacidad';
 
   @override
-  String get registerStepEmailTitle => '¿Cuál es tu correo electrónico?';
+  String get registerStepAccountTitle => 'Crea tu cuenta';
 
   @override
-  String get registerStepEmailSubtitle =>
-      'Te enviaremos avisos de recogida y recibos aquí.';
+  String get registerStepAccountSubtitle =>
+      'Usa tu nombre tal como aparece en tu identificación válida.';
 
   @override
-  String get registerStepNameTitle => '¿Cuál es tu nombre?';
+  String get phoneNumber => 'Número de teléfono';
 
   @override
-  String get registerStepNameSubtitle =>
-      'Las tiendas lo usan para entregarte tu pedido.';
+  String get phoneNumberHint => '917 123 4567';
+
+  @override
+  String get idNameMismatch =>
+      'El nombre de tu identificación no coincide con el nombre que ingresaste. Revisa tus datos y asegúrate de que tu nombre sea el mismo que aparece en la identificación que subiste.';
+
+  @override
+  String get idEditName => 'Editar tu nombre';
 
   @override
   String get registerStepPasswordTitle => 'Crea una contraseña';
@@ -149,6 +155,154 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get registerStepPasswordSubtitle =>
       'Al menos 8 caracteres. Cuanto más larga, más segura.';
+
+  @override
+  String get registerStepIdTitle => 'Sube una identificación válida';
+
+  @override
+  String get registerStepIdSubtitle =>
+      'Leeremos tus datos de ella para que escribas menos.';
+
+  @override
+  String get registerStepReviewTitle => 'Revisa tus datos';
+
+  @override
+  String get registerStepReviewSubtitle =>
+      'Leímos estos datos de tu identificación. Corrige lo que no esté bien.';
+
+  @override
+  String get idFrontOfId => 'Frente de tu identificación';
+
+  @override
+  String get idTakePhoto => 'Tomar una foto';
+
+  @override
+  String get idTakePhotoHint => 'Usa tu cámara';
+
+  @override
+  String get idChooseGallery => 'Elegir de la galería';
+
+  @override
+  String get idChooseGalleryHint => 'Elige una foto guardada';
+
+  @override
+  String get idAcceptedIds => 'Identificaciones aceptadas';
+
+  @override
+  String get idTipFlat => 'Coloca la identificación sobre una superficie lisa';
+
+  @override
+  String get idTipCorners => 'Mantén las cuatro esquinas dentro del marco';
+
+  @override
+  String get idTipGlare => 'Evita reflejos para que el texto se lea bien';
+
+  @override
+  String get idPrivacyHint =>
+      'Tu identificación solo se usa para completar y verificar tus datos.';
+
+  @override
+  String get idReading => 'Leyendo tu identificación…';
+
+  @override
+  String get idReadingHint =>
+      'Tarda unos segundos. Revisarás todo en la siguiente pantalla.';
+
+  @override
+  String get idUseDifferentPhoto => 'Usar otra foto';
+
+  @override
+  String get idCameraDenied =>
+      'Permite el acceso a la cámara en Ajustes para tomar una foto.';
+
+  @override
+  String get idPhotosDenied =>
+      'Permite el acceso a las fotos en Ajustes para elegir una foto.';
+
+  @override
+  String get idRejectedUnreadable =>
+      'No pudimos leer esta foto. Vuelve a tomarla con toda la identificación dentro del marco, enfocada y sin reflejos.';
+
+  @override
+  String get idRejectedNotAnId =>
+      'Esto no parece una identificación aceptada. Usa una de las identificaciones de la lista.';
+
+  @override
+  String get idPhotoAdded => 'Foto añadida';
+
+  @override
+  String get idRetake => 'Repetir';
+
+  @override
+  String get idReviewBanner =>
+      'Los campos marcados con «De la ID» se completaron con tu foto. Toca cualquier campo para corregirlo antes de continuar.';
+
+  @override
+  String get idGroupName => 'Nombre';
+
+  @override
+  String get idGroupPersonal => 'Datos personales';
+
+  @override
+  String get idGroupId => 'Identificación';
+
+  @override
+  String get dateOfBirth => 'Fecha de nacimiento';
+
+  @override
+  String get dateOfBirthHint => 'Elige una fecha';
+
+  @override
+  String get sex => 'Sexo';
+
+  @override
+  String get sexMale => 'Masculino';
+
+  @override
+  String get sexFemale => 'Femenino';
+
+  @override
+  String get address => 'Dirección';
+
+  @override
+  String get addressHint => 'N.º de casa, calle, barangay, ciudad, provincia';
+
+  @override
+  String get idType => 'Tipo de identificación';
+
+  @override
+  String get idTypeHint => 'Elige tu identificación';
+
+  @override
+  String get idNumber => 'Número de identificación';
+
+  @override
+  String get idNumberHint => 'Tal como aparece en tu identificación';
+
+  @override
+  String get sourceFromId => 'De la ID';
+
+  @override
+  String get sourceCheck => 'Revisa esto';
+
+  @override
+  String get sourceEdited => 'Editado';
+
+  @override
+  String get reviewContinueCta => 'Todo bien, continuar';
+
+  @override
+  String get reviewNotSubmitted =>
+      'Aún no se envía nada. Lo confirmarás en el siguiente paso.';
+
+  @override
+  String get reviewFixFields => 'Corrige los campos marcados para continuar.';
+
+  @override
+  String get editDetails => 'Editar datos';
+
+  @override
+  String get dateOfBirthFuture => 'La fecha de nacimiento no puede ser futura';
 
   @override
   String get newPassword => 'Nueva contraseña';

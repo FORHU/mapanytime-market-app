@@ -1,12 +1,17 @@
+import 'package:dio/dio.dart';
 import 'package:mapanytime_market_app/core/constants/api_endpoints.dart';
 import 'package:mapanytime_market_app/core/services/api_service.dart';
 import 'package:mapanytime_market_app/features/auth/data/models/user_model.dart';
+import 'package:mapanytime_market_app/features/auth/domain/entities/registration_profile.dart';
 
 /// Talks to the remote API. Knows nothing about storage or UI.
 abstract class AuthRemoteDataSource {
   Future<UserModel> login(String email, String password);
   Future<UserModel> loginWithFacebook(String accessToken);
   Future<UserModel> loginWithGoogle(String idToken);
+
+  /// With a [profile] (buyer sign-up with a valid ID) the request is
+  /// multipart and carries the ID photo as `validId`.
   Future<void> register(
     String email,
     String password, {
@@ -15,6 +20,7 @@ abstract class AuthRemoteDataSource {
     String? middleName,
     String? countryCode,
     String roleName,
+    RegistrationProfile? profile,
   });
   Future<UserModel> checkAuth(String token);
 
@@ -69,8 +75,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     String? middleName,
     String? countryCode,
     String roleName = 'BUYER',
+    RegistrationProfile? profile,
   }) async {
-    await _api.post(ApiEndpoints.register, {
+    final fields = <String, Object>{
       'email': email,
       'password': password,
       'roleName': roleName,
@@ -79,8 +86,50 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (middleName != null && middleName.isNotEmpty) 'middleName': middleName,
       if (countryCode != null && countryCode.isNotEmpty)
         'countryCode': countryCode,
-    });
+    };
+    if (profile == null) {
+      await _api.post(ApiEndpoints.register, fields);
+      return;
+    }
+
+    final dob = profile.dateOfBirth;
+    await _api.post(
+      ApiEndpoints.register,
+      FormData.fromMap({
+        ...fields,
+        'dateOfBirth':
+            '${dob.year.toString().padLeft(4, '0')}-'
+            '${dob.month.toString().padLeft(2, '0')}-'
+            '${dob.day.toString().padLeft(2, '0')}',
+        if (profile.sex != null) 'sex': profile.sex!.apiValue,
+        'phoneNumber': profile.phoneNumber,
+        'address': profile.address,
+        'validIdType': profile.idType.apiValue,
+        'validIdNumber': profile.idNumber,
+        'validId': await MultipartFile.fromFile(
+          profile.idPhotoPath,
+          filename: 'valid-id.${_extension(profile.idPhotoPath)}',
+          contentType: DioMediaType(
+            'image',
+            _imageSubtype(profile.idPhotoPath),
+          ),
+        ),
+      }),
+    );
   }
+
+  static String _extension(String path) {
+    final dot = path.lastIndexOf('.');
+    return dot == -1 ? 'jpg' : path.substring(dot + 1).toLowerCase();
+  }
+
+  /// MIME subtype the API accepts for the photo; image_picker re-encodes
+  /// camera shots and resized picks as JPEG.
+  static String _imageSubtype(String path) => switch (_extension(path)) {
+    'png' => 'png',
+    'webp' => 'webp',
+    _ => 'jpeg',
+  };
 
   @override
   Future<UserModel> checkAuth(String token) async {

@@ -7,6 +7,7 @@ import 'package:mapanytime_market_app/core/services/api_service.dart';
 import 'package:mapanytime_market_app/core/services/storage_service.dart';
 import 'package:mapanytime_market_app/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:mapanytime_market_app/features/auth/data/repositories/auth_repository.dart';
+import 'package:mapanytime_market_app/features/auth/domain/entities/registration_profile.dart';
 import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.dart';
 import 'package:mapanytime_market_app/features/auth/domain/usecases/facebook_login_usecase.dart';
 import 'package:mapanytime_market_app/features/auth/domain/usecases/google_login_usecase.dart';
@@ -194,6 +195,7 @@ class AuthController extends Notifier<AuthState> {
     required String firstName,
     required String lastName,
     String? middleName,
+    RegistrationProfile? profile,
   }) async {
     state = state.copyWith(isLoading: true);
 
@@ -203,6 +205,7 @@ class AuthController extends Notifier<AuthState> {
       firstName: firstName,
       lastName: lastName,
       middleName: middleName,
+      profile: profile,
     );
 
     return result.fold(

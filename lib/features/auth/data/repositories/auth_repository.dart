@@ -3,6 +3,7 @@ import 'package:mapanytime_market_app/core/errors/exceptions.dart';
 import 'package:mapanytime_market_app/core/errors/failure.dart';
 import 'package:mapanytime_market_app/core/services/storage_service.dart';
 import 'package:mapanytime_market_app/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:mapanytime_market_app/features/auth/domain/entities/registration_profile.dart';
 import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.dart';
 
 /// Repository contract (the abstraction the domain layer depends on).
@@ -18,6 +19,7 @@ abstract class AuthRepository {
     String? middleName,
     String? countryCode,
     String roleName,
+    RegistrationProfile? profile,
   });
   Future<Either<Failure, void>> logout();
   Future<Either<Failure, UserEntity>> refreshAuth();
@@ -118,6 +120,7 @@ class AuthRepositoryImpl implements AuthRepository {
     String? middleName,
     String? countryCode,
     String roleName = 'BUYER',
+    RegistrationProfile? profile,
   }) async {
     try {
       await _remote.register(
@@ -128,6 +131,7 @@ class AuthRepositoryImpl implements AuthRepository {
         middleName: middleName,
         countryCode: countryCode,
         roleName: roleName,
+        profile: profile,
       );
       return const Right(null);
     } on UnauthorizedException catch (e) {

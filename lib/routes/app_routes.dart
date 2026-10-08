@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/config/app_config.dart';
 import 'package:mapanytime_market_app/core/services/storage_service.dart';
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
+import 'package:mapanytime_market_app/features/addresses/domain/entities/buyer_address.dart';
+import 'package:mapanytime_market_app/features/addresses/presentation/pages/address_form_page.dart';
+import 'package:mapanytime_market_app/features/addresses/presentation/pages/addresses_page.dart';
 import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/pages/forgot_password_page.dart';
@@ -244,6 +247,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RouteNames.saved,
             builder: (context, state) => const SavedPage(),
+          ),
+          GoRoute(
+            path: RouteNames.addresses,
+            builder: (context, state) => const AddressesPage(),
+          ),
+          GoRoute(
+            path: RouteNames.addressForm,
+            builder: (context, state) =>
+                AddressFormPage(initial: state.extra as BuyerAddress?),
           ),
           GoRoute(
             path: RouteNames.rewards,
