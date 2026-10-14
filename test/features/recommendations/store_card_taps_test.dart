@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mapanytime_market_app/features/recommendations/presentation/widgets/nearby_store_card.dart';
-import 'package:mapanytime_market_app/features/recommendations/presentation/widgets/recommended_store_card.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
+import 'package:mapanytime_market_app/shared/widgets/recommended_store_card.dart';
 
 const _store = StoreEntity(
   id: 's1',

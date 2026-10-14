@@ -1,101 +1,56 @@
 import 'dart:async';
 
+import 'package:mapanytime_market_app/core/services/realtime_socket.dart';
 import 'package:mapanytime_market_app/features/worldMap/data/models/store_model.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
-import 'package:socket_io_client/socket_io_client.dart' as io;
 
-/// Realtime store updates over Socket.IO. Connects to the server, subscribes to
-/// the current map viewport (so the server only pushes updates for that
-/// region), and exposes upsert/remove streams the controller merges into the
-/// map. Inactive (unapproved) stores are surfaced as removals so they never
-/// appear as markers.
+/// Realtime store updates for the map, over the app's shared
+/// [RealtimeSocket]. Subscribes to the current map viewport (so the server only
+/// pushes updates for that region) and exposes upsert/remove streams the
+/// controller merges into the map. Inactive (unapproved) stores are surfaced
+/// as removals so they never appear as markers.
+///
+/// Vehicles ride the same viewport subscription; the mobility feature reads
+/// them from [RealtimeSocket] directly.
 class StoreSocketDataSource {
-  StoreSocketDataSource(this._socketUrl);
+  StoreSocketDataSource(this._socket);
 
-  final String _socketUrl;
-  io.Socket? _socket;
-
-  final _upserted = StreamController<StoreEntity>.broadcast();
-  final _removed = StreamController<String>.broadcast();
+  final RealtimeSocket _socket;
 
   /// Stores created/updated (and active) within a subscribed region.
-  Stream<StoreEntity> get onUpserted => _upserted.stream;
+  Stream<StoreEntity> get onUpserted => _socket
+      .on('store:upserted')
+      .where((data) => data is Map && _isActive(data))
+      .map(
+        (data) => StoreModel.fromJson((data as Map).cast<String, dynamic>()),
+      );
 
-  /// Ids of stores removed (or deactivated) within a subscribed region.
-  Stream<String> get onRemoved => _removed.stream;
+  /// Ids of stores removed (or deactivated) within a subscribed region. Only
+  /// active stores render, so an inactive/unapproved upsert counts as a removal.
+  Stream<String> get onRemoved => Stream<String>.multi((controller) {
+    void addId(Object? data) {
+      if (data is Map && data['id'] is String) {
+        controller.add(data['id'] as String);
+      }
+    }
 
-  // God's Eye rides the same connection and viewport subscription as stores.
-  // Raw maps: parsing belongs to the mobility feature, not this socket.
-  final _vehicleMoved = StreamController<Map<String, dynamic>>.broadcast();
-  final _vehicleRemoved = StreamController<String>.broadcast();
+    final subs = [
+      _socket.on('store:removed').listen(addId),
+      _socket.on('store:upserted').listen((data) {
+        if (data is Map && !_isActive(data)) addId(data);
+      }),
+    ];
+    controller.onCancel = () async {
+      for (final sub in subs) {
+        await sub.cancel();
+      }
+    };
+  });
 
-  /// `vehicle:moved` payloads for vehicles within a subscribed region.
-  Stream<Map<String, dynamic>> get onVehicleMoved => _vehicleMoved.stream;
+  static bool _isActive(Map<dynamic, dynamic> data) =>
+      data['isActive'] as bool? ?? false;
 
-  /// Ids of vehicles that left a subscribed region: stopped sharing, went
-  /// silent for 60s, or drove into a cell outside it.
-  Stream<String> get onVehicleRemoved => _vehicleRemoved.stream;
-
-  final _reconnected = StreamController<void>.broadcast();
-
-  /// Fires after the socket comes back from a drop. Whatever was pushed
-  /// while it was down was missed, so listeners should resync.
-  Stream<void> get onReconnected => _reconnected.stream;
-
-  /// The last viewport asked for. Rooms don't survive a reconnect — and with
-  /// more than one API instance it may land on a server that never saw this
-  /// socket — so it's sent again on every connect.
-  Map<String, double>? _viewport;
-  bool _connectedBefore = false;
-
-  void connect() {
-    if (_socket != null) return;
-
-    _socket =
-        io.io(
-            _socketUrl,
-            io.OptionBuilder()
-                .setTransports(['websocket'])
-                .enableReconnection()
-                .build(),
-          )
-          ..onConnect((_) {
-            final viewport = _viewport;
-            if (viewport != null) _socket?.emit('subscribe', viewport);
-            if (_connectedBefore) _reconnected.add(null);
-            _connectedBefore = true;
-          })
-          ..on('store:upserted', (data) {
-            if (data is! Map) return;
-            final map = data.cast<String, dynamic>();
-            final isActive = map['isActive'] as bool? ?? false;
-            final id = map['id'] as String?;
-
-            if (isActive) {
-              _upserted.add(StoreModel.fromJson(map));
-            } else if (id != null) {
-              // Only active stores render, so an inactive/unapproved store is
-              // treated as a removal.
-              _removed.add(id);
-            }
-          })
-          ..on('store:removed', (data) {
-            if (data is Map && data['id'] is String) {
-              _removed.add(data['id'] as String);
-            }
-          })
-          ..on('vehicle:moved', (data) {
-            if (data is Map && data['id'] is String) {
-              _vehicleMoved.add(data.cast<String, dynamic>());
-            }
-          })
-          ..on('vehicle:removed', (data) {
-            if (data is Map && data['id'] is String) {
-              _vehicleRemoved.add(data['id'] as String);
-            }
-          })
-          ..connect();
-  }
+  void connect() => _socket.connect();
 
   /// Tell the server which region to stream updates for. Safe to call whenever
   /// the viewport changes.
@@ -105,22 +60,11 @@ class StoreSocketDataSource {
     required double east,
     required double west,
   }) {
-    final viewport = _viewport = {
+    _socket.subscribeViewport({
       'north': north,
       'south': south,
       'east': east,
       'west': west,
-    };
-    _socket?.emit('subscribe', viewport);
-  }
-
-  Future<void> dispose() async {
-    _socket?.dispose();
-    _socket = null;
-    await _upserted.close();
-    await _removed.close();
-    await _vehicleMoved.close();
-    await _vehicleRemoved.close();
-    await _reconnected.close();
+    });
   }
 }

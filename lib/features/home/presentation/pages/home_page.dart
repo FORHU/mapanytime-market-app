@@ -243,8 +243,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                               (s) => s.unreadCount,
                             ),
                           ),
+                          // push: notifications open above the tabs; `go`
+                          // would replace the stack and rebuild every tab.
                           onNotifications: () =>
-                              context.go(RouteNames.notifications),
+                              context.push(RouteNames.notifications),
                           onProfile: () => context.go(RouteNames.profile),
                         ),
                       ),

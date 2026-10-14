@@ -20,6 +20,7 @@ import 'package:mapanytime_market_app/features/home/presentation/pages/home_page
 import 'package:mapanytime_market_app/features/notifications/presentation/pages/notification_feed_page.dart';
 import 'package:mapanytime_market_app/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:mapanytime_market_app/features/orders/domain/entities/buyer_order.dart';
+import 'package:mapanytime_market_app/features/orders/domain/entities/order_confirmation_args.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/pages/cash_pickup_scan_page.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/pages/order_confirmation_page.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/pages/order_history_page.dart';
@@ -165,165 +166,193 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: RouteNames.onboarding,
         builder: (context, state) => const OnboardingPage(),
       ),
-      ShellRoute(
-        builder: (context, state, child) => MainLayout(child: child),
-        routes: [
-          GoRoute(
-            path: RouteNames.home,
-            builder: (context, state) => const HomePage(),
+      // The five tabs. An indexed stack keeps every tab's page alive while
+      // another is showing — above all the map, which used to be torn down
+      // and rebuilt (style, GPS, store fetch) on every tab switch.
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            MainLayout(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.home,
+                builder: (context, state) => const HomePage(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.recommendations,
-            builder: (context, state) => const RecommendationsPage(),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.recommendations,
+                builder: (context, state) => const RecommendationsPage(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.worldMap,
-            builder: (context, state) => const WorldMapPage(),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.worldMap,
+                builder: (context, state) => const WorldMapPage(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.cart,
-            builder: (context, state) => const CartPage(),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.cart,
+                builder: (context, state) => const CartPage(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.checkout,
-            builder: (context, state) => const CheckoutPage(),
-          ),
-          GoRoute(
-            path: RouteNames.orderConfirmation,
-            builder: (context, state) {
-              final args = state.extra as OrderConfirmationArgs?;
-              if (args == null) {
-                return Scaffold(
-                  body: Center(child: Text(context.l10n.errorNoOrderId)),
-                );
-              }
-              return OrderConfirmationPage(args: args);
-            },
-          ),
-          GoRoute(
-            path: RouteNames.orders,
-            builder: (context, state) => const OrderHistoryPage(),
-          ),
-          GoRoute(
-            path: RouteNames.orderTracking,
-            builder: (context, state) {
-              final order = state.extra as BuyerOrder?;
-              if (order == null) {
-                return Scaffold(
-                  body: Center(child: Text(context.l10n.errorNoOrder)),
-                );
-              }
-              return OrderTrackingPage(order: order);
-            },
-          ),
-          GoRoute(
-            path: RouteNames.pickupPass,
-            builder: (context, state) {
-              final order = state.extra as BuyerOrder?;
-              if (order == null) {
-                return Scaffold(
-                  body: Center(child: Text(context.l10n.errorNoOrder)),
-                );
-              }
-              return PickupPassPage(order: order);
-            },
-          ),
-          GoRoute(
-            path: RouteNames.cashPickupScan,
-            builder: (context, state) {
-              final order = state.extra as BuyerOrder?;
-              if (order == null) {
-                return Scaffold(
-                  body: Center(child: Text(context.l10n.errorNoOrder)),
-                );
-              }
-              return CashPickupScanPage(order: order);
-            },
-          ),
-          GoRoute(
-            path: RouteNames.notifications,
-            builder: (context, state) => const NotificationFeedPage(),
-          ),
-          GoRoute(
-            path: RouteNames.saved,
-            builder: (context, state) => const SavedPage(),
-          ),
-          GoRoute(
-            path: RouteNames.addresses,
-            builder: (context, state) => const AddressesPage(),
-          ),
-          GoRoute(
-            path: RouteNames.addressForm,
-            builder: (context, state) =>
-                AddressFormPage(initial: state.extra as BuyerAddress?),
-          ),
-          GoRoute(
-            path: RouteNames.rewards,
-            builder: (context, state) => const RewardsPage(),
-          ),
-          GoRoute(
-            path: RouteNames.profile,
-            builder: (context, state) => const ProfilePage(),
-          ),
-          GoRoute(
-            path: RouteNames.storefront,
-            builder: (context, state) {
-              final store = state.extra as StoreEntity?;
-              if (store == null) {
-                return Scaffold(
-                  body: Center(child: Text(context.l10n.errorNoStore)),
-                );
-              }
-              return StorefrontPage(store: store);
-            },
-          ),
-          GoRoute(
-            path: RouteNames.deals,
-            builder: (context, state) => const DealsPage(),
-          ),
-          GoRoute(
-            path: RouteNames.productDetail,
-            builder: (context, state) {
-              final args =
-                  state.extra
-                      as ({
-                        StoreProduct product,
-                        String storeId,
-                        String storeName,
-                        MerchantAd? promo,
-                      })?;
-              if (args == null) {
-                return Scaffold(
-                  body: Center(child: Text(context.l10n.errorNoProduct)),
-                );
-              }
-              return ProductDetailPage(
-                product: args.product,
-                storeId: args.storeId,
-                storeName: args.storeName,
-                promo: args.promo,
-              );
-            },
-          ),
-          GoRoute(
-            path: RouteNames.jobPostingDetail,
-            builder: (context, state) {
-              final args =
-                  state.extra
-                      as ({MerchantAd ad, String storeId, String storeName})?;
-              if (args == null) {
-                return const Scaffold(
-                  body: Center(child: Text('Error: No job posting provided')),
-                );
-              }
-              return JobPostingDetailPage(
-                ad: args.ad,
-                storeId: args.storeId,
-                storeName: args.storeName,
-              );
-            },
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.profile,
+                builder: (context, state) => const ProfilePage(),
+              ),
+            ],
           ),
         ],
+      ),
+      // Detail pages sit on the root navigator, above the tabs: they open
+      // full-screen, and closing one returns to the tab underneath with its
+      // state intact. Reach them with `push`, not `go` — `go` replaces the
+      // whole stack, shell included, and the tabs are rebuilt.
+      GoRoute(
+        path: RouteNames.checkout,
+        builder: (context, state) => const CheckoutPage(),
+      ),
+      GoRoute(
+        path: RouteNames.orderConfirmation,
+        builder: (context, state) {
+          final args = state.extra as OrderConfirmationArgs?;
+          if (args == null) {
+            return Scaffold(
+              body: Center(child: Text(context.l10n.errorNoOrderId)),
+            );
+          }
+          return OrderConfirmationPage(args: args);
+        },
+      ),
+      GoRoute(
+        path: RouteNames.orders,
+        builder: (context, state) => const OrderHistoryPage(),
+      ),
+      GoRoute(
+        path: RouteNames.orderTracking,
+        builder: (context, state) {
+          final order = state.extra as BuyerOrder?;
+          if (order == null) {
+            return Scaffold(
+              body: Center(child: Text(context.l10n.errorNoOrder)),
+            );
+          }
+          return OrderTrackingPage(order: order);
+        },
+      ),
+      GoRoute(
+        path: RouteNames.pickupPass,
+        builder: (context, state) {
+          final order = state.extra as BuyerOrder?;
+          if (order == null) {
+            return Scaffold(
+              body: Center(child: Text(context.l10n.errorNoOrder)),
+            );
+          }
+          return PickupPassPage(order: order);
+        },
+      ),
+      GoRoute(
+        path: RouteNames.cashPickupScan,
+        builder: (context, state) {
+          final order = state.extra as BuyerOrder?;
+          if (order == null) {
+            return Scaffold(
+              body: Center(child: Text(context.l10n.errorNoOrder)),
+            );
+          }
+          return CashPickupScanPage(order: order);
+        },
+      ),
+      GoRoute(
+        path: RouteNames.notifications,
+        builder: (context, state) => const NotificationFeedPage(),
+      ),
+      GoRoute(
+        path: RouteNames.saved,
+        builder: (context, state) => const SavedPage(),
+      ),
+      GoRoute(
+        path: RouteNames.addresses,
+        builder: (context, state) => const AddressesPage(),
+      ),
+      GoRoute(
+        path: RouteNames.addressForm,
+        builder: (context, state) =>
+            AddressFormPage(initial: state.extra as BuyerAddress?),
+      ),
+      GoRoute(
+        path: RouteNames.rewards,
+        builder: (context, state) => const RewardsPage(),
+      ),
+      GoRoute(
+        path: RouteNames.storefront,
+        builder: (context, state) {
+          final store = state.extra as StoreEntity?;
+          if (store == null) {
+            return Scaffold(
+              body: Center(child: Text(context.l10n.errorNoStore)),
+            );
+          }
+          return StorefrontPage(store: store);
+        },
+      ),
+      GoRoute(
+        path: RouteNames.deals,
+        builder: (context, state) => const DealsPage(),
+      ),
+      GoRoute(
+        path: RouteNames.productDetail,
+        builder: (context, state) {
+          final args =
+              state.extra
+                  as ({
+                    StoreProduct product,
+                    String storeId,
+                    String storeName,
+                    MerchantAd? promo,
+                  })?;
+          if (args == null) {
+            return Scaffold(
+              body: Center(child: Text(context.l10n.errorNoProduct)),
+            );
+          }
+          return ProductDetailPage(
+            product: args.product,
+            storeId: args.storeId,
+            storeName: args.storeName,
+            promo: args.promo,
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteNames.jobPostingDetail,
+        builder: (context, state) {
+          final args =
+              state.extra
+                  as ({MerchantAd ad, String storeId, String storeName})?;
+          if (args == null) {
+            return const Scaffold(
+              body: Center(child: Text('Error: No job posting provided')),
+            );
+          }
+          return JobPostingDetailPage(
+            ad: args.ad,
+            storeId: args.storeId,
+            storeName: args.storeName,
+          );
+        },
       ),
     ],
   );

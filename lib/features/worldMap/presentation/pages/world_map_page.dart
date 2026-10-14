@@ -93,15 +93,48 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
   ProviderSubscription<AsyncValue<WorldMapData>>? _storesSubscription;
   ProviderSubscription<Map<String, LiveVehicle>>? _vehiclesSubscription;
 
+  // The map's GPS stream runs only while the map is actually seen: the app in
+  // the foreground and the Map tab selected. The tabs are an indexed stack, so
+  // this page stays alive behind other tabs, and the shell turns tickers off
+  // for a hidden tab — that is the signal read in didChangeDependencies.
+  // Driver tracking is separate and deliberately keeps running in the
+  // background (foreground service).
+  late final AppLifecycleListener _lifecycle;
+  bool _appVisible = true;
+  bool _tabVisible = true;
+
+  void _syncLocationStream() {
+    if (_appVisible && _tabVisible) {
+      unawaited(_locationManager.resume());
+    } else {
+      unawaited(_locationManager.pause());
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _locationManager = UserLocationManager();
+    _lifecycle = AppLifecycleListener(
+      onHide: () {
+        _appVisible = false;
+        _syncLocationStream();
+      },
+      onShow: () {
+        _appVisible = true;
+        _syncLocationStream();
+      },
+    );
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final tabVisible = TickerMode.valuesOf(context).enabled;
+    if (tabVisible != _tabVisible) {
+      _tabVisible = tabVisible;
+      _syncLocationStream();
+    }
     // Register exactly once — re-renders markers whenever
     // the store list changes.
     _storesSubscription ??= ref.listenManual(worldMapControllerProvider, (
@@ -613,6 +646,7 @@ class _WorldMapPageState extends ConsumerState<WorldMapPage> {
 
   @override
   void dispose() {
+    _lifecycle.dispose();
     _debounceTimer?.cancel();
     _reclusterDebounceTimer?.cancel();
     _searchDebounce?.cancel();
