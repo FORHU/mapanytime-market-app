@@ -20,7 +20,10 @@ class NotificationSocketDataSource {
   /// Notifications pushed to the subscribed user.
   Stream<AppNotification> get onNotification => _notifications.stream;
 
-  void connect({required String userId}) {
+  /// [readToken] is called on every (re)connect rather than once: the server
+  /// joins the channel of whoever the access token belongs to, and a reconnect
+  /// can come long after a refresh replaced the token held at sign-in.
+  void connect({required Future<String?> Function() readToken}) {
     if (_socket != null) return;
 
     _socket =
@@ -32,8 +35,10 @@ class NotificationSocketDataSource {
                 .build(),
           )
           // (Re)subscribe on every (re)connect so the channel survives drops.
-          ..onConnect((_) {
-            _socket?.emit('subscribe_notifications', {'userId': userId});
+          ..onConnect((_) async {
+            final token = await readToken();
+            if (token == null || token.isEmpty) return;
+            _socket?.emit('subscribe_notifications', {'token': token});
           })
           ..on('notification:new', (data) {
             if (data is! Map) return;
