@@ -4,12 +4,12 @@ import 'package:gap/gap.dart';
 import 'package:mapanytime_market_app/core/utils/currency.dart';
 import 'package:mapanytime_market_app/features/rewards/domain/entities/reward_voucher.dart';
 import 'package:mapanytime_market_app/features/rewards/presentation/controllers/rewards_controller.dart';
-import 'package:mapanytime_market_app/features/rewards/presentation/widgets/claimed_voucher_card.dart';
 import 'package:mapanytime_market_app/features/rewards/presentation/widgets/transaction_tile.dart';
-import 'package:mapanytime_market_app/features/rewards/presentation/widgets/voucher_card.dart';
+import 'package:mapanytime_market_app/shared/widgets/claimed_voucher_card.dart';
 import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
 import 'package:mapanytime_market_app/shared/widgets/top_toast.dart';
+import 'package:mapanytime_market_app/shared/widgets/voucher_card.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 

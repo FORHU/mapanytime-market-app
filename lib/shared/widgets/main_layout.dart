@@ -6,11 +6,14 @@ import 'package:mapanytime_market_app/features/cart/presentation/controllers/car
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/animated_bottom_navigation.dart';
 
-/// App shell: hosts the routed [child] and the floating bottom navigation.
+/// App shell: hosts the tab branches and the floating bottom navigation.
+///
+/// [navigationShell] is an indexed stack, so a tab's page stays alive while
+/// another is showing. Its branch order must match the destinations below.
 class MainLayout extends ConsumerStatefulWidget {
-  const MainLayout({required this.child, super.key});
+  const MainLayout({required this.navigationShell, super.key});
 
-  final Widget child;
+  final StatefulNavigationShell navigationShell;
 
   @override
   ConsumerState<MainLayout> createState() => _MainLayoutState();
@@ -18,7 +21,17 @@ class MainLayout extends ConsumerStatefulWidget {
 
 class _MainLayoutState extends ConsumerState<MainLayout> {
   bool _navCompact = false;
-  String? _prevLocation;
+
+  @override
+  void didUpdateWidget(MainLayout oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A new tab starts with the bar expanded.
+    if (oldWidget.navigationShell.currentIndex !=
+            widget.navigationShell.currentIndex &&
+        _navCompact) {
+      _navCompact = false;
+    }
+  }
 
   bool _onScroll(ScrollNotification notification) {
     if (notification is ScrollUpdateNotification &&
@@ -80,41 +93,21 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
       ),
     ];
 
-    final location = GoRouterState.of(context).matchedLocation;
-    if (_prevLocation != null && _prevLocation != location && _navCompact) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() => _navCompact = false);
-      });
-    }
-    _prevLocation = location;
-
-    var currentIndex = destinations.indexWhere(
-      (d) => d.route != '/' && location.startsWith(d.route),
-    );
-    if (location == RouteNames.orders ||
-        location.startsWith(RouteNames.orders) ||
-        location == RouteNames.orderTracking ||
-        location == RouteNames.pickupPass) {
-      currentIndex = destinations.indexWhere(
-        (d) => d.route == RouteNames.profile,
-      );
-    }
-    if (currentIndex == -1) {
-      currentIndex = destinations.indexWhere((d) => d.route == RouteNames.home);
-      if (currentIndex == -1) currentIndex = 0;
-    }
+    final shell = widget.navigationShell;
 
     return Scaffold(
       extendBody: true,
       body: NotificationListener<ScrollNotification>(
         onNotification: _onScroll,
-        child: widget.child,
+        child: shell,
       ),
       bottomNavigationBar: AnimatedBottomNavigation(
         items: [for (final d in destinations) d.item],
-        currentIndex: currentIndex,
+        currentIndex: shell.currentIndex,
         isCompact: _navCompact,
-        onTap: (index) => context.go(destinations[index].route),
+        // Re-tapping the current tab returns it to its root page.
+        onTap: (index) =>
+            shell.goBranch(index, initialLocation: index == shell.currentIndex),
       ),
     );
   }

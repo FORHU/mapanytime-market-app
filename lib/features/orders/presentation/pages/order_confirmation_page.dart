@@ -3,11 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/utils/currency.dart';
-import 'package:mapanytime_market_app/features/cart/domain/entities/cart_pricing.dart';
 import 'package:mapanytime_market_app/features/notifications/presentation/controllers/notification_providers.dart';
+import 'package:mapanytime_market_app/features/orders/domain/entities/order_confirmation_args.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/controllers/orders_controller.dart';
 import 'package:mapanytime_market_app/features/payments/domain/entities/order_payment_status.dart';
-import 'package:mapanytime_market_app/features/payments/domain/entities/payment_method.dart';
 import 'package:mapanytime_market_app/features/payments/presentation/controllers/payment_controller.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
@@ -20,27 +19,6 @@ import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-/// Everything the confirmation screen needs, handed off directly by the
-/// checkout page — avoids a second round-trip for pricing that was already
-/// fetched (and guaranteed to match what was just charged) moments earlier.
-class OrderConfirmationArgs {
-  const OrderConfirmationArgs({
-    required this.orderId,
-    required this.paymentMethodLabel,
-    required this.isCashOnDelivery,
-    required this.pricing,
-    this.selectedMethod,
-    this.checkoutUrl,
-  });
-
-  final String orderId;
-  final String paymentMethodLabel;
-  final bool isCashOnDelivery;
-  final CartPricing pricing;
-  final PaymentMethod? selectedMethod;
-  final String? checkoutUrl;
-}
 
 /// Where the buyer lands after placing an order.
 ///

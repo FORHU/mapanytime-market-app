@@ -11,15 +11,15 @@ import 'package:mapanytime_market_app/features/auth/presentation/controllers/aut
 import 'package:mapanytime_market_app/features/cart/domain/entities/cart_item.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart';
 import 'package:mapanytime_market_app/features/orders/data/order_remote_datasource.dart';
+import 'package:mapanytime_market_app/features/orders/domain/entities/order_confirmation_args.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/controllers/orders_controller.dart';
-import 'package:mapanytime_market_app/features/orders/presentation/pages/order_confirmation_page.dart';
 import 'package:mapanytime_market_app/features/payments/domain/entities/payment_method.dart';
 import 'package:mapanytime_market_app/features/payments/presentation/controllers/payment_controller.dart';
 import 'package:mapanytime_market_app/features/rewards/domain/entities/user_voucher.dart';
 import 'package:mapanytime_market_app/features/rewards/presentation/controllers/rewards_controller.dart';
-import 'package:mapanytime_market_app/features/rewards/presentation/widgets/claimed_voucher_card.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
+import 'package:mapanytime_market_app/shared/widgets/claimed_voucher_card.dart';
 import 'package:mapanytime_market_app/shared/widgets/key_value_card.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
 import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
@@ -368,7 +368,9 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
 
       if (!context.mounted) return;
 
-      context.go(
+      // Replaces checkout (back must not return to a spent checkout) but keeps
+      // the tabs underneath alive; `go` would tear them down.
+      context.pushReplacement(
         RouteNames.orderConfirmation,
         extra: OrderConfirmationArgs(
           orderId: result.orderId,

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:mapanytime_market_app/features/recommendations/presentation/widgets/card_badges.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/shared/utils/category_visuals.dart';
+import 'package:mapanytime_market_app/shared/widgets/card_badges.dart';
 import 'package:mapanytime_market_app/shared/widgets/network_image_box.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/effects.dart';
