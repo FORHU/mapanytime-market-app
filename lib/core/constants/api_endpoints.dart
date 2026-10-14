@@ -6,7 +6,6 @@ class ApiEndpoints {
   // Auth
   static const String login = '/auth/login';
   static const String register = '/auth/register';
-  static const String refresh = '/auth/refresh-token';
   static const String logout = '/auth/logout';
 
   /// Exchanges a Facebook access token (from `flutter_facebook_auth`) for our

@@ -16,7 +16,11 @@ class StorageService {
   final FlutterSecureStorage _secure;
 
   static const String _tokenKey = 'auth_token';
-  static const String _refreshTokenKey = 'refresh_token';
+
+  /// Where the JWT refresh token used to be kept. The API no longer issues one
+  /// (Better Auth sessions, API #122), so nothing writes this key — it is only
+  /// deleted, so a refresh token left by an older build does not linger.
+  static const String _legacyRefreshTokenKey = 'refresh_token';
   static const String _userKey = 'user_data';
   static const String _onboardingKey = 'onboarding_seen';
 
@@ -31,20 +35,16 @@ class StorageService {
   bool get onboardingSeen => _prefs.getBool(_onboardingKey) ?? false;
   Future<void> setOnboardingSeen() => _prefs.setBool(_onboardingKey, true);
 
-  // --- Secure (access token) ---
+  // --- Secure (session token) ---
   Future<void> saveToken(String token) =>
       _secure.write(key: _tokenKey, value: token);
   Future<String?> readToken() => _secure.read(key: _tokenKey);
 
-  // --- Secure (refresh token) ---
-  Future<void> saveRefreshToken(String token) =>
-      _secure.write(key: _refreshTokenKey, value: token);
-  Future<String?> readRefreshToken() => _secure.read(key: _refreshTokenKey);
-
-  /// Clears the whole authenticated session (access + refresh tokens, user).
+  /// Clears the whole authenticated session (token, cached user), plus any
+  /// refresh token an older build left behind.
   Future<void> clearSession() async {
     await _secure.delete(key: _tokenKey);
-    await _secure.delete(key: _refreshTokenKey);
+    await _secure.delete(key: _legacyRefreshTokenKey);
     await _prefs.remove(_userKey);
   }
 
