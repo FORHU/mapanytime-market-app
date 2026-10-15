@@ -24,9 +24,9 @@ abstract class AuthRemoteDataSource {
   });
   Future<UserModel> checkAuth(String token);
 
-  /// Revokes the session server-side. Sends the refresh token so the API can
-  /// delete the matching session row.
-  Future<void> logout(String? refreshToken);
+  /// Ends the session the bearer token identifies. There is no refresh token to
+  /// send: the API uses Better Auth sessions (API #122).
+  Future<void> logout();
 
   /// Requests a one-time reset code be sent to [email].
   Future<void> requestPasswordReset(String email);
@@ -146,11 +146,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<void> logout(String? refreshToken) async {
-    await _api.post(ApiEndpoints.logout, {
-      if (refreshToken != null && refreshToken.isNotEmpty)
-        'refreshToken': refreshToken,
-    });
+  Future<void> logout() async {
+    await _api.post(ApiEndpoints.logout, <String, dynamic>{});
   }
 
   @override

@@ -29,11 +29,7 @@ class ApiService {
            ) {
     // 1. Attach the bearer token and transparently refresh it on a 401.
     client.interceptors.add(
-      AuthInterceptor(
-        storage,
-        baseUrl: client.options.baseUrl,
-        onUnauthenticated: onUnauthenticated,
-      ),
+      AuthInterceptor(storage, onUnauthenticated: onUnauthenticated),
     );
 
     // 2. Retry transient failures on unstable networks (retry 429 with

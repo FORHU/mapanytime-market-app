@@ -2,42 +2,30 @@ import 'package:dio/dio.dart';
 import 'package:mapanytime_market_app/core/constants/api_endpoints.dart';
 import 'package:mapanytime_market_app/core/services/storage_service.dart';
 
-/// Attaches the access token to outgoing requests and transparently refreshes
-/// it once when the server returns 401, then retries the original request.
+/// Attaches the session token to outgoing requests, and ends the local session
+/// when the server says it is over.
 ///
-/// If refresh fails (or there is no refresh token), the local session is
-/// cleared so the router falls back to the login flow. Extends
-/// [QueuedInterceptor] so concurrent 401s don't trigger parallel refreshes.
+/// There is no refresh step. The API moved from JWT access/refresh tokens to
+/// Better Auth sessions (API #122): one bearer token per session, lasting 30
+/// days and sliding forward with use. A 401 therefore means the session is
+/// gone — signed out, superseded by a sign-in on another device, or expired —
+/// so the local session is cleared and the router falls back to login. (That
+/// is what used to happen whenever a refresh failed; now it happens directly.)
 ///
-/// The refresh call uses a separate, bare [Dio] so it does not recurse through
-/// this interceptor.
+/// Extends [QueuedInterceptor] so a burst of 401s clears the session once,
+/// in order, rather than racing.
 class AuthInterceptor extends QueuedInterceptor {
-  AuthInterceptor(
-    this._storage, {
-    required String baseUrl,
-    this.onUnauthenticated,
-  }) : _refreshClient = Dio(BaseOptions(baseUrl: baseUrl));
+  AuthInterceptor(this._storage, {this.onUnauthenticated});
 
   final StorageService _storage;
-  final Dio _refreshClient;
   final void Function()? onUnauthenticated;
-
-  /// Marks a request that has already been retried after a refresh, to avoid
-  /// infinite 401 loops.
-  static const String _retriedFlag = 'auth_retried';
-
-  /// Endpoints that must NOT carry a bearer token or trigger a refresh.
-  static const Set<String> _authPaths = {
-    ApiEndpoints.login,
-    ApiEndpoints.refresh,
-  };
 
   @override
   Future<void> onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    if (!_authPaths.contains(options.path)) {
+    if (options.path != ApiEndpoints.login) {
       final token = await _storage.readToken();
       if (token != null && token.isNotEmpty) {
         options.headers['Authorization'] = 'Bearer $token';
@@ -51,65 +39,14 @@ class AuthInterceptor extends QueuedInterceptor {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
-    final options = err.requestOptions;
     final isUnauthorized = err.response?.statusCode == 401;
-    final alreadyRetried = options.extra[_retriedFlag] == true;
-    final isAuthCall = _authPaths.contains(options.path);
+    // A 401 from login is a wrong password, not a dead session.
+    final isLogin = err.requestOptions.path == ApiEndpoints.login;
 
-    if (!isUnauthorized || alreadyRetried || isAuthCall) {
-      handler.next(err);
-      return;
-    }
-
-    final newToken = await _refreshToken();
-    if (newToken == null) {
+    if (isUnauthorized && !isLogin) {
       await _storage.clearSession();
       onUnauthenticated?.call();
-      handler.next(err);
-      return;
     }
-
-    // Replay the original request with the fresh token.
-    options
-      ..extra[_retriedFlag] = true
-      ..headers['Authorization'] = 'Bearer $newToken';
-    try {
-      final response = await _refreshClient.fetch<dynamic>(options);
-      handler.resolve(response);
-    } on DioException catch (e) {
-      handler.next(e);
-    }
-  }
-
-  /// Exchanges the stored refresh token for a new access token. Returns the new
-  /// access token, or null if refresh isn't possible.
-  Future<String?> _refreshToken() async {
-    final refreshToken = await _storage.readRefreshToken();
-    if (refreshToken == null || refreshToken.isEmpty) return null;
-
-    try {
-      final res = await _refreshClient.post<dynamic>(
-        ApiEndpoints.refresh,
-        data: {'refreshToken': refreshToken},
-      );
-      final data = res.data;
-      if (data is! Map) return null;
-
-      final payload = data.containsKey('data')
-          ? data['data'] as Map<String, dynamic>
-          : data;
-
-      final token = payload['accessToken'] as String?;
-      final newRefresh = payload['refreshToken'] as String?;
-      if (token == null || token.isEmpty) return null;
-
-      await _storage.saveToken(token);
-      if (newRefresh != null && newRefresh.isNotEmpty) {
-        await _storage.saveRefreshToken(newRefresh);
-      }
-      return token;
-    } on DioException {
-      return null;
-    }
+    handler.next(err);
   }
 }
