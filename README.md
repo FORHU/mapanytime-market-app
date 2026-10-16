@@ -289,23 +289,30 @@ Because this template relies on `.env` files for environment injection, **you mu
 
 **Android (APK & AppBundle):**
 ```bash
-flutter build apk --release --dart-define-from-file=.env.prod -t lib/main.dart
-flutter build appbundle --release --dart-define-from-file=.env.prod -t lib/main.dart
+flutter build apk --release --dart-define=ENV_FILE=.env.prod -t lib/main.dart
+flutter build appbundle --release --dart-define=ENV_FILE=.env.prod -t lib/main.dart
 ```
+
+**Android staging APK** (points at `https://dev.mapanytime.com/api/v1`; needs a local `.env.staging`, copy `.env.dev` and change `BASE_URL`):
+```bash
+flutter build apk --release --dart-define=ENV_FILE=.env.staging -t lib/main.dart
+```
+
+`ENV_FILE` picks which env asset `lib/main.dart` loads. `--dart-define-from-file` does not set it, so a build using only that flag silently loads `.env.dev`.
 
 **iOS:**
 ```bash
-flutter build ios --release --dart-define-from-file=.env.prod -t lib/main.dart
+flutter build ios --release --dart-define=ENV_FILE=.env.prod -t lib/main.dart
 ```
 
 **Windows:**
 ```bash
-flutter build windows --release --dart-define-from-file=.env.prod -t lib/main.dart
+flutter build windows --release --dart-define=ENV_FILE=.env.prod -t lib/main.dart
 ```
 
 **Web:**
 ```bash
-flutter build web --release --dart-define-from-file=.env.prod -t lib/main.dart
+flutter build web --release --dart-define=ENV_FILE=.env.prod -t lib/main.dart
 ```
 
 ### 📋 The Official Release Checklist
