@@ -142,61 +142,80 @@ class _StoreFloatingCardState extends ConsumerState<StoreFloatingCard> {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.sm,
-              AppSpacing.md,
-              AppSpacing.md,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.store.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
+          InkWell(
+            onTap: () =>
+                context.push(RouteNames.storefront, extra: widget.store),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.sm,
+                AppSpacing.md,
+                AppSpacing.md,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.store.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 13,
+                        color: AppColors.text.tertiary,
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    _RatingRow(store: widget.store, details: details),
-                    const SizedBox(width: 10),
-                    _HoursRow(details: details),
-                  ],
-                ),
-                if (details != null && details.ads.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  MerchantAdSection(
-                    ads: details.ads,
-                    onAdTap: (ad) {
-                      if (ad.kind == MerchantAdKind.job) {
-                        unawaited(
-                          context.push(
-                            RouteNames.jobPostingDetail,
-                            extra: (
-                              ad: ad,
-                              storeId: widget.store.id,
-                              storeName: widget.store.name,
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      _DistanceRow(distance: widget.store.distance),
+                      _RatingRow(store: widget.store, details: details),
+                      _HoursRow(details: details),
+                    ],
+                  ),
+                  if (details != null && details.ads.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    MerchantAdSection(
+                      ads: details.ads,
+                      onAdTap: (ad) {
+                        if (ad.kind == MerchantAdKind.job) {
+                          unawaited(
+                            context.push(
+                              RouteNames.jobPostingDetail,
+                              extra: (
+                                ad: ad,
+                                storeId: widget.store.id,
+                                storeName: widget.store.name,
+                              ),
                             ),
-                          ),
-                        );
-                      } else {
-                        unawaited(
-                          context.push(
-                            RouteNames.storefront,
-                            extra: widget.store,
-                          ),
-                        );
-                      }
-                    },
-                  ),
+                          );
+                        } else {
+                          unawaited(
+                            context.push(
+                              RouteNames.storefront,
+                              extra: widget.store,
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ],
@@ -401,6 +420,35 @@ class _HoursRow extends StatelessWidget {
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: color,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DistanceRow extends StatelessWidget {
+  const _DistanceRow({required this.distance});
+
+  final double distance;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.place_outlined,
+          size: 13,
+          color: AppColors.text.secondary,
+        ),
+        const SizedBox(width: 2),
+        Text(
+          '${distance.toStringAsFixed(1)} km away',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.text.secondary,
           ),
         ),
       ],
