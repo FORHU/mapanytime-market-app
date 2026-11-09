@@ -8,6 +8,7 @@ import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
 import 'package:mapanytime_market_app/features/cart/presentation/controllers/cart_controller.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/merchant_ad.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
+import 'package:mapanytime_market_app/features/store/presentation/widgets/reviews_section.dart';
 import 'package:mapanytime_market_app/features/wishlist/presentation/controllers/wishlist_controller.dart';
 import 'package:mapanytime_market_app/shared/widgets/buttons.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
@@ -129,6 +130,8 @@ class ProductDetailPage extends ConsumerWidget {
                               .toList(),
                         ),
                       ],
+                      const Gap(AppSpacing.xl),
+                      ProductReviewsSection(productId: product.id),
                     ],
                   ),
                 ),
