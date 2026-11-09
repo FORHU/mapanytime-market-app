@@ -9,6 +9,7 @@ import 'package:mapanytime_market_app/features/store/domain/entities/merchant_ad
 import 'package:mapanytime_market_app/features/store/domain/entities/store_details.dart';
 import 'package:mapanytime_market_app/features/store/domain/entities/store_product.dart';
 import 'package:mapanytime_market_app/features/store/presentation/controllers/store_controller.dart';
+import 'package:mapanytime_market_app/features/store/presentation/widgets/reviews_section.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/back_chevron_button.dart';
@@ -239,6 +240,8 @@ class _StoreBody extends StatelessWidget {
                   storeName: store.name,
                   adsByProduct: adsByProduct,
                 ),
+                const Gap(AppSpacing.xl),
+                StoreReviewsSection(storeId: store.id),
               ],
             ),
           ),
