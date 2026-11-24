@@ -198,6 +198,26 @@ class ApiEndpoints {
   /// Paginated MapPoints ledger.  `GET /rewards/transactions`.
   static const String rewardsTransactions = '/rewards/transactions';
 
+  // ── Reviews ───────────────────────────────────────────────────────────────
+
+  /// Product reviews (`GET`) and buyer upsert (`PUT { rating, comment }`).
+  static String productReviews(String productId) =>
+      '/reviews/products/$productId';
+
+  /// Delete the caller's product review (`DELETE`).
+  static String deleteProductReview(String reviewId) =>
+      '/reviews/products/reviews/$reviewId';
+
+  /// Store reviews (`GET`) and buyer upsert (`PUT { rating, comment }`).
+  static String storeReviews(String storeId) => '/reviews/stores/$storeId';
+
+  /// Delete the caller's store review (`DELETE`).
+  static String deleteStoreReview(String reviewId) =>
+      '/reviews/stores/reviews/$reviewId';
+
+  /// Every product and store review written by the caller (`GET /reviews/me`).
+  static const String myReviews = '/reviews/me';
+
   // --- Mobility / God's Eye ---
 
   /// Active vehicle types (code, name, markerIconUrl).  `GET`.
