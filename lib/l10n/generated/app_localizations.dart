@@ -334,29 +334,41 @@ abstract class AppLocalizations {
   /// **'I accept the Terms & Privacy'**
   String get acceptTerms;
 
-  /// No description provided for @registerStepEmailTitle.
+  /// No description provided for @registerStepAccountTitle.
   ///
   /// In en, this message translates to:
-  /// **'What\'s your email?'**
-  String get registerStepEmailTitle;
+  /// **'Create your account'**
+  String get registerStepAccountTitle;
 
-  /// No description provided for @registerStepEmailSubtitle.
+  /// No description provided for @registerStepAccountSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'We\'ll send pickup updates and receipts here.'**
-  String get registerStepEmailSubtitle;
+  /// **'Use your name exactly as it appears on your valid ID.'**
+  String get registerStepAccountSubtitle;
 
-  /// No description provided for @registerStepNameTitle.
+  /// No description provided for @phoneNumber.
   ///
   /// In en, this message translates to:
-  /// **'What\'s your name?'**
-  String get registerStepNameTitle;
+  /// **'Phone number'**
+  String get phoneNumber;
 
-  /// No description provided for @registerStepNameSubtitle.
+  /// No description provided for @phoneNumberHint.
   ///
   /// In en, this message translates to:
-  /// **'Stores use this to hand over your order.'**
-  String get registerStepNameSubtitle;
+  /// **'917 123 4567'**
+  String get phoneNumberHint;
+
+  /// No description provided for @idNameMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The name on your ID does not match the name you entered. Please double-check your information and make sure your name is the same as the name on the ID you uploaded.'**
+  String get idNameMismatch;
+
+  /// No description provided for @idEditName.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit your name'**
+  String get idEditName;
 
   /// No description provided for @registerStepPasswordTitle.
   ///
@@ -369,6 +381,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'At least 8 characters. Longer is stronger.'**
   String get registerStepPasswordSubtitle;
+
+  /// No description provided for @registerStepIdTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload a valid ID'**
+  String get registerStepIdTitle;
+
+  /// No description provided for @registerStepIdSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll read your details from it, so there\'s less to type.'**
+  String get registerStepIdSubtitle;
+
+  /// No description provided for @registerStepReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your details'**
+  String get registerStepReviewTitle;
+
+  /// No description provided for @registerStepReviewSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We read these from your ID. Fix anything that looks wrong.'**
+  String get registerStepReviewSubtitle;
+
+  /// No description provided for @idFrontOfId.
+  ///
+  /// In en, this message translates to:
+  /// **'Front of your ID'**
+  String get idFrontOfId;
+
+  /// No description provided for @idTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get idTakePhoto;
+
+  /// No description provided for @idTakePhotoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Use your camera'**
+  String get idTakePhotoHint;
+
+  /// No description provided for @idChooseGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from gallery'**
+  String get idChooseGallery;
+
+  /// No description provided for @idChooseGalleryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a saved photo'**
+  String get idChooseGalleryHint;
+
+  /// No description provided for @idAcceptedIds.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted IDs'**
+  String get idAcceptedIds;
+
+  /// No description provided for @idTipFlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Lay the ID flat on a plain surface'**
+  String get idTipFlat;
+
+  /// No description provided for @idTipCorners.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep all four corners in the frame'**
+  String get idTipCorners;
+
+  /// No description provided for @idTipGlare.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoid glare so the text is readable'**
+  String get idTipGlare;
+
+  /// No description provided for @idPrivacyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your ID is only used to fill in and verify your details.'**
+  String get idPrivacyHint;
+
+  /// No description provided for @idReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading your ID…'**
+  String get idReading;
+
+  /// No description provided for @idReadingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This takes a few seconds. You\'ll check everything on the next screen.'**
+  String get idReadingHint;
+
+  /// No description provided for @idUseDifferentPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a different photo'**
+  String get idUseDifferentPhoto;
+
+  /// No description provided for @idCameraDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow camera access in Settings to take a photo.'**
+  String get idCameraDenied;
+
+  /// No description provided for @idPhotosDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow photo access in Settings to choose a photo.'**
+  String get idPhotosDenied;
+
+  /// No description provided for @idRejectedUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t read this photo. Retake it with the whole ID in the frame, in focus and without glare.'**
+  String get idRejectedUnreadable;
+
+  /// No description provided for @idRejectedNotAnId.
+  ///
+  /// In en, this message translates to:
+  /// **'This doesn\'t look like an accepted ID. Use one of the IDs listed below.'**
+  String get idRejectedNotAnId;
+
+  /// No description provided for @idPhotoAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo added'**
+  String get idPhotoAdded;
+
+  /// No description provided for @idRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake'**
+  String get idRetake;
+
+  /// No description provided for @idReviewBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Fields marked “From ID” were filled in from your photo. Tap any field to fix it before you continue.'**
+  String get idReviewBanner;
+
+  /// No description provided for @idGroupName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get idGroupName;
+
+  /// No description provided for @idGroupPersonal.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal'**
+  String get idGroupPersonal;
+
+  /// No description provided for @idGroupId.
+  ///
+  /// In en, this message translates to:
+  /// **'ID'**
+  String get idGroupId;
+
+  /// No description provided for @dateOfBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth'**
+  String get dateOfBirth;
+
+  /// No description provided for @dateOfBirthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a date'**
+  String get dateOfBirthHint;
+
+  /// No description provided for @sex.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex'**
+  String get sex;
+
+  /// No description provided for @sexMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get sexMale;
+
+  /// No description provided for @sexFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get sexFemale;
+
+  /// No description provided for @address.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get address;
+
+  /// No description provided for @addressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'House no., street, barangay, city, province'**
+  String get addressHint;
+
+  /// No description provided for @idType.
+  ///
+  /// In en, this message translates to:
+  /// **'ID type'**
+  String get idType;
+
+  /// No description provided for @idTypeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your ID'**
+  String get idTypeHint;
+
+  /// No description provided for @idNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'ID number'**
+  String get idNumber;
+
+  /// No description provided for @idNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'As printed on your ID'**
+  String get idNumberHint;
+
+  /// No description provided for @sourceFromId.
+  ///
+  /// In en, this message translates to:
+  /// **'From ID'**
+  String get sourceFromId;
+
+  /// No description provided for @sourceCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check this'**
+  String get sourceCheck;
+
+  /// No description provided for @sourceEdited.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited'**
+  String get sourceEdited;
+
+  /// No description provided for @reviewContinueCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Looks good, continue'**
+  String get reviewContinueCta;
+
+  /// No description provided for @reviewNotSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is submitted yet. You\'ll confirm on the next step.'**
+  String get reviewNotSubmitted;
+
+  /// No description provided for @reviewFixFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix the highlighted fields to continue.'**
+  String get reviewFixFields;
+
+  /// No description provided for @editDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit details'**
+  String get editDetails;
+
+  /// No description provided for @dateOfBirthFuture.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth can\'t be in the future'**
+  String get dateOfBirthFuture;
 
   /// No description provided for @newPassword.
   ///

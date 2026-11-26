@@ -6,7 +6,6 @@ class ApiEndpoints {
   // Auth
   static const String login = '/auth/login';
   static const String register = '/auth/register';
-  static const String refresh = '/auth/refresh-token';
   static const String logout = '/auth/logout';
 
   /// Exchanges a Facebook access token (from `flutter_facebook_auth`) for our
@@ -165,6 +164,17 @@ class ApiEndpoints {
   /// Unsave a store.  `DELETE /wishlist/stores/<storeId>`.
   static String savedStore(String storeId) => '/wishlist/stores/$storeId';
 
+  // ── Addresses ─────────────────────────────────────────────────────────────
+
+  /// The caller's addresses, default first.  `GET`; add with `POST`.
+  static const String addresses = '/addresses';
+
+  /// One of the caller's addresses.  `PATCH` / `DELETE /addresses/<id>`.
+  static String address(String id) => '/addresses/$id';
+
+  /// Make an address the default.  `POST /addresses/<id>/default`.
+  static String addressDefault(String id) => '/addresses/$id/default';
+
   // ── Rewards (MapPoints) ───────────────────────────────────────────────────
 
   /// Balance, estimated ₱ value, and lifetime stats.  `GET /rewards/wallet`.
@@ -187,6 +197,26 @@ class ApiEndpoints {
 
   /// Paginated MapPoints ledger.  `GET /rewards/transactions`.
   static const String rewardsTransactions = '/rewards/transactions';
+
+  // ── Reviews ───────────────────────────────────────────────────────────────
+
+  /// Product reviews (`GET`) and buyer upsert (`PUT { rating, comment }`).
+  static String productReviews(String productId) =>
+      '/reviews/products/$productId';
+
+  /// Delete the caller's product review (`DELETE`).
+  static String deleteProductReview(String reviewId) =>
+      '/reviews/products/reviews/$reviewId';
+
+  /// Store reviews (`GET`) and buyer upsert (`PUT { rating, comment }`).
+  static String storeReviews(String storeId) => '/reviews/stores/$storeId';
+
+  /// Delete the caller's store review (`DELETE`).
+  static String deleteStoreReview(String reviewId) =>
+      '/reviews/stores/reviews/$reviewId';
+
+  /// Every product and store review written by the caller (`GET /reviews/me`).
+  static const String myReviews = '/reviews/me';
 
   // --- Mobility / God's Eye ---
 

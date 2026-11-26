@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:mapanytime_market_app/core/config/app_config.dart';
 import 'package:mapanytime_market_app/core/errors/failure.dart';
+import 'package:mapanytime_market_app/core/services/realtime_socket.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart'
     show apiServiceProvider;
 import 'package:mapanytime_market_app/features/worldMap/data/datasources/category_remote_datasource.dart';
@@ -30,12 +30,10 @@ final getNearbyStoresUseCaseProvider = Provider<GetNearbyStoresUseCase>(
   (ref) => GetNearbyStoresUseCase(ref.watch(storeRepositoryProvider)),
 );
 
-/// Realtime store-updates socket (region-scoped). Disposed with the provider.
-final storeSocketProvider = Provider<StoreSocketDataSource>((ref) {
-  final socket = StoreSocketDataSource(AppConfig.instance.socketUrl);
-  ref.onDispose(socket.dispose);
-  return socket;
-});
+/// Realtime store updates (region-scoped), over the app's shared connection.
+final storeSocketProvider = Provider<StoreSocketDataSource>(
+  (ref) => StoreSocketDataSource(ref.watch(realtimeSocketProvider)),
+);
 
 final categoryRepositoryProvider = Provider<CategoryRepository>((ref) {
   final remote = CategoryRemoteDataSource(ref.watch(apiServiceProvider));

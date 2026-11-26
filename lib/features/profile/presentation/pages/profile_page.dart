@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:mapanytime_market_app/core/utils/context_extensions.dart';
+import 'package:mapanytime_market_app/features/addresses/presentation/controllers/addresses_controller.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/orders/presentation/controllers/orders_controller.dart';
 import 'package:mapanytime_market_app/features/profile/presentation/controllers/profile_controller.dart';
@@ -76,7 +77,8 @@ class ProfilePage extends ConsumerWidget {
                 _MenuTile(
                   icon: Icons.location_on_outlined,
                   label: 'Addresses',
-                  onTap: () => _soon(context),
+                  subtitle: ref.watch(defaultAddressProvider)?.displayLine,
+                  onTap: () => context.push(RouteNames.addresses),
                 ),
                 _MenuTile(
                   icon: Icons.credit_card_rounded,

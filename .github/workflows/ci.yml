@@ -34,7 +34,7 @@ jobs:
         run: dart format --output=none --set-exit-if-changed .
 
       - name: Create env stubs
-        run: touch .env.dev .env.prod
+        run: touch .env.dev .env.prod .env.staging
 
       - name: Run analyzer
         run: flutter analyze

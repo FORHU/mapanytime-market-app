@@ -77,7 +77,22 @@ class DriverTrackingController extends Notifier<bool> {
 
   @override
   bool build() {
-    ref.onDispose(_cancel);
+    ref
+      ..onDispose(_cancel)
+      // Signing out must stop the GPS stream and heartbeat. This provider is
+      // app-wide and nothing else ends it, so a driver who logged out kept
+      // broadcasting — and the foreground service kept running — until the
+      // app was killed. The server can no longer be told (the token is gone);
+      // it drops the vehicle after 60s of silence.
+      ..listen(authControllerProvider.select((s) => s.isAuthenticated), (
+        _,
+        isAuthenticated,
+      ) {
+        if (!isAuthenticated && state) {
+          _cancel();
+          state = false;
+        }
+      });
     return false;
   }
 

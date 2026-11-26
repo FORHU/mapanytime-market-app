@@ -128,22 +128,169 @@ class AppLocalizationsKo extends AppLocalizations {
   String get acceptTerms => '이용약관 및 개인정보처리방침에 동의합니다';
 
   @override
-  String get registerStepEmailTitle => '이메일이 무엇인가요?';
+  String get registerStepAccountTitle => '계정 만들기';
 
   @override
-  String get registerStepEmailSubtitle => '픽업 안내와 영수증을 이 주소로 보내드려요.';
+  String get registerStepAccountSubtitle => '유효한 신분증에 적힌 그대로 이름을 입력하세요.';
 
   @override
-  String get registerStepNameTitle => '이름이 무엇인가요?';
+  String get phoneNumber => '전화번호';
 
   @override
-  String get registerStepNameSubtitle => '매장에서 주문을 전달할 때 사용됩니다.';
+  String get phoneNumberHint => '917 123 4567';
+
+  @override
+  String get idNameMismatch =>
+      '신분증의 이름이 입력한 이름과 일치하지 않습니다. 정보를 다시 확인하고 업로드한 신분증의 이름과 같은지 확인해 주세요.';
+
+  @override
+  String get idEditName => '이름 수정';
 
   @override
   String get registerStepPasswordTitle => '비밀번호 만들기';
 
   @override
   String get registerStepPasswordSubtitle => '8자 이상. 길수록 더 안전합니다.';
+
+  @override
+  String get registerStepIdTitle => '유효한 신분증 업로드';
+
+  @override
+  String get registerStepIdSubtitle => '신분증에서 정보를 읽어 입력할 내용을 줄여 드려요.';
+
+  @override
+  String get registerStepReviewTitle => '정보 확인';
+
+  @override
+  String get registerStepReviewSubtitle => '신분증에서 읽은 정보예요. 틀린 부분을 수정하세요.';
+
+  @override
+  String get idFrontOfId => '신분증 앞면';
+
+  @override
+  String get idTakePhoto => '사진 촬영';
+
+  @override
+  String get idTakePhotoHint => '카메라 사용';
+
+  @override
+  String get idChooseGallery => '갤러리에서 선택';
+
+  @override
+  String get idChooseGalleryHint => '저장된 사진 선택';
+
+  @override
+  String get idAcceptedIds => '사용 가능한 신분증';
+
+  @override
+  String get idTipFlat => '평평한 곳에 신분증을 놓으세요';
+
+  @override
+  String get idTipCorners => '네 모서리가 모두 프레임 안에 들어오게 하세요';
+
+  @override
+  String get idTipGlare => '글자가 잘 보이도록 빛 반사를 피하세요';
+
+  @override
+  String get idPrivacyHint => '신분증은 정보 입력과 확인에만 사용됩니다.';
+
+  @override
+  String get idReading => '신분증을 읽는 중…';
+
+  @override
+  String get idReadingHint => '몇 초 걸려요. 다음 화면에서 모두 확인할 수 있어요.';
+
+  @override
+  String get idUseDifferentPhoto => '다른 사진 사용';
+
+  @override
+  String get idCameraDenied => '사진을 찍으려면 설정에서 카메라 접근을 허용하세요.';
+
+  @override
+  String get idPhotosDenied => '사진을 선택하려면 설정에서 사진 접근을 허용하세요.';
+
+  @override
+  String get idRejectedUnreadable =>
+      '이 사진을 읽을 수 없어요. 신분증 전체가 프레임 안에 들어오고, 초점이 맞고, 빛 반사가 없도록 다시 찍어 주세요.';
+
+  @override
+  String get idRejectedNotAnId => '사용 가능한 신분증이 아닌 것 같아요. 아래 목록의 신분증을 사용해 주세요.';
+
+  @override
+  String get idPhotoAdded => '사진 추가됨';
+
+  @override
+  String get idRetake => '다시 찍기';
+
+  @override
+  String get idReviewBanner =>
+      '\'신분증에서\'로 표시된 항목은 사진에서 채워졌어요. 계속하기 전에 항목을 눌러 수정하세요.';
+
+  @override
+  String get idGroupName => '이름';
+
+  @override
+  String get idGroupPersonal => '개인 정보';
+
+  @override
+  String get idGroupId => '신분증';
+
+  @override
+  String get dateOfBirth => '생년월일';
+
+  @override
+  String get dateOfBirthHint => '날짜 선택';
+
+  @override
+  String get sex => '성별';
+
+  @override
+  String get sexMale => '남성';
+
+  @override
+  String get sexFemale => '여성';
+
+  @override
+  String get address => '주소';
+
+  @override
+  String get addressHint => '번지, 도로명, 바랑가이, 시, 주';
+
+  @override
+  String get idType => '신분증 종류';
+
+  @override
+  String get idTypeHint => '신분증 선택';
+
+  @override
+  String get idNumber => '신분증 번호';
+
+  @override
+  String get idNumberHint => '신분증에 적힌 그대로';
+
+  @override
+  String get sourceFromId => '신분증에서';
+
+  @override
+  String get sourceCheck => '확인 필요';
+
+  @override
+  String get sourceEdited => '수정됨';
+
+  @override
+  String get reviewContinueCta => '확인했어요, 계속';
+
+  @override
+  String get reviewNotSubmitted => '아직 제출되지 않았어요. 다음 단계에서 확인합니다.';
+
+  @override
+  String get reviewFixFields => '표시된 항목을 수정해야 계속할 수 있어요.';
+
+  @override
+  String get editDetails => '정보 수정';
+
+  @override
+  String get dateOfBirthFuture => '생년월일은 미래 날짜일 수 없습니다';
 
   @override
   String get newPassword => '새 비밀번호';

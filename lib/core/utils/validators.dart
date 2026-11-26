@@ -25,4 +25,21 @@ class Validators {
     if ((value ?? '').trim().isEmpty) return 'This field is required';
     return null;
   }
+
+  /// A Philippine mobile number, typed as `9171234567`, `09171234567` or
+  /// `+639171234567` (spaces and dashes allowed).
+  static String? phMobile(String? value) {
+    if ((value ?? '').trim().isEmpty) return 'This field is required';
+    if (normalizePhMobile(value) == null) {
+      return 'Use a PH mobile number, like 917 123 4567';
+    }
+    return null;
+  }
+
+  /// [value] as E.164 (`+639171234567`), or null if it isn't a PH mobile.
+  static String? normalizePhMobile(String? value) {
+    final digits = (value ?? '').replaceAll(RegExp(r'[\s\-()]'), '');
+    final match = RegExp(r'^(?:\+?63|0)?(9\d{9})$').firstMatch(digits);
+    return match == null ? null : '+63${match[1]}';
+  }
 }

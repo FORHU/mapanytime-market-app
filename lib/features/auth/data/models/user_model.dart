@@ -9,7 +9,6 @@ import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.
 ///   "message": "Login successful",
 ///   "data": {
 ///     "accessToken": "...",
-///     "refreshToken": "...",
 ///     "user": { "id": "...", "email": "...", "username": "...", ... }
 ///   }
 /// }
@@ -24,11 +23,10 @@ class UserModel extends UserEntity {
     super.countryCode,
     super.onboardingCompleted,
     super.roles,
-    this.refreshToken,
   });
 
   /// Parses the full API response envelope. Accepts either the wrapped
-  /// `{ data: { accessToken, user } }` shape or a flat map (for refresh).
+  /// `{ data: { accessToken, user } }` shape or a flat map (a cached user).
   factory UserModel.fromJson(Map<String, dynamic> json) {
     // Unwrap the `data` envelope if present (login / register responses).
     final payload = json.containsKey('data')
@@ -58,9 +56,9 @@ class UserModel extends UserEntity {
           userMap['countryCode'] as String?,
       onboardingCompleted: userMap['onboardingCompleted'] as bool? ?? false,
       roles: _parseRoles(userMap['roles']),
-      // login/register returns `accessToken`; refresh returns `accessToken` too.
+      // login returns `accessToken`; a cached user stores it as `token`.
+      // A `refreshToken` in an older cached user is ignored (API #122).
       token: (payload['accessToken'] ?? payload['token']) as String,
-      refreshToken: payload['refreshToken'] as String?,
     );
   }
 
@@ -84,11 +82,9 @@ class UserModel extends UserEntity {
         .toList(growable: false);
   }
 
-  /// Short-lived access token (bearer).
+  /// The session's bearer token. There is no refresh token: the API issues
+  /// Better Auth sessions that slide forward with use (API #122).
   final String token;
-
-  /// Long-lived token used to obtain a new access token.
-  final String? refreshToken;
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -102,9 +98,8 @@ class UserModel extends UserEntity {
     // returns on every launch.
     'roles': roles,
     'token': token,
-    'refreshToken': refreshToken,
   };
 
   @override
-  List<Object?> get props => [...super.props, token, refreshToken];
+  List<Object?> get props => [...super.props, token];
 }

@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:fpdart/fpdart.dart';
 import 'package:mapanytime_market_app/core/errors/failure.dart';
 import 'package:mapanytime_market_app/features/auth/data/repositories/auth_repository.dart';
+import 'package:mapanytime_market_app/features/auth/domain/entities/registration_profile.dart';
 
 /// Registers a new buyer account.
 class RegisterUseCase {
@@ -15,6 +16,7 @@ class RegisterUseCase {
     required String firstName,
     required String lastName,
     String? middleName,
+    RegistrationProfile? profile,
   }) {
     final countryCode = PlatformDispatcher.instance.locale.countryCode;
     return _repository.register(
@@ -25,6 +27,7 @@ class RegisterUseCase {
       middleName: middleName,
       countryCode: countryCode,
       roleName: 'BUYER',
+      profile: profile,
     );
   }
 }

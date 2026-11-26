@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mapanytime_market_app/core/utils/extensions.dart';
-import 'package:mapanytime_market_app/features/recommendations/presentation/widgets/recommended_store_card.dart';
 import 'package:mapanytime_market_app/features/wishlist/domain/entities/wishlist_item.dart';
 import 'package:mapanytime_market_app/features/wishlist/presentation/controllers/wishlist_controller.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
 import 'package:mapanytime_market_app/shared/widgets/modern_app_bar.dart';
 import 'package:mapanytime_market_app/shared/widgets/product_card.dart';
+import 'package:mapanytime_market_app/shared/widgets/recommended_store_card.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 

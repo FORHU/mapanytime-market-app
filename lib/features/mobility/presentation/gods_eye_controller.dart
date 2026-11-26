@@ -2,9 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mapanytime_market_app/core/services/realtime_socket.dart';
 import 'package:mapanytime_market_app/features/mobility/data/mobility_remote_datasource.dart';
-import 'package:mapanytime_market_app/features/worldMap/presentation/controllers/world_map_controller.dart'
-    show storeSocketProvider;
 
 /// A vehicle not heard from in this long leaves the map. The server already
 /// sends `vehicle:removed` on stop, on 60s of silence and when a vehicle
@@ -30,22 +29,26 @@ Map<String, LiveVehicle> pruneStale(
 }
 
 /// God's Eye: the live vehicles in (or recently in) the map's viewport, by id.
-/// Fed by the region-scoped socket the store markers already use, plus a
-/// snapshot per viewport so parked vehicles show without waiting for a ping.
+/// Fed by the app's shared socket, on the viewport subscription the store
+/// markers already hold, plus a snapshot per viewport so parked vehicles show
+/// without waiting for a ping.
 class GodsEyeController extends Notifier<Map<String, LiveVehicle>> {
   @override
   Map<String, LiveVehicle> build() {
-    final socket = ref.read(storeSocketProvider)..connect();
+    final socket = ref.read(realtimeSocketProvider)..connect();
 
-    final movedSub = socket.onVehicleMoved.listen((json) {
+    final movedSub = socket.on('vehicle:moved').listen((data) {
+      if (data is! Map || data['id'] is! String) return;
       try {
-        final v = LiveVehicle.fromJson(json);
+        final v = LiveVehicle.fromJson(data.cast<String, dynamic>());
         state = {...state, v.id: v};
       } on Object catch (e) {
         debugPrint('Ignoring malformed vehicle:moved: $e');
       }
     });
-    final removedSub = socket.onVehicleRemoved.listen((id) {
+    final removedSub = socket.on('vehicle:removed').listen((data) {
+      if (data is! Map || data['id'] is! String) return;
+      final id = data['id'] as String;
       if (state.containsKey(id)) state = {...state}..remove(id);
     });
     // Pings sent while the socket was down were missed: catch up.

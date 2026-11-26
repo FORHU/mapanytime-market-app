@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mapanytime_market_app/core/config/app_config.dart';
+import 'package:mapanytime_market_app/core/services/realtime_socket.dart';
+import 'package:mapanytime_market_app/core/services/storage_service.dart';
 import 'package:mapanytime_market_app/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:mapanytime_market_app/features/notifications/data/datasources/notification_socket_datasource.dart';
 import 'package:mapanytime_market_app/features/notifications/domain/entities/app_notification.dart';
@@ -13,8 +14,9 @@ final notificationSocketProvider = Provider<NotificationSocketDataSource?>((
   final user = ref.watch(authControllerProvider).user;
   if (user == null) return null;
 
-  final source = NotificationSocketDataSource(AppConfig.instance.socketUrl)
-    ..connect(userId: user.id);
+  final storage = ref.read(storageServiceProvider);
+  final source = NotificationSocketDataSource(ref.read(realtimeSocketProvider))
+    ..connect(readToken: storage.readToken);
   ref.onDispose(source.dispose);
   return source;
 });

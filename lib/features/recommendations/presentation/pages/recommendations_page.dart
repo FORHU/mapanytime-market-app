@@ -7,10 +7,10 @@ import 'package:mapanytime_market_app/features/recommendations/presentation/cont
 import 'package:mapanytime_market_app/features/recommendations/presentation/widgets/deal_card.dart';
 import 'package:mapanytime_market_app/features/recommendations/presentation/widgets/feed_placeholders.dart';
 import 'package:mapanytime_market_app/features/recommendations/presentation/widgets/nearby_store_card.dart';
-import 'package:mapanytime_market_app/features/recommendations/presentation/widgets/recommended_store_card.dart';
 import 'package:mapanytime_market_app/features/wishlist/presentation/controllers/wishlist_controller.dart';
 import 'package:mapanytime_market_app/features/worldMap/domain/entities/store_entity.dart';
 import 'package:mapanytime_market_app/routes/route_names.dart';
+import 'package:mapanytime_market_app/shared/widgets/recommended_store_card.dart';
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/radius.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';

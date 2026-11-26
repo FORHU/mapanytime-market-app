@@ -1,55 +1,36 @@
 import 'dart:async';
 
+import 'package:mapanytime_market_app/core/services/realtime_socket.dart';
 import 'package:mapanytime_market_app/features/notifications/domain/entities/app_notification.dart';
-import 'package:socket_io_client/socket_io_client.dart' as io;
 
-/// Realtime user notifications over Socket.IO. Connects to the server, joins
-/// the signed-in user's notification channel (`subscribe_notifications`), and
-/// exposes a stream of incoming `notification:new` events for the app to toast.
+/// Realtime user notifications over the app's shared [RealtimeSocket]: joins
+/// the signed-in user's notification channel and exposes incoming
+/// `notification:new` events for the app to toast.
 ///
-/// Separate from the store socket: that one is viewport-scoped and lives with
-/// the map; this one is user-scoped and lives for the whole session.
+/// Scoped to the signed-in user — [dispose] leaves the channel but keeps the
+/// shared connection, which the map is still using.
 class NotificationSocketDataSource {
-  NotificationSocketDataSource(this._socketUrl);
+  NotificationSocketDataSource(this._socket);
 
-  final String _socketUrl;
-  io.Socket? _socket;
-
-  final _notifications = StreamController<AppNotification>.broadcast();
+  final RealtimeSocket _socket;
 
   /// Notifications pushed to the subscribed user.
-  Stream<AppNotification> get onNotification => _notifications.stream;
+  Stream<AppNotification> get onNotification => _socket
+      .on('notification:new')
+      .where((data) => data is Map)
+      .map(
+        (data) =>
+            AppNotification.fromJson((data as Map).cast<String, dynamic>()),
+      )
+      .where((notification) => notification.id.isNotEmpty);
 
-  void connect({required String userId}) {
-    if (_socket != null) return;
-
-    _socket =
-        io.io(
-            _socketUrl,
-            io.OptionBuilder()
-                .setTransports(['websocket'])
-                .enableReconnection()
-                .build(),
-          )
-          // (Re)subscribe on every (re)connect so the channel survives drops.
-          ..onConnect((_) {
-            _socket?.emit('subscribe_notifications', {'userId': userId});
-          })
-          ..on('notification:new', (data) {
-            if (data is! Map) return;
-            final notification = AppNotification.fromJson(
-              data.cast<String, dynamic>(),
-            );
-            if (notification.id.isNotEmpty) {
-              _notifications.add(notification);
-            }
-          })
-          ..connect();
+  /// [readToken] is called on every (re)connect rather than once: the server
+  /// joins the channel of whoever the access token belongs to, and a reconnect
+  /// can come long after a refresh replaced the token held at sign-in.
+  void connect({required Future<String?> Function() readToken}) {
+    _socket.connect();
+    unawaited(_socket.subscribeNotifications(readToken));
   }
 
-  Future<void> dispose() async {
-    _socket?.dispose();
-    _socket = null;
-    await _notifications.close();
-  }
+  Future<void> dispose() async => _socket.unsubscribeNotifications();
 }

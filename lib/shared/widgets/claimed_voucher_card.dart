@@ -3,9 +3,9 @@ import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import 'package:mapanytime_market_app/features/rewards/domain/entities/user_voucher.dart'
     show UserVoucher, UserVoucherStatus;
-import 'package:mapanytime_market_app/features/rewards/presentation/widgets/voucher_card.dart'
-    show discountSummary;
 import 'package:mapanytime_market_app/shared/widgets/glass_card.dart';
+import 'package:mapanytime_market_app/shared/widgets/voucher_card.dart'
+    show discountSummary;
 import 'package:mapanytime_market_app/theme/tokens/colors.dart';
 import 'package:mapanytime_market_app/theme/tokens/spacing.dart';
 

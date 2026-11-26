@@ -3,6 +3,7 @@ import 'package:mapanytime_market_app/core/errors/exceptions.dart';
 import 'package:mapanytime_market_app/core/errors/failure.dart';
 import 'package:mapanytime_market_app/core/services/storage_service.dart';
 import 'package:mapanytime_market_app/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:mapanytime_market_app/features/auth/domain/entities/registration_profile.dart';
 import 'package:mapanytime_market_app/features/auth/domain/entities/user_entity.dart';
 
 /// Repository contract (the abstraction the domain layer depends on).
@@ -18,6 +19,7 @@ abstract class AuthRepository {
     String? middleName,
     String? countryCode,
     String roleName,
+    RegistrationProfile? profile,
   });
   Future<Either<Failure, void>> logout();
   Future<Either<Failure, UserEntity>> refreshAuth();
@@ -45,10 +47,6 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final user = await _remote.login(email, password);
       await _storage.saveToken(user.token);
-      final refreshToken = user.refreshToken;
-      if (refreshToken != null && refreshToken.isNotEmpty) {
-        await _storage.saveRefreshToken(refreshToken);
-      }
       // Save full user model to local cache for instant offline startup
       await _storage.saveUserModel(user);
       return Right(user);
@@ -70,10 +68,6 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final user = await _remote.loginWithFacebook(accessToken);
       await _storage.saveToken(user.token);
-      final refreshToken = user.refreshToken;
-      if (refreshToken != null && refreshToken.isNotEmpty) {
-        await _storage.saveRefreshToken(refreshToken);
-      }
       await _storage.saveUserModel(user);
       return Right(user);
     } on UnauthorizedException catch (e) {
@@ -92,10 +86,6 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final user = await _remote.loginWithGoogle(idToken);
       await _storage.saveToken(user.token);
-      final refreshToken = user.refreshToken;
-      if (refreshToken != null && refreshToken.isNotEmpty) {
-        await _storage.saveRefreshToken(refreshToken);
-      }
       await _storage.saveUserModel(user);
       return Right(user);
     } on UnauthorizedException catch (e) {
@@ -118,6 +108,7 @@ class AuthRepositoryImpl implements AuthRepository {
     String? middleName,
     String? countryCode,
     String roleName = 'BUYER',
+    RegistrationProfile? profile,
   }) async {
     try {
       await _remote.register(
@@ -128,6 +119,7 @@ class AuthRepositoryImpl implements AuthRepository {
         middleName: middleName,
         countryCode: countryCode,
         roleName: roleName,
+        profile: profile,
       );
       return const Right(null);
     } on UnauthorizedException catch (e) {
@@ -149,8 +141,7 @@ class AuthRepositoryImpl implements AuthRepository {
     // server. A 401 is the exception: the session is already invalid
     // server-side (interceptor cleared tokens), so we treat it as logged out.
     try {
-      final refreshToken = await _storage.readRefreshToken();
-      await _remote.logout(refreshToken);
+      await _remote.logout();
     } on UnauthorizedException catch (_) {
       // Session already gone server-side — fall through and clear local state.
     } on NetworkException catch (e) {
