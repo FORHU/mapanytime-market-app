@@ -25,6 +25,8 @@ class StoreEntity extends Equatable {
     this.markerDisplayMode = MarkerDisplayMode.photoCard,
     this.markerPrice,
     this.markerSubtitle,
+    this.isSponsored = false,
+    this.sponsoredBadge,
     this.address,
   });
 
@@ -55,6 +57,12 @@ class StoreEntity extends Equatable {
   /// Used when [markerDisplayMode] is [MarkerDisplayMode.labelCard].
   final String? markerSubtitle;
 
+  /// True when the store has an active merchant advertising promotion running.
+  final bool isSponsored;
+
+  /// Optional merchant-selected promotional badge label.
+  final String? sponsoredBadge;
+
   /// The seller-entered street address, e.g. "SM Megamall Bldg A". Free text,
   /// not a building identifier — used only as a display label. Grouping
   /// co-located stores must key on coordinates, not this string, since two
@@ -78,6 +86,8 @@ class StoreEntity extends Equatable {
     markerDisplayMode,
     markerPrice,
     markerSubtitle,
+    isSponsored,
+    sponsoredBadge,
     address,
   ];
 }
