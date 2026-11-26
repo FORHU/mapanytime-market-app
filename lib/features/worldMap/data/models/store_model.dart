@@ -35,6 +35,8 @@ class StoreModel extends StoreEntity {
     super.markerDisplayMode,
     super.markerPrice,
     super.markerSubtitle,
+    super.isSponsored,
+    super.sponsoredBadge,
     super.address,
   });
 
@@ -63,6 +65,8 @@ class StoreModel extends StoreEntity {
       ),
       markerPrice: (json['markerPrice'] as num?)?.toDouble(),
       markerSubtitle: json['markerSubtitle'] as String?,
+      isSponsored: json['isSponsored'] as bool? ?? false,
+      sponsoredBadge: json['sponsoredBadge'] as String?,
       // currentAddress is non-null in the DB but sellers can leave it blank,
       // so an empty string is normalized to null here rather than pushed
       // downstream for every consumer to re-check.
